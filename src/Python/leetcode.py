@@ -1147,3 +1147,37 @@ class ValidSquare(object):
         print vs.validSquare([0,0],[1,1],[0,1],[2,0]) # False
 
 ValidSquare.test()
+
+# Q-971 Reverse Only Letters
+class ReverseOnlyLetters(object):
+    def is_letter(self, c):
+        cv = ord(c)
+        return (cv >= ord('a') and cv <= ord('z')) or (cv >= ord('A') and cv <= ord('Z'))
+
+    def reverseOnlyLetters(self, S):
+        """
+        :type S: str
+        :rtype: str
+        """
+        l, r = 0, len(S)-1
+        chars = list(S)
+        while l < r:
+            while l < len(S)-1 and not self.is_letter(chars[l]):
+                l += 1
+            while r >= 0 and not self.is_letter(chars[r]):
+                r -= 1
+            if l < r:
+                t = chars[l]
+                chars[l] = chars[r]
+                chars[r] = t
+                l += 1
+                r -= 1
+        return ''.join(chars)
+
+    @staticmethod
+    def test():
+        print "Q-971 Reverse Only Letters"
+        rol = ReverseOnlyLetters()
+        print rol.reverseOnlyLetters("a-bC-dEf-ghIj")
+
+ReverseOnlyLetters.test()
