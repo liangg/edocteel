@@ -812,6 +812,23 @@ class AssignCookies(object):
                     break
         return result
 
+# Q-470 Implement Rand10 Using Rand7 (rejection sampling)
+#
+# Given a function rand7 which generates a uniform random integer in the range 1 to 7, write a function 
+# rand10 which generates a uniform random integer in the range 1 to 10.
+class Rand10UsingRand7(object):
+    def rand10(self):
+        """
+        :rtype: int
+        """
+        n = 0
+        while True:
+            r = rand7()
+            c = rand7()
+            n = (r-1)*7 + c
+            if n <= 40:
+                break
+        return 1 + n % 10
 
 # Q-513: Find Bottom Left Tree Value
 class FindBottomLeftTreeValue:
@@ -1009,6 +1026,41 @@ class MaximumAverageSubarray(object):
                 maxsum = s
             print maxsum
         return float(maxsum)/float(k)
+
+# Q-645 Set Mismatch
+#
+# The set S originally contains numbers from 1 to n. But unfortunately, due to the 
+# data error, one of the numbers in the set got duplicated to another number in the 
+# set, which results in repetition of one number and loss of another number. Given 
+# an array nums representing the data status of this set after the error. Your task 
+# is to firstly find the number occurs twice and then find the number that is missing. 
+# Return them in the form of an array.
+class SetMismatch(object):
+    def findErrorNums(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[int]
+        """
+        result = [None, None]
+        for i in xrange(len(nums)):
+            index = abs(nums[i]) - 1
+            if nums[index] < 0:
+                result[0] = index+1
+            else:
+                nums[index] = 0 - nums[index]
+        for i in xrange(len(nums)):
+            if nums[i] > 0:
+                result[1] = i+1
+                break
+        return result
+
+    @staticmethod
+    def test():
+        print "Q-645 Set Mismatch"
+        sm = SetMismatch()
+        print sm.findErrorNums([2,1,4,5,2])
+
+SetMismatch.test()
 
 # Q-650 2 Keys Keyboard (math)
 class TwoKeysKeyboard(object):
@@ -1357,6 +1409,49 @@ class NumerOfSubarraysWithBoundedMaximum(object):
 
 NumerOfSubarraysWithBoundedMaximum.test()
 
+# Q-807 Max Increase to Keep City Skyline
+#
+# In a 2 dimensional array grid, each value grid[i][j] represents the height of a building located 
+# there. We are allowed to increase the height of any number of buildings, by any amount (the amounts 
+# can be different for different buildings). Height 0 is considered to be a building as well. At the 
+# end, the "skyline" when viewed from all four directions of the grid, i.e. top, bottom, left, and 
+# right, must be the same as the skyline of the original grid. A city's skyline is the outer contour 
+# of the rectangles formed by all the buildings when viewed from a distance. See the following example.
+# What is the maximum total sum that the height of the buildings can be increased?
+class MaxIncreaseKeepingSkyline(object):
+    def maxIncreaseKeepingSkyline(self, grid):
+        """
+        :type grid: List[List[int]]
+        :rtype: int
+        """
+        rowMax = [0 for i in xrange(len(grid))]
+        colMax = [0 for i in xrange(len(grid[0]))]
+        for i in xrange(len(grid)):
+            for j in xrange(len(grid[0])):
+                if rowMax[i] < grid[i][j]:
+                    rowMax[i] = grid[i][j]
+                if colMax[j] < grid[i][j]:
+                    colMax[j] = grid[i][j]
+        total = 0
+        for i in xrange(len(grid)):
+            for j in xrange(len(grid[0])):
+                h = min(rowMax[i], colMax[j])
+                total += h - grid[i][j]
+        return total
+
+
+    @staticmethod
+    def test():
+        print "Q-807 Max Increase to Keep City Skyline"
+        mikcl = MaxIncreaseKeepingSkyline()
+        grid = [[3,0,8,4],[2,4,5,7],[9,2,6,3],[0,3,1,0]] # 35
+        print mikcl.maxIncreaseKeepingSkyline(grid) 
+        grid2 = [[3,0,8,4]] # 0
+        grid3 = [[3],[2],[9],[0]] # 0
+        print mikcl.maxIncreaseKeepingSkyline(grid2)        
+
+MaxIncreaseKeepingSkyline.test()
+
 # Q-814 Binary Tree Pruning
 #
 # We are given the head node root of a binary tree, where additionally every node's value is either 
@@ -1446,4 +1541,4 @@ class KeysAndRooms(object):
 
 KeysAndRooms.test()
 
-BinaryTreePath.test()
+
