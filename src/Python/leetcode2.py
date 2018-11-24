@@ -959,6 +959,36 @@ class SubtreeOfAnotherTree(object):
                 return True
         return True if self.isSubtree(s.left, t) else self.isSubtree(s.right, t)
 
+# Q-623 Add One Row to Tree
+class AddOneRowToTree(object):
+    def helper(self, root, v, d, currLevel):
+        if root is None:
+            return
+        if currLevel == d - 1:
+            n1 = TreeNode(v)
+            n1.left = root.left
+            root.left = n1
+            n2 = TreeNode(v)
+            n2.right = root.right        
+            root.right = n2
+            return
+        self.helper(root.left, v, d, currLevel+1)
+        self.helper(root.right, v, d, currLevel+1)
+
+    def addOneRow(self, root, v, d):
+        """
+        :type root: TreeNode
+        :type v: int
+        :type d: int
+        :rtype: TreeNode
+        """
+        if d == 1 or root is None:
+            newRoot = TreeNode(v)
+            newRoot.left = root
+            return newRoot
+        self.helper(root, v, d, 1)
+        return root
+
 # Q-628 Maximum Product of Three Numbers
 class MaxProductThreeNumbers(object):
     def maximumProduct(self, nums):
