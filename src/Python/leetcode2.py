@@ -1191,6 +1191,58 @@ class JudgeRouteCircle(object):
         print jrc.judgeCircle("ULLURDDR")
         print jrc.judgeCircle("UULLURDDR")
 
+# Q-659 Split Array into Consecutive Subsequences
+#
+# You are given an integer array sorted in ascending order (may contain duplicates), you need to split 
+# them into several subsequences, where each subsequences consist of at least 3 consecutive integers. 
+# Return whether you can make such a split.
+class SplitArrayIntoConsecutiveSubsequences(object):
+    def isPossible(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: bool
+        """
+        freq = {}
+        for i in xrange(len(nums)):
+            cnt = 1 if nums[i] not in freq else freq[nums[i]]+1
+            freq[nums[i]] = cnt
+        endAt = {}
+        for i in xrange(len(nums)):
+            n = nums[i]
+            if freq[n] == 0:
+                continue
+            # greedy, append to an existing subsequence        
+            if n in endAt and endAt[n] > 0:
+                endAt[n] -= 1
+                endAt[n+1] = 1 if n+1 not in endAt else endAt[n+1]+1
+                freq[n] -= 1
+            # check if it can start a new sequence
+            elif n+1 in freq and freq[n+1] > 0 and n+2 in freq and freq[n+2] > 0:
+                freq[n] -= 1
+                freq[n+1] -= 1
+                freq[n+2] -= 1
+                endAt[n+3] = 1 if n+3 not in endAt else endAt[n+3]+1
+            else:
+                return False
+        return True
+
+    @staticmethod
+    def test():
+        print "Q-659 Split Array into Consecutive Subsequences"
+        sa = SplitArrayIntoConsecutiveSubsequences()
+        s0 = [1,2,3,3,4,5] # True
+        print sa.isPossible(s0)
+        s1 = [1,2,3,3,4,4,5,5] # True
+        print sa.isPossible(s1)
+        s2 = [1,2,3,4,4,5] # False
+        print sa.isPossible(s2)
+        s3 = [1,2,3,3,5,6,7] # False
+        print sa.isPossible(s3)
+        s4 =  [4,5,6,7,7,8,8,9,10,11] # True
+        print sa.isPossible(s4)
+
+SplitArrayIntoConsecutiveSubsequences.test()
+
 # Q-662 Maximum Width of Binary Tree
 #
 # Given a binary tree, write a function to get the maximum width of the given tree. The width of a tree 
@@ -1570,5 +1622,4 @@ class KeysAndRooms(object):
         print kr.canVisitAllRooms([[1,3],[3,0,1],[2],[0]]) # False
 
 KeysAndRooms.test()
-
 
