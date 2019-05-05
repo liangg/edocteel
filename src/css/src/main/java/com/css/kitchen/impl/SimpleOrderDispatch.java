@@ -1,5 +1,6 @@
 package com.css.kitchen.impl;
 
+import com.css.kitchen.Order;
 import com.css.kitchen.OrderDispatch;
 import java.lang.Override;
 
