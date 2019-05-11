@@ -10,6 +10,11 @@ import lombok.Value;
 @Builder
 @Value
 public class Order {
+    public static final String ORDER_NAME = "name";
+    public static final String ORDER_TEMP = "temp";
+    public static final String ORDER_SHELFLIFE = "shelfLife";
+    public static final String ORDER_DECAYRATE = "decayRate";
+
     private final String name;
     private final Temperature temperature;
     private final int shelfLife;

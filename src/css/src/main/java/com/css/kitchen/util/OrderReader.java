@@ -2,6 +2,7 @@ package com.css.kitchen.util;
 
 import com.css.kitchen.Order;
 import java.util.List;
+import java.util.Optional;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -9,10 +10,6 @@ import org.json.simple.JSONObject;
  * An order util that convert json data to Order
  */
 public class OrderReader {
-    static String ORDER_NAME = "name";
-    static String ORDER_TEMP = "temp";
-    static String ORDER_SHELFLIFE = "shelfLife";
-    static String ORDER_DECAYRATE = "decayRate";
 
     public static List<Order> toOrder(String orderJsonArray) {
         // JSONParser parser = new JSONParser();
@@ -21,20 +18,24 @@ public class OrderReader {
     }
 
     // Validate order json data format, and create Order only if all parameters are valid
-    public static Order toOrder(JSONObject orderJson) {
-        final String name = (String) orderJson.get(ORDER_NAME);
-        final String temp = ((String) orderJson.get(ORDER_TEMP)).toLowerCase();
-        final String life = (String) orderJson.get(ORDER_SHELFLIFE);
-        final String decay = (String) orderJson.get(ORDER_DECAYRATE);
+    public static Optional<Order> toOrder(JSONObject orderJson) {
+        final String name = (String) orderJson.get(Order.ORDER_NAME);
+        final String temp = (String) orderJson.get(Order.ORDER_TEMP);
+        final Integer life = (Integer) orderJson.get(Order.ORDER_SHELFLIFE);
+        final Double decay = (Double) orderJson.get(Order.ORDER_DECAYRATE);
         if (name == null || temp == null || life == null || decay == null) {
             // FIXME: log metrics
-            return null;
+            return Optional.empty();
         }
-        // FIXME: convert to int and double
-        Order.Temperature temperature = Order.temperatureMap.get(temp);
+        Order.Temperature temperature = Order.temperatureMap.get(temp.toLowerCase());
         if (temperature == null) {
-            return null;
+            return Optional.empty();
         }
-        return Order.builder().name(name).temperature(temperature).build();
+        return Optional.of(Order.builder()
+                .name(name)
+                .temperature(temperature)
+                .shelfLife(life.intValue())
+                .decayRate(decay.doubleValue())
+                .build());
     }
 }

@@ -20,7 +20,7 @@ public class Shelf {
         Overflow
     }
 
-    final public Type shelfType;
+    final private Type shelfType;
     final private int capacity;
     final private ArrayDeque<Order> shelvedOrders;
     private int size = 0;
