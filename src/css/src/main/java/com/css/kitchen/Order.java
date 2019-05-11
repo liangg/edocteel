@@ -1,24 +1,21 @@
 package com.css.kitchen;
 
+import lombok.AllArgsConstructor;
+import lombok.Value;
+
 /** CSS kitchen food order */
+@AllArgsConstructor
+@Value
 public class Order {
-    final String name;
-    final Temperature temperature;
-    final int shelfLife;
-    final double decayRate;
+    private final String name;
+    private final Temperature temperature;
+    private final int shelfLife;
+    private final double decayRate;
 
     enum Temperature {
         Hot,
         Cold,
         Frozen
-    }
-
-    // This should be generated using lombok
-    public Order(String name, Temperature temp, int shelfLife, double decayRate) {
-        this.name = name;
-        this.temperature = temp;
-        this.shelfLife = shelfLife;
-        this.decayRate = decayRate;
     }
 
     public boolean isHot() { return temperature == Temperature.Hot; }
