@@ -22,9 +22,11 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+    compile 'com.google.guava:guava:21.0'
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
     compile 'org.projectlombok:lombok:1.16.18'
+    compile 'org.json:json:20180813'
     compile 'org.slf4j:slf4j-api:1.7.12'
-    compile 'com.googlecode.json-simple:json-simple:1.1'
 
     testCompile 'junit:junit:4.12'
 }

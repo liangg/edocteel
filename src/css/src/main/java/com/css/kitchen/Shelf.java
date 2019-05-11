@@ -51,7 +51,7 @@ public class Shelf {
             }
             semaphore.release();
         } catch (InterruptedException e) {
-            System.out.println("Shelf add exception");
+            System.out.println("Shelf add order exception");
         }
         return result;
     }
@@ -66,7 +66,7 @@ public class Shelf {
             }
             semaphore.release();
         } catch (InterruptedException e) {
-            System.out.println("Shelf fetch exception");
+            System.out.println("Shelf get order exception");
         }
         return Optional.empty().ofNullable(result);
     }

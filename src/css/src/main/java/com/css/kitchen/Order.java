@@ -1,10 +1,13 @@
 package com.css.kitchen;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 /** CSS kitchen food order */
 @AllArgsConstructor
+@Builder
 @Value
 public class Order {
     private final String name;
@@ -12,11 +15,14 @@ public class Order {
     private final int shelfLife;
     private final double decayRate;
 
-    enum Temperature {
+    public enum Temperature {
         Hot,
         Cold,
         Frozen
     }
+
+    static public ImmutableMap<String, Temperature> temperatureMap = ImmutableMap.of(
+            "hot", Temperature.Hot, "cold", Temperature.Cold, "frozen", Temperature.Frozen);
 
     public boolean isHot() { return temperature == Temperature.Hot; }
     public boolean isCold() { return temperature == Temperature.Cold; }
