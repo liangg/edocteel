@@ -2,13 +2,17 @@ package com.css.kitchen.util;
 
 import com.css.kitchen.Order;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.json.simple.JSONArray;
-//import org.json.simple.JSONParser;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * An order util that convert json data to Order
@@ -19,15 +23,11 @@ public class OrderReader {
         Stream<Optional<Order>> ss = orderJsonArray.stream()
                 .map(jo -> toOrder((JSONObject) jo));
         List<Optional<Order>> orderOptionals = ss.collect(Collectors.toList());
-        Stream<Order> oss = orderOptionals.stream().filter(Optional::isPresent).map(Optional::get);
-        List<Order> res = oss.collect(Collectors.toList());
-        //.map(jo -> toOrder((JSONObject) jo))
-        /*orderJsonArray.stream()
-                .map(Order.class::cast)
-                .map(this::toOrder)
-                .flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty())
-                .collect(Collectors.toList());*/
-        return null;
+        List<Order> result = orderOptionals.stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+        return result;
     }
 
     // Validate order json data format, and create Order only if all parameters are valid
@@ -52,9 +52,17 @@ public class OrderReader {
                 .build());
     }
 
-    public static List<Order> fromJsonFile(String orderJsonFile) {
-        //final JSONParser parser = new JSONParser();
-        //final JSONArray a = (JSONArray) parser.parse(new FileReader(orderJsonFile));
-        return null;
+    public static List<Order> readOrdersJson(String orderJsonFile) {
+        JSONArray ordersJsonArray = null;
+        try {
+            JSONParser parser = new JSONParser();
+            FileReader reader = new FileReader(orderJsonFile);
+            ordersJsonArray = (JSONArray) parser.parse(reader);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return ordersJsonArray != null ? toOrderList(ordersJsonArray) : Collections.<Order>emptyList();
     }
 }
