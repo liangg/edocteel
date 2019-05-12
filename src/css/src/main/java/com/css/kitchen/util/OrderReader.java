@@ -1,9 +1,13 @@
 package com.css.kitchen.util;
 
 import com.css.kitchen.Order;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.json.simple.JSONArray;
+//import org.json.simple.JSONParser;
 import org.json.simple.JSONObject;
 
 /**
@@ -11,9 +15,18 @@ import org.json.simple.JSONObject;
  */
 public class OrderReader {
 
-    public static List<Order> toOrder(String orderJsonArray) {
-        // JSONParser parser = new JSONParser();
-        //JSONArray jsonArray = new JSONArray(orderJsonArray);
+    public static List<Order> toOrderList(JSONArray orderJsonArray) {
+        Stream<Optional<Order>> ss = orderJsonArray.stream()
+                .map(jo -> toOrder((JSONObject) jo));
+        List<Optional<Order>> orderOptionals = ss.collect(Collectors.toList());
+        Stream<Order> oss = orderOptionals.stream().filter(Optional::isPresent).map(Optional::get);
+        List<Order> res = oss.collect(Collectors.toList());
+        //.map(jo -> toOrder((JSONObject) jo))
+        /*orderJsonArray.stream()
+                .map(Order.class::cast)
+                .map(this::toOrder)
+                .flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty())
+                .collect(Collectors.toList());*/
         return null;
     }
 
@@ -37,5 +50,11 @@ public class OrderReader {
                 .shelfLife(life.intValue())
                 .decayRate(decay.doubleValue())
                 .build());
+    }
+
+    public static List<Order> fromJsonFile(String orderJsonFile) {
+        //final JSONParser parser = new JSONParser();
+        //final JSONArray a = (JSONArray) parser.parse(new FileReader(orderJsonFile));
+        return null;
     }
 }
