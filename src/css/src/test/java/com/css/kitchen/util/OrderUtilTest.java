@@ -44,7 +44,7 @@ public class OrderUtilTest {
 
     @Test
     public void testJsonObjectToOrder() {
-        Optional<Order> orderOptional = OrderReader.toOrder(ramenOrder);
+        Optional<Order> orderOptional = OrderReader.readOrder(ramenOrder);
         assertTrue(orderOptional.isPresent());
         final Order order = orderOptional.get();
         assertEquals(order.getName(), "Ramen");
@@ -52,7 +52,7 @@ public class OrderUtilTest {
         assertEquals(order.getShelfLife(), 600);
         assertEquals(Double.valueOf(order.getDecayRate()), Double.valueOf(0.45));
 
-        orderOptional = OrderReader.toOrder(sushiOrder);
+        orderOptional = OrderReader.readOrder(sushiOrder);
         assertTrue(orderOptional.isPresent());
         final Order order2 = orderOptional.get();
         assertEquals(order2.getName(), "Sushi dragonroll");
@@ -61,7 +61,7 @@ public class OrderUtilTest {
         assertEquals(Double.valueOf(order2.getDecayRate()), Double.valueOf(0.15));
 
         // should be empty due to missing temperature
-        orderOptional = OrderReader.toOrder(missingTempOrder);
+        orderOptional = OrderReader.readOrder(missingTempOrder);
         assertFalse(orderOptional.isPresent());
 
         // should be empty due to missing shelfLife
@@ -69,7 +69,16 @@ public class OrderUtilTest {
         orderJson4.put(Order.ORDER_NAME, "Mochi icecream");
         orderJson4.put(Order.ORDER_TEMP, "FROZEN");
         orderJson4.put(Order.ORDER_DECAYRATE, 0.5);
-        orderOptional = OrderReader.toOrder(orderJson4);
+        orderOptional = OrderReader.readOrder(orderJson4);
+        assertFalse(orderOptional.isPresent());
+
+        // should be empty due to wrong shelfLife value type
+        final JSONObject orderJson5 = new JSONObject();
+        orderJson5.put(Order.ORDER_NAME, "Mochi icecream");
+        orderJson5.put(Order.ORDER_TEMP, "FROZEN");
+        orderJson5.put(Order.ORDER_SHELFLIFE, "300");
+        orderJson5.put(Order.ORDER_DECAYRATE, 0.5);
+        orderOptional = OrderReader.readOrder(orderJson5);
         assertFalse(orderOptional.isPresent());
     }
 
