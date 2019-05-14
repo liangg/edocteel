@@ -35,10 +35,12 @@ public class OrderReader {
     public static Optional<Order> readOrder(JSONObject orderJson) {
         final Object name = orderJson.get(Order.ORDER_NAME);
         final Object temp = orderJson.get(Order.ORDER_TEMP);
-        final Object life = orderJson.get(Order.ORDER_SHELFLIFE);
-        final Object decay = orderJson.get(Order.ORDER_DECAYRATE);
+        final Object life = orderJson.get(Order.ORDER_SHELFLIFE); // should be Long
+        final Object decay = orderJson.get(Order.ORDER_DECAYRATE); // should be Double
         if (name == null || temp == null || life == null || decay == null ||
-                !(name instanceof String && temp instanceof String && life instanceof Integer && decay instanceof Double)) {
+                !(name instanceof String) || !(temp instanceof String) ||
+                !(life instanceof Long) || !(decay instanceof Double))
+        {
             // FIXME: log metrics
             return Optional.empty();
         }
@@ -49,7 +51,7 @@ public class OrderReader {
         return Optional.of(Order.builder()
                 .name((String) name)
                 .temperature(temperature)
-                .shelfLife(((Integer) life).intValue())
+                .shelfLife(((Long) life).intValue())
                 .decayRate(((Double) decay).doubleValue())
                 .build());
     }

@@ -30,3 +30,9 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
 }
+
+test {
+    dependsOn cleanTest
+    testLogging.showStandardStreams = true
+}
+

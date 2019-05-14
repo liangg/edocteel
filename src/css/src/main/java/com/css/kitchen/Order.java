@@ -17,7 +17,7 @@ public class Order {
 
     private final String name;
     private final Temperature temperature;
-    private final int shelfLife;
+    private final int shelfLife; // seconds
     private final double decayRate;
 
     public enum Temperature {
@@ -26,6 +26,7 @@ public class Order {
         Frozen
     }
 
+    // valid map of Temperature string value
     static public ImmutableMap<String, Temperature> temperatureMap = ImmutableMap.of(
             "hot", Temperature.Hot, "cold", Temperature.Cold, "frozen", Temperature.Frozen);
 
