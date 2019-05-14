@@ -14,11 +14,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An order util that convert json data to Order
  */
 public class OrderReader {
+    private static Logger logger = LoggerFactory.getLogger(OrderReader.class);
 
     public static List<Order> toOrderList(JSONArray orderJsonArray) {
         Stream<Optional<Order>> ss = orderJsonArray.stream()
@@ -42,12 +45,15 @@ public class OrderReader {
                 !(life instanceof Long) || !(decay instanceof Double))
         {
             // FIXME: log metrics
+            logger.error("invalid order attributes");
             return Optional.empty();
         }
         Order.Temperature temperature = Order.temperatureMap.get(((String) temp).toLowerCase());
         if (temperature == null) {
+            logger.error("invalid order temperature value");
             return Optional.empty();
         }
+        // FIXME: count valid order
         return Optional.of(Order.builder()
                 .name((String) name)
                 .temperature(temperature)
@@ -64,8 +70,10 @@ public class OrderReader {
             FileReader reader = new FileReader(orderJsonFile);
             ordersJsonArray = (JSONArray) parser.parse(reader);
         } catch (IOException ex) {
+            logger.error("error reading orders json file");
             ex.printStackTrace();
         } catch (ParseException e) {
+            logger.error("error parsing json file");
             e.printStackTrace();
         }
         return ordersJsonArray != null ? toOrderList(ordersJsonArray) : Collections.<Order>emptyList();
