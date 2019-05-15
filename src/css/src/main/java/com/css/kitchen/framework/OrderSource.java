@@ -32,7 +32,7 @@ public class OrderSource {
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
         Order order = orders.get(lastPosition++);
-        logger.info("submit order " + order);
+        logger.debug("submit order " + order);
         // FIXME: submit kitchen order queues
         return;
       }
