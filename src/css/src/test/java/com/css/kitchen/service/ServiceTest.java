@@ -8,7 +8,7 @@ import org.junit.Test;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-public class FrameworkTest {
+public class ServiceTest {
   @Test
   public void testOrderSourceScheduledTask() {
     ClassLoader classLoader = this.getClass().getClassLoader();

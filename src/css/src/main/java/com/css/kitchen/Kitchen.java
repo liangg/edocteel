@@ -1,14 +1,12 @@
 package com.css.kitchen;
 
-import com.css.kitchen.OrderProcess;
-import com.css.kitchen.OrderDispatch;
-import com.css.kitchen.framework.OrderSource;
 import com.css.kitchen.impl.SimpleOrderProcessor;
 import com.css.kitchen.impl.SimpleOrderDispatch;
+import com.css.kitchen.service.DriverScheduler;
+import com.css.kitchen.service.OrderSource;
 import com.css.kitchen.util.StatsManager;
 
 import java.lang.System;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -59,6 +57,9 @@ public class Kitchen {
         OrderSource sourcer = new OrderSource();
         sourcer.start(ordersJsonFile);
 
+        DriverScheduler driverScheduler = new DriverScheduler();
+        driverScheduler.start();
+
         // examine whether there is incoming orders
         while (sourcer.hasOrder()) {
             try {
@@ -69,6 +70,7 @@ public class Kitchen {
 
         // shutdown the application
         sourcer.shutdown();
+        driverScheduler.shutdown();
         System.out.println("CSS Kitchen is closed");
         StatsManager.report();
     }
