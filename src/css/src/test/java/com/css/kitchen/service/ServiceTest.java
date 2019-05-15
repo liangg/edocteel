@@ -1,4 +1,4 @@
-package com.css.kitchen.framework;
+package com.css.kitchen.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
