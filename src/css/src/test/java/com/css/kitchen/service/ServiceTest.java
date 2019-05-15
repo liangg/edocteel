@@ -17,12 +17,26 @@ public class ServiceTest {
     sourcer.start(ordersUrl.getFile());
     while (sourcer.hasOrder()) {
       try {
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(1);
       } catch (InterruptedException ex) {
       }
     }
     sourcer.shutdown();
     assertEquals(sourcer.getLastPosition(), 4);
+  }
+
+  @Test
+  public void testDriverSchedulerTask() {
+    DriverScheduler driverScheduler = new DriverScheduler();
+    driverScheduler.start();
+    driverScheduler.scheduleDriverPickup();
+    driverScheduler.scheduleDriverPickup();
+    // wait for driver tasks to be done
+    try {
+      TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException ex) {
+    }
+    driverScheduler.shutdown();
   }
 }
 

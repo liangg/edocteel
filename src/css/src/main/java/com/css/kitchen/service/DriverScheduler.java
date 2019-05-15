@@ -4,15 +4,13 @@ import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @NoArgsConstructor
-public class DriverScheduler {
+public class DriverScheduler extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(DriverScheduler.class);
 
-  private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+  public String name() { return "DriverScheduler"; }
 
   private final Runnable task = new Runnable() {
     @Override
@@ -24,21 +22,6 @@ public class DriverScheduler {
 
   public void start() {
     logger.info("DriverScheduler starts");
-  }
-
-  public void shutdown() {
-    try {
-      logger.info("DriverScheduler is to shut down");
-      executor.shutdown();
-      executor.awaitTermination(5, TimeUnit.SECONDS);
-    }
-    catch (InterruptedException e) {
-      logger.error("DriverScheduler interrupted");
-    }
-    finally {
-      executor.shutdownNow();
-      logger.info("DriverScheduler shuts down");
-    }
   }
 
   public void scheduleDriverPickup() {
