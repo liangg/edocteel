@@ -2,12 +2,14 @@ package com.css.kitchen;
 
 import com.css.kitchen.OrderProcess;
 import com.css.kitchen.OrderDispatch;
+import com.css.kitchen.framework.OrderSource;
 import com.css.kitchen.impl.SimpleOrderProcessor;
 import com.css.kitchen.impl.SimpleOrderDispatch;
 
 import java.lang.System;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A CSS kitchen that takes food orders, shelf and dispatch order to drivers.
@@ -42,6 +44,30 @@ public class Kitchen {
     }
 
     public static void main(String[] args) {
-        System.out.println("CSS Kitchen");
+        // pass food orders json file on the command line
+        if (args.length < 1) {
+            System.out.println("Error: missing orders json file");
+            System.exit(0);
+        }
+        // "/Users/liang_guo/workspace/edocteel/src/css/src/main/resources/food_orders.json"
+        final String ordersJsonFile = args[0];
+
+        System.out.println("CSS Kitchen is open");
+
+        // start simulated order source processor
+        OrderSource sourcer = new OrderSource();
+        sourcer.start(ordersJsonFile);
+
+        // examine whether there is incoming orders
+        while (sourcer.hasOrder()) {
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        // shutdown the application
+        sourcer.shutdown();
+        System.out.println("CSS Kitchen is closed");
     }
 }
