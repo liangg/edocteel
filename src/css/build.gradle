@@ -18,6 +18,16 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.css.kitchen.Kitchen'
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -36,4 +46,3 @@ test {
     dependsOn cleanTest
     testLogging.showStandardStreams = true
 }
-
