@@ -5,6 +5,7 @@ import com.css.kitchen.OrderDispatch;
 import com.css.kitchen.framework.OrderSource;
 import com.css.kitchen.impl.SimpleOrderProcessor;
 import com.css.kitchen.impl.SimpleOrderDispatch;
+import com.css.kitchen.util.StatsManager;
 
 import java.lang.System;
 import java.util.ArrayList;
@@ -69,5 +70,6 @@ public class Kitchen {
         // shutdown the application
         sourcer.shutdown();
         System.out.println("CSS Kitchen is closed");
+        StatsManager.report();
     }
 }

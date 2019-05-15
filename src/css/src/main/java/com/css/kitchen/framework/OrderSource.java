@@ -10,6 +10,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.css.kitchen.util.StatsManager;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public class OrderSource {
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
         Order order = orders.get(lastPosition++);
+        StatsManager.submittedOrders.incrementAndGet();
         logger.debug("submit order " + order);
         // FIXME: submit kitchen order queues
         return;
