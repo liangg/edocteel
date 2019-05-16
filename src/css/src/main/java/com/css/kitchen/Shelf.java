@@ -13,7 +13,7 @@ public class Shelf {
     public static int SHELF_SIZE = 15;
     public static int OVERFLOW_SIZE = 20;
 
-    enum Type {
+    public enum Type {
         HotFood,
         ColdFood,
         FrozenFood,

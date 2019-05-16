@@ -1,10 +1,9 @@
 package com.css.kitchen;
 
-import com.css.kitchen.impl.SimpleOrderProcessor;
-import com.css.kitchen.impl.SimpleOrderDispatch;
 import com.css.kitchen.service.DriverScheduler;
+import com.css.kitchen.service.OrderProcessor;
 import com.css.kitchen.service.OrderSource;
-import com.css.kitchen.util.StatsManager;
+import com.css.kitchen.util.MetricsManager;
 
 import java.lang.System;
 import java.util.Optional;
@@ -21,8 +20,8 @@ public class Kitchen {
     public static int NUM_SHELVES = 4;
 
     final private Shelf[] foodShelves = new Shelf[NUM_SHELVES];
-    final private OrderProcess orderProcessor;
-    final private OrderDispatch orderDispatcher;
+    final private OrderProcessor orderProcessor;
+    final private DriverScheduler driverScheduler;
 
     public Kitchen() {
         // create food shelves and use simple order processor and dispatcher
@@ -30,16 +29,30 @@ public class Kitchen {
         foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
         foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
         foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
-        this.orderProcessor = new SimpleOrderProcessor(this.foodShelves);
-        this.orderDispatcher = new SimpleOrderDispatch();
+        this.orderProcessor = new OrderProcessor(this.foodShelves);
+        this.driverScheduler = new DriverScheduler();
     }
 
-    public void placeOrder(Order order) {
-        orderProcessor.processOrder(order);
+    private void open() {
+        System.out.println("CSS Kitchen is open");
+        this.driverScheduler.start();
+        this.orderProcessor.start();
     }
 
-    public Optional<Order> dispatch() {
-        return Optional.ofNullable(orderDispatcher.dispatchOrder());
+    private void close() {
+        this.orderProcessor.shutdown();
+        this.driverScheduler.shutdown();
+        MetricsManager.report();
+        System.out.println("CSS Kitchen is closed");
+    }
+
+    public void submitOrder(Order order) {
+        this.orderProcessor.submit(order);
+    }
+
+    public Optional<Order> pickup() {
+        // FIXME
+        return Optional.empty();
     }
 
     public static void main(String[] args) {
@@ -51,14 +64,12 @@ public class Kitchen {
         // "/Users/liang_guo/workspace/edocteel/src/css/src/main/resources/food_orders.json"
         final String ordersJsonFile = args[0];
 
-        System.out.println("CSS Kitchen is open");
+        Kitchen kitchen = new Kitchen();
+        kitchen.open();
 
         // start simulated order source processor
-        OrderSource sourcer = new OrderSource();
+        OrderSource sourcer = new OrderSource(kitchen);
         sourcer.start(ordersJsonFile);
-
-        DriverScheduler driverScheduler = new DriverScheduler();
-        driverScheduler.start();
 
         // examine whether there is incoming orders
         while (sourcer.hasOrder()) {
@@ -70,8 +81,6 @@ public class Kitchen {
 
         // shutdown the application
         sourcer.shutdown();
-        driverScheduler.shutdown();
-        System.out.println("CSS Kitchen is closed");
-        StatsManager.report();
+        kitchen.close();
     }
 }
