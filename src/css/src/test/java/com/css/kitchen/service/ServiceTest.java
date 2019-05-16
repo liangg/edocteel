@@ -5,12 +5,34 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.css.kitchen.Kitchen;
+import com.css.kitchen.Order;
 import com.css.kitchen.Shelf;
+import org.junit.Before;
 import org.junit.Test;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 public class ServiceTest {
+  private Order ramenOrder;
+  private Order sushiOrder;
+
+  @Before
+  public void init() {
+    ramenOrder = Order.builder()
+        .name("Ramen")
+        .temperature(Order.Temperature.Hot)
+        .shelfLife(600)
+        .decayRate(0.45)
+        .build();
+
+    sushiOrder = Order.builder()
+        .name("Sushi dragonroll")
+        .temperature(Order.Temperature.Cold)
+        .shelfLife(900)
+        .decayRate(0.15)
+        .build();
+  }
+
   @Test
   public void testOrderSourceScheduledTask() {
     ClassLoader classLoader = this.getClass().getClassLoader();
@@ -50,6 +72,8 @@ public class ServiceTest {
     foodShelves[Kitchen.OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
     OrderProcessor orderProcessor = new OrderProcessor(foodShelves);
     orderProcessor.start();
+    orderProcessor.submit(ramenOrder);
+    orderProcessor.submit(sushiOrder);
     try {
       TimeUnit.SECONDS.sleep(1);
     } catch (InterruptedException ex) {
