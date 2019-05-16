@@ -30,7 +30,7 @@ public class Kitchen {
     foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
     foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
     this.orderProcessor = new OrderProcessor(this.foodShelves);
-    this.driverScheduler = new DriverScheduler();
+    this.driverScheduler = new DriverScheduler(this);
   }
 
   private void open() {

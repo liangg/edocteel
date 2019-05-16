@@ -1,14 +1,25 @@
 package com.css.kitchen.service;
 
-import lombok.NoArgsConstructor;
+import com.css.kitchen.Kitchen;
+import com.css.kitchen.Order;
+import com.css.kitchen.util.MetricsManager;
+
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
-
-@NoArgsConstructor
+/**
+ * Driver scheduler service. It schedules a driver to pick up a food order from the
+ * central kitchen and deliver to the customer.
+ */
 public class DriverScheduler extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(DriverScheduler.class);
+
+  private final Kitchen kitchen;
+
+  public DriverScheduler(Kitchen kitchen) { this.kitchen = kitchen; }
 
   @Override
   public String name() { return "DriverScheduler"; }
@@ -16,8 +27,12 @@ public class DriverScheduler extends CssScheduler {
   private final Runnable task = new Runnable() {
     @Override
     public void run() {
-      // FIXME: call Kitchen pickup
-      logger.debug("driver pickup order");
+      // pick an order from the kitchen
+      Optional<Order> orderOptional = kitchen.pickup();
+      if (orderOptional.isPresent()) {
+        logger.debug("driver pickup order: " + orderOptional.get());
+        MetricsManager.incr(MetricsManager.DELIVERED_ORDERS);
+      }
     }
   };
 

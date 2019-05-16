@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/** The base for scheduled service */
 public abstract class CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(CssScheduler.class);
 

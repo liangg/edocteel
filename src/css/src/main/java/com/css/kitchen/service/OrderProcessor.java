@@ -7,6 +7,7 @@ import static com.css.kitchen.Kitchen.OVERFLOW_SHELF;
 
 import com.css.kitchen.Order;
 import com.css.kitchen.Shelf;
+import com.css.kitchen.util.MetricsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +25,16 @@ public class OrderProcessor extends CssScheduler {
   private static int ORDER_QUEUE_SIZE = 50;
 
   private final Shelf[] foodShelves;
-  private BlockingQueue<Order> ordersQueue = new LinkedBlockingQueue<>(ORDER_QUEUE_SIZE);
+  private BlockingQueue<Order> ordersQueue;
 
   public OrderProcessor(Shelf[] foodShelves) {
+    this(foodShelves, ORDER_QUEUE_SIZE);
+  }
+
+  public OrderProcessor(Shelf[] foodShelves, int ordersQueueSize) {
     super(1);
     this.foodShelves = foodShelves;
+    ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
   }
 
   @Override
@@ -55,7 +61,7 @@ public class OrderProcessor extends CssScheduler {
   }
 
   public void processOrder(Order order) {
-    Shelf shelf = order.isHot() ?
+    final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
     if (!shelf.add(order)) {
@@ -67,11 +73,11 @@ public class OrderProcessor extends CssScheduler {
     Runnable task = () -> {
       Optional<Order> orderOptional = fetch();
       if (!orderOptional.isPresent()) {
-        logger.debug("no order");
         return;
       }
       final Order order = orderOptional.get();
       logger.debug("process order: " + order);
+      MetricsManager.incr(MetricsManager.PROCESSED_ORDERS);
       // FIXME: shelf
     };
 
