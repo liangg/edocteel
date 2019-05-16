@@ -16,6 +16,10 @@ import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A scheduled service that simulates food order submission from customers. It reads orders
+ * from a food orders json file, and submits them to the central kitchen for processing.
+ */
 @NoArgsConstructor
 public class OrderSource extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(OrderSource.class);

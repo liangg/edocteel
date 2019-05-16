@@ -25,11 +25,16 @@ public class OrderProcessor extends CssScheduler {
   private static int ORDER_QUEUE_SIZE = 50;
 
   private final Shelf[] foodShelves;
-  private BlockingQueue<Order> ordersQueue = new LinkedBlockingQueue<>(ORDER_QUEUE_SIZE);
+  private BlockingQueue<Order> ordersQueue;
 
   public OrderProcessor(Shelf[] foodShelves) {
+    this(foodShelves, ORDER_QUEUE_SIZE);
+  }
+
+  public OrderProcessor(Shelf[] foodShelves, int ordersQueueSize) {
     super(1);
     this.foodShelves = foodShelves;
+    ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
   }
 
   @Override

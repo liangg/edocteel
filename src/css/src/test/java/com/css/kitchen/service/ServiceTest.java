@@ -54,7 +54,7 @@ public class ServiceTest {
 
   @Test
   public void testDriverSchedulerTask() {
-    DriverScheduler driverScheduler = new DriverScheduler();
+    DriverScheduler driverScheduler = new DriverScheduler(kitchen);
     driverScheduler.start();
     driverScheduler.scheduleDriverPickup();
     driverScheduler.scheduleDriverPickup();
