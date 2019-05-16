@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 public class DriverScheduler extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(DriverScheduler.class);
 
+  @Override
   public String name() { return "DriverScheduler"; }
 
   private final Runnable task = new Runnable() {

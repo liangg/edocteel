@@ -1,8 +1,8 @@
 package com.css.kitchen;
 
-import com.css.kitchen.impl.SimpleOrderProcessor;
 import com.css.kitchen.impl.SimpleOrderDispatch;
 import com.css.kitchen.service.DriverScheduler;
+import com.css.kitchen.service.OrderProcessor;
 import com.css.kitchen.service.OrderSource;
 import com.css.kitchen.util.StatsManager;
 
@@ -21,7 +21,7 @@ public class Kitchen {
     public static int NUM_SHELVES = 4;
 
     final private Shelf[] foodShelves = new Shelf[NUM_SHELVES];
-    final private OrderProcess orderProcessor;
+    final private OrderProcessor orderProcessor;
     final private OrderDispatch orderDispatcher;
     final private DriverScheduler driverScheduler;
 
@@ -31,7 +31,7 @@ public class Kitchen {
         foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
         foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
         foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
-        this.orderProcessor = new SimpleOrderProcessor(this.foodShelves);
+        this.orderProcessor = new OrderProcessor(this.foodShelves);
         this.orderDispatcher = new SimpleOrderDispatch();
         this.driverScheduler = new DriverScheduler();
     }
@@ -39,9 +39,11 @@ public class Kitchen {
     private void open() {
         System.out.println("CSS Kitchen is open");
         this.driverScheduler.start();
+        this.orderProcessor.start();
     }
 
     private void close() {
+        this.orderProcessor.shutdown();
         this.driverScheduler.shutdown();
         StatsManager.report();
         System.out.println("CSS Kitchen is closed");

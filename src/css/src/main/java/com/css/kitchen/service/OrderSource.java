@@ -30,6 +30,7 @@ public class OrderSource extends CssScheduler {
     this.kitchen = kitchen;
   }
 
+  @Override
   public String name() { return "OrderSource"; }
 
   public void start(String orderJsonFile) {
