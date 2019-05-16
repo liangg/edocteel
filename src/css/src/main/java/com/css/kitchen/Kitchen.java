@@ -23,6 +23,7 @@ public class Kitchen {
     final private Shelf[] foodShelves = new Shelf[NUM_SHELVES];
     final private OrderProcess orderProcessor;
     final private OrderDispatch orderDispatcher;
+    final private DriverScheduler driverScheduler;
 
     public Kitchen() {
         // create food shelves and use simple order processor and dispatcher
@@ -32,6 +33,18 @@ public class Kitchen {
         foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
         this.orderProcessor = new SimpleOrderProcessor(this.foodShelves);
         this.orderDispatcher = new SimpleOrderDispatch();
+        this.driverScheduler = new DriverScheduler();
+    }
+
+    private void open() {
+        System.out.println("CSS Kitchen is open");
+        this.driverScheduler.start();
+    }
+
+    private void close() {
+        this.driverScheduler.shutdown();
+        StatsManager.report();
+        System.out.println("CSS Kitchen is closed");
     }
 
     public void placeOrder(Order order) {
@@ -51,14 +64,12 @@ public class Kitchen {
         // "/Users/liang_guo/workspace/edocteel/src/css/src/main/resources/food_orders.json"
         final String ordersJsonFile = args[0];
 
-        System.out.println("CSS Kitchen is open");
+        Kitchen kitchen = new Kitchen();
+        kitchen.open();
 
         // start simulated order source processor
-        OrderSource sourcer = new OrderSource();
+        OrderSource sourcer = new OrderSource(kitchen);
         sourcer.start(ordersJsonFile);
-
-        DriverScheduler driverScheduler = new DriverScheduler();
-        driverScheduler.start();
 
         // examine whether there is incoming orders
         while (sourcer.hasOrder()) {
@@ -70,8 +81,6 @@ public class Kitchen {
 
         // shutdown the application
         sourcer.shutdown();
-        driverScheduler.shutdown();
-        System.out.println("CSS Kitchen is closed");
-        StatsManager.report();
+        kitchen.close();
     }
 }

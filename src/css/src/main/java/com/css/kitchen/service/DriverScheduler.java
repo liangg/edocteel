@@ -26,6 +26,7 @@ public class DriverScheduler extends CssScheduler {
 
   public void scheduleDriverPickup() {
     // FIXME: pick a random delay 2-10
+    // a driver typically take 2 to 10 seconds to arrive for order pickup
     int driveTime = 1;
     executor.schedule(task, driveTime, TimeUnit.SECONDS);
   }

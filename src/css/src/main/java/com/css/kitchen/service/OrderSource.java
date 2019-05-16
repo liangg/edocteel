@@ -1,5 +1,6 @@
 package com.css.kitchen.service;
 
+import com.css.kitchen.Kitchen;
 import com.css.kitchen.Order;
 import com.css.kitchen.util.OrderReader;
 
@@ -19,10 +20,15 @@ import org.slf4j.LoggerFactory;
 public class OrderSource extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(OrderSource.class);
 
+  private Kitchen kitchen;
   private Lock lock = new ReentrantLock();
   private volatile boolean ordersExhausted = false; // used for app termination
   private List<Order> orders = Collections.emptyList();
   @Getter private int lastPosition = 0;
+
+  public OrderSource(Kitchen kitchen) {
+    this.kitchen = kitchen;
+  }
 
   public String name() { return "OrderSource"; }
 
@@ -30,6 +36,7 @@ public class OrderSource extends CssScheduler {
     // read orders from json to list for simulated order receiving
     this.orders = OrderReader.readOrdersJson(orderJsonFile);
 
+    // submit orders in simulated poisson distribution rate
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
         Order order = orders.get(lastPosition++);
@@ -39,6 +46,7 @@ public class OrderSource extends CssScheduler {
         return;
       }
 
+      // we have submitted our orders, notify kitchen to close the shop
       try {
         if (lock.tryLock(500, TimeUnit.MILLISECONDS)) {
           if (!ordersExhausted) {
