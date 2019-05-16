@@ -7,6 +7,7 @@ import static com.css.kitchen.Kitchen.OVERFLOW_SHELF;
 
 import com.css.kitchen.Order;
 import com.css.kitchen.Shelf;
+import com.css.kitchen.util.MetricsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class OrderProcessor extends CssScheduler {
   }
 
   public void processOrder(Order order) {
-    Shelf shelf = order.isHot() ?
+    final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
     if (!shelf.add(order)) {
@@ -67,11 +68,11 @@ public class OrderProcessor extends CssScheduler {
     Runnable task = () -> {
       Optional<Order> orderOptional = fetch();
       if (!orderOptional.isPresent()) {
-        logger.debug("no order");
         return;
       }
       final Order order = orderOptional.get();
       logger.debug("process order: " + order);
+      MetricsManager.incr(MetricsManager.PROCESSED_ORDERS);
       // FIXME: shelf
     };
 

@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class ServiceTest {
   private Order ramenOrder;
   private Order sushiOrder;
+  private Kitchen kitchen;
 
   @Before
   public void init() {
@@ -31,13 +32,15 @@ public class ServiceTest {
         .shelfLife(900)
         .decayRate(0.15)
         .build();
+
+    kitchen = new Kitchen();
   }
 
   @Test
   public void testOrderSourceScheduledTask() {
     ClassLoader classLoader = this.getClass().getClassLoader();
     URL ordersUrl = classLoader.getResource("test_orders.json");
-    OrderSource sourcer = new OrderSource();
+    OrderSource sourcer = new OrderSource(kitchen);
     sourcer.start(ordersUrl.getFile());
     while (sourcer.hasOrder()) {
       try {
