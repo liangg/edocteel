@@ -3,7 +3,7 @@ package com.css.kitchen;
 import com.css.kitchen.service.DriverScheduler;
 import com.css.kitchen.service.OrderProcessor;
 import com.css.kitchen.service.OrderSource;
-import com.css.kitchen.util.StatsManager;
+import com.css.kitchen.util.MetricsManager;
 
 import java.lang.System;
 import java.util.Optional;
@@ -42,7 +42,7 @@ public class Kitchen {
     private void close() {
         this.orderProcessor.shutdown();
         this.driverScheduler.shutdown();
-        StatsManager.report();
+        MetricsManager.report();
         System.out.println("CSS Kitchen is closed");
     }
 

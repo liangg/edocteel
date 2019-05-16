@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Manage counters for various kitchen statistics.
  */
-public class StatsManager {
+public class MetricsManager {
   public static AtomicInteger receivedOrders = new AtomicInteger(0);
   public static AtomicInteger submittedOrders = new AtomicInteger(0);
   public static AtomicInteger deliveredOrders = new AtomicInteger(0);

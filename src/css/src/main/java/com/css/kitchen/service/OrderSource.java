@@ -2,6 +2,7 @@ package com.css.kitchen.service;
 
 import com.css.kitchen.Kitchen;
 import com.css.kitchen.Order;
+import com.css.kitchen.util.MetricsManager;
 import com.css.kitchen.util.OrderReader;
 
 import java.util.Collections;
@@ -10,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.css.kitchen.util.StatsManager;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ public class OrderSource extends CssScheduler {
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
         Order order = orders.get(lastPosition++);
-        StatsManager.submittedOrders.incrementAndGet();
+        MetricsManager.submittedOrders.incrementAndGet();
         logger.debug("submit order " + order);
         // FIXME: submit kitchen order queues
         return;
