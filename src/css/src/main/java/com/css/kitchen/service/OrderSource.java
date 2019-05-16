@@ -41,7 +41,7 @@ public class OrderSource extends CssScheduler {
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
         Order order = orders.get(lastPosition++);
-        MetricsManager.submittedOrders.incrementAndGet();
+        MetricsManager.incr(MetricsManager.SUBMITTED_ORDERS);
         logger.debug("submit order " + order);
         // FIXME: submit kitchen order queues
         return;

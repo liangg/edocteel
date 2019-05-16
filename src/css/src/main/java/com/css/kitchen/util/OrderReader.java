@@ -53,7 +53,7 @@ public class OrderReader {
       logger.error("invalid order temperature value");
       return Optional.empty();
     }
-    // FIXME: count valid order
+    MetricsManager.incr(MetricsManager.RECEIVED_ORDERS);
     return Optional.of(Order.builder()
         .name((String) name)
         .temperature(temperature)
