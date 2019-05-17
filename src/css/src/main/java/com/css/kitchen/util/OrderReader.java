@@ -1,10 +1,9 @@
 package com.css.kitchen.util;
 
-import com.css.kitchen.Order;
+import com.css.kitchen.common.Order;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.Integer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

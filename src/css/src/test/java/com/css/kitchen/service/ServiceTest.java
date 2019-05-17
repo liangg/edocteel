@@ -5,8 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.css.kitchen.Kitchen;
-import com.css.kitchen.Order;
-import com.css.kitchen.Shelf;
+import com.css.kitchen.common.Order;
+import com.css.kitchen.common.Shelf;
 import org.junit.Before;
 import org.junit.Test;
 import java.net.URL;

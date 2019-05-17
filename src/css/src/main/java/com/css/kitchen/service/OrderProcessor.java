@@ -5,8 +5,8 @@ import static com.css.kitchen.Kitchen.COLD_SHELF;
 import static com.css.kitchen.Kitchen.FROZEN_SHELF;
 import static com.css.kitchen.Kitchen.OVERFLOW_SHELF;
 
-import com.css.kitchen.Order;
-import com.css.kitchen.Shelf;
+import com.css.kitchen.common.Order;
+import com.css.kitchen.common.Shelf;
 import com.css.kitchen.util.MetricsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

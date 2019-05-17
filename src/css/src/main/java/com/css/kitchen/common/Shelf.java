@@ -1,4 +1,4 @@
-package com.css.kitchen;
+package com.css.kitchen.common;
 
 import java.lang.InterruptedException;
 import java.util.ArrayDeque;

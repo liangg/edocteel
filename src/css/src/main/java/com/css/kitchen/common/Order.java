@@ -1,4 +1,4 @@
-package com.css.kitchen;
+package com.css.kitchen.common;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
