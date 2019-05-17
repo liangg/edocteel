@@ -1,14 +1,20 @@
 package com.css.kitchen.common;
 
+import com.css.kitchen.util.MetricsManager;
+import lombok.Getter;
+
 import java.lang.InterruptedException;
-import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A thread-safe CSS kitchen food shelf.
+ * A thread-safe CSS kitchen food order shelf.
  */
+@Getter
 public class Shelf {
   public static int SHELF_SIZE = 15;
   public static int OVERFLOW_SIZE = 20;
@@ -20,38 +26,40 @@ public class Shelf {
     Overflow
   }
 
-  final private Type shelfType;
-  final private int capacity;
-  final private ArrayDeque<Order> shelvedOrders;
-  private int size = 0;
+  @Getter final private Type shelfType;
+  @Getter final private int capacity;
+  final private ReentrantLock lock = new ReentrantLock();
+  final private HashSet<ShelfOrder> shelvedOrders;
+  @Getter private int numShelvedOrders = 0;
+
   final private Semaphore semaphore = new Semaphore(1);
 
   public Shelf(Type type, int capacity) {
     this.shelfType = type;
     this.capacity = capacity;
-    this.shelvedOrders = new ArrayDeque<>(capacity);
+    this.shelvedOrders = new HashSet<>(capacity);
   }
 
   public Shelf(Type type) {
     this(type, type == Type.Overflow ? OVERFLOW_SIZE : SHELF_SIZE);
   }
 
-  public int getCapacity() { return this.capacity; }
-
   public boolean add(Order order) {
     if (order == null)
       return false;
-    boolean result = false;
+    ShelfOrder shelfOrder = new ShelfOrder(order);
+    boolean result = true;
     try {
-      semaphore.acquire(); // thread-safe
+      lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() < this.capacity) {
-        shelvedOrders.addLast(order);
-        size += 1;
-        result = true;
+        shelvedOrders.add(shelfOrder);
       }
-      semaphore.release();
     } catch (InterruptedException e) {
-      System.out.println("Shelf add order exception");
+      System.out.println("Exception in adding order to the Shelf");
+      MetricsManager.incr(MetricsManager.SHELF_ORDER_ERRORS);
+      result = false;
+    } finally {
+      lock.unlock();
     }
     return result;
   }
@@ -59,16 +67,23 @@ public class Shelf {
   public Optional<Order> fetch() {
     Order result = null;
     try {
-      semaphore.acquire(); // thread-safe
-      if (size > 0) {
-        result = shelvedOrders.getFirst();
-        size -= 1;
+      lock.tryLock(1, TimeUnit.SECONDS);
+      if (shelvedOrders.size() > 0) {
+
       }
       semaphore.release();
     } catch (InterruptedException e) {
-      System.out.println("Shelf get order exception");
+      System.out.println("Exception in fetching order from the Shelf");
+    } finally {
+      lock.unlock();
     }
     return Optional.empty().ofNullable(result);
   }
 
+  private Order maxValueOrder() {
+    PriorityQueue<ShelfOrder> priorityQueue = new PriorityQueue<>();
+    //shelvedOrders.stream()
+    //    .map()
+    return null;
+  }
 }
