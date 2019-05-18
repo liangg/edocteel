@@ -13,6 +13,7 @@ public abstract class MetricsManager {
   public static final int DELIVERED_ORDERS = 3;
   public static final int WASTED_ORDERS    = 4;
   public static final int INVALID_ORDERS   = 5;
+  public static final int SHELF_ORDER_ERRORS = 6;
 
   private static AtomicInteger receivedOrders = new AtomicInteger(0);
   private static AtomicInteger submittedOrders = new AtomicInteger(0);
@@ -20,6 +21,8 @@ public abstract class MetricsManager {
   private static AtomicInteger deliveredOrders = new AtomicInteger(0);
   private static AtomicInteger invalidOrders = new AtomicInteger(0);
   private static AtomicInteger wastedOrders = new AtomicInteger(0);
+
+  private static AtomicInteger shelfOrderErrors = new AtomicInteger(0);
 
   public static void incr(int metricIndex) {
     switch (metricIndex) {
@@ -41,6 +44,9 @@ public abstract class MetricsManager {
       case INVALID_ORDERS:
         invalidOrders.incrementAndGet();
         break;
+      case SHELF_ORDER_ERRORS:
+        shelfOrderErrors.incrementAndGet();
+        break;
       default:
         break;
     }
@@ -50,9 +56,10 @@ public abstract class MetricsManager {
     System.out.println("Kitchen business metrics");
     System.out.println("========================");
     System.out.println(String.format("Number of received orders: %d", receivedOrders.get()));
-    System.out.println(String.format("Number of submmited orders: %d", submittedOrders.get()));
+    System.out.println(String.format("Number of submitted orders: %d", submittedOrders.get()));
     System.out.println(String.format("Number of processed orders: %d", processedOrders.get()));
     System.out.println(String.format("Number of delivered orders: %d", deliveredOrders.get()));
     System.out.println(String.format("Number of wasted orders: %d", wastedOrders.get()));
+    System.out.println(String.format("Order shelf errors: %d", shelfOrderErrors.get()));
   }
 }

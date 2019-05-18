@@ -1,4 +1,4 @@
-package com.css.kitchen;
+package com.css.kitchen.common;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
@@ -33,13 +33,5 @@ public class Order {
   public boolean isHot() { return temperature == Temperature.Hot; }
   public boolean isCold() { return temperature == Temperature.Cold; }
   public boolean isFrozen() { return temperature == Temperature.Frozen; }
-
-  public double getValue(int orderAge) {
-    return (double)(shelfLife - orderAge) - (decayRate * orderAge);
-  }
-
-  public double getNormalizedValue(int orderAge) {
-    return getValue(orderAge) / (double)shelfLife;
-  }
 }
 

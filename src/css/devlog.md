@@ -14,25 +14,32 @@
 
 __Notes__
 
-- Shelf life does not seem to matter, because order value changes dynamically with decay rate. 
-- The strategy is to optimize for max value order at driver delivery.
+Shelf life does not seem to matter, because order value changes dynamically with decay rate.
+
+The optimization strategy can be one of the two,
+  - minimize the number of wasted orders;
+  - maximize the values of orders.
 
 ## Tasks
 
-[x] Raw Order immutable 
-[ ] Shelf: thread safe, order array 
-[ ] ShelfOrder wraps Order with order time in millisec and last determined value
-[ ] Shelf: priority queue on order value, give max value (pick) and min value (discard)
-[ ] Overflow shelf decay 2x faster
-[ ] Overflow shelf: selection
-[ ] Dispatch order: max heap of size 3 max valued orders from 3 shelves
-[ ] Asynchronously read orders in poisson distribution
-[ ] Scheduled arrival of drivers every 2~10 seconds
-[ ] Stats counters for total valid orders, delivered orders, normalized values, number of wasted orders etc.
+- [x] Raw Order immutable
+- [x] ShelfOrder wraps Order with order time in millisec and last determined value
+- [x] Shelf: thread safe, order set
+- [ ] Shelf: priority queue on order value, give max value (pick) and min value (discard)
+- [ ] Overflow shelf decay 2x faster
+- [ ] Overflow shelf: selection
+- [ ] Dispatch order: max heap of size 3 max valued orders from 3 shelves
+- [ ] Asynchronously read orders in poisson distribution
+- [ ] Scheduled arrival of drivers every 2~10 seconds
+- [x] Metric counters for total orders, delivered orders, normalized values, number of wasted orders etc.
 
 ## Tests
 
-[x] Read, parse orders json file, and create list of Order
-[ ] Test poisson distribution with avg 3.25 orders per second
-[ ] Test driver arrival 2~10 seconds in scheduled tasks
-[ ] Order overflow shelf selection -- different shelf composition, what to discard 
+- [x] Read, parse orders json file, and create list of Order
+- [ ] Test poisson distribution with avg 3.25 orders per second
+- [x] Test driver arrival 2~10 seconds in scheduled tasks
+- [ ] Test Shelf order set
+- [ ] Order overflow shelf selection -- different shelf composition, what to discard
+
+---
+

@@ -1,7 +1,7 @@
 package com.css.kitchen.service;
 
 import com.css.kitchen.Kitchen;
-import com.css.kitchen.Order;
+import com.css.kitchen.common.Order;
 import com.css.kitchen.util.MetricsManager;
 
 import java.util.Optional;

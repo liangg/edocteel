@@ -5,8 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.css.kitchen.Kitchen;
-import com.css.kitchen.Order;
-import com.css.kitchen.Shelf;
+import com.css.kitchen.common.Order;
+import com.css.kitchen.impl.Shelf;
 import org.junit.Before;
 import org.junit.Test;
 import java.net.URL;
@@ -68,12 +68,7 @@ public class ServiceTest {
 
   @Test
   public void testOrderProcessorTask() {
-    Shelf[] foodShelves = new Shelf[Kitchen.NUM_SHELVES];
-    foodShelves[Kitchen.HOT_SHELF] = new Shelf(Shelf.Type.HotFood);
-    foodShelves[Kitchen.COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
-    foodShelves[Kitchen.FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
-    foodShelves[Kitchen.OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
-    OrderProcessor orderProcessor = new OrderProcessor(foodShelves);
+    OrderProcessor orderProcessor = new OrderProcessor(kitchen);
     orderProcessor.start();
     orderProcessor.submit(ramenOrder);
     orderProcessor.submit(sushiOrder);
