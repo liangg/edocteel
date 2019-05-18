@@ -1,12 +1,8 @@
 package com.css.kitchen.service;
 
-import static com.css.kitchen.Kitchen.HOT_SHELF;
-import static com.css.kitchen.Kitchen.COLD_SHELF;
-import static com.css.kitchen.Kitchen.FROZEN_SHELF;
-import static com.css.kitchen.Kitchen.OVERFLOW_SHELF;
-
 import com.css.kitchen.Kitchen;
 import com.css.kitchen.common.Order;
+import com.css.kitchen.impl.OrderBackend;
 import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
 import org.slf4j.Logger;
@@ -20,7 +16,8 @@ import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTimeUtils;
 
 /**
- * An order processor that encapsulates order shelving business logic.
+ * An order processor service that takes incoming orders and forward to the backend
+ * OrderProcess service.
  *
  * It is important to uses a buffer queue to absorb inbound food orders. It is
  * implemented with bounded blocking queue. In production, it could be a persistent
@@ -31,7 +28,7 @@ public class OrderProcessor extends CssScheduler {
   private static int ORDER_QUEUE_SIZE = 250;
 
   private final Kitchen kitchen;
-  private final Shelf[] foodShelves;
+  private final OrderBackend backend;
   private BlockingQueue<Order> ordersQueue;
 
   public OrderProcessor(Kitchen kitchen) {
@@ -41,8 +38,8 @@ public class OrderProcessor extends CssScheduler {
   public OrderProcessor(Kitchen kitchen, int ordersQueueSize) {
     super(1);
     this.kitchen = kitchen;
-    this.foodShelves = kitchen.getFoodShelves();
-    ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
+    this.backend = kitchen.getOrderBackend();
+    this.ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
   }
 
   @Override
@@ -69,17 +66,6 @@ public class OrderProcessor extends CssScheduler {
     }
   }
 
-  // simple business logic to shelve an Order, in production it could be a
-  // food service rpc call.
-  public void processOrder(Order order) {
-    final Shelf shelf = order.isHot() ?
-        foodShelves[HOT_SHELF] :
-        (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    if (!shelf.addOrder(order)) {
-      foodShelves[OVERFLOW_SHELF].overflow(order);
-    }
-  }
-
   public void start() {
     Runnable task = () -> {
       Optional<Order> orderOptional = nextOrder();
@@ -89,8 +75,8 @@ public class OrderProcessor extends CssScheduler {
       final Order order = orderOptional.get();
       logger.debug("process order: " + order);
       MetricsManager.incr(MetricsManager.PROCESSED_ORDERS);
-      // add the order to shelf
-      processOrder(order);
+      // forward the order to Kitchen backend
+      backend.process(order);
       // schedule a driver to pick up the order
       this.kitchen.scheduleDriver();
     };
