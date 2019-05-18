@@ -52,24 +52,27 @@ public class Shelf {
 
   // Add a new Order to a normal shelf and keep the Overflow shelf internal
   public boolean addOrder(Order order) {
-    Preconditions.checkState(shelfType != Type.Overflow);
-    return add(order);
+    Preconditions.checkState(shelfType != Type.Overflow && order != null);
+    boolean result = add(order);
+    logger.debug(String.format("Shelf-%s add order %s: %s", shelfType, result ? "okay" : "full", order));
+    return result;
   }
 
   private boolean add(Order order) {
     if (order == null)
       return false;
     ShelfOrder shelfOrder = new ShelfOrder(order);
-    boolean result = true;
+    boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() < this.capacity) {
         shelvedOrders.add(shelfOrder);
+        result = true;
       }
     } catch (InterruptedException e) {
       System.out.println("Exception in adding order to the Shelf");
-      MetricsManager.incr(MetricsManager.SHELF_ORDER_ERRORS);
       result = false;
+      MetricsManager.incr(MetricsManager.SHELF_ORDER_ERRORS);
     } finally {
       lock.unlock();
     }
@@ -116,10 +119,18 @@ public class Shelf {
     return priorityQueue.peek();
   }
 
-  public boolean overflow(Order order) {
+  public void overflow(Order order) {
     Preconditions.checkState(shelfType == Type.Overflow);
+    if (!add(order)) {
+      // resolve and unblock order fullfillment
+      resolve(order);
+    }
+  }
 
-    return false;
+  // Resolve the blocked order by choosing an Order to discard
+  private void resolve(Order order) {
+    // simple resolution is to discard the new order
+    MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
