@@ -1,10 +1,11 @@
-package com.css.kitchen.common;
+package com.css.kitchen.impl;
+
+import com.css.kitchen.common.Order;
 
 import lombok.Getter;
-import org.joda.time.DateTimeUtils;
-
 import java.lang.Override;
 import java.util.Comparator;
+import org.joda.time.DateTimeUtils;
 
 /**
  * It wraps the raw Order with order start time for decay value computation.

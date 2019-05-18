@@ -7,7 +7,7 @@ import static com.css.kitchen.Kitchen.OVERFLOW_SHELF;
 
 import com.css.kitchen.Kitchen;
 import com.css.kitchen.common.Order;
-import com.css.kitchen.common.Shelf;
+import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
