@@ -68,12 +68,7 @@ public class ServiceTest {
 
   @Test
   public void testOrderProcessorTask() {
-    Shelf[] foodShelves = new Shelf[Kitchen.NUM_SHELVES];
-    foodShelves[Kitchen.HOT_SHELF] = new Shelf(Shelf.Type.HotFood);
-    foodShelves[Kitchen.COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
-    foodShelves[Kitchen.FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
-    foodShelves[Kitchen.OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
-    OrderProcessor orderProcessor = new OrderProcessor(foodShelves);
+    OrderProcessor orderProcessor = new OrderProcessor(kitchen);
     orderProcessor.start();
     orderProcessor.submit(ramenOrder);
     orderProcessor.submit(sushiOrder);

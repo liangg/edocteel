@@ -44,6 +44,8 @@ public class Shelf {
     this(type, type == Type.Overflow ? OVERFLOW_SIZE : SHELF_SIZE);
   }
 
+  public boolean isOverflow() { return this.shelfType == Type.Overflow; }
+
   public boolean add(Order order) {
     if (order == null)
       return false;
@@ -64,12 +66,14 @@ public class Shelf {
     return result;
   }
 
-  public Optional<Order> fetch() {
+  public Optional<Order> fetch(long now) {
     Order result = null;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0) {
-
+        ShelfOrder order = maxValueOrder(now);
+        result = order.getOrder();
+        shelvedOrders.remove(order);
       }
       semaphore.release();
     } catch (InterruptedException e) {
@@ -80,10 +84,17 @@ public class Shelf {
     return Optional.empty().ofNullable(result);
   }
 
-  private Order maxValueOrder() {
-    PriorityQueue<ShelfOrder> priorityQueue = new PriorityQueue<>();
-    //shelvedOrders.stream()
-    //    .map()
-    return null;
+  private ShelfOrder maxValueOrder(long now) {
+    PriorityQueue<ShelfOrder> priorityQueue =
+        new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
+    shelvedOrders.forEach( o -> {
+      o.setCurrentValue(now, isOverflow());
+      priorityQueue.add(o);
+    });
+    return priorityQueue.peek();
+  }
+
+  public boolean overflow(Order order) {
+    return false;
   }
 }

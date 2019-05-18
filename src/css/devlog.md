@@ -35,4 +35,9 @@ __Notes__
 - [x] Read, parse orders json file, and create list of Order
 - [ ] Test poisson distribution with avg 3.25 orders per second
 - [x] Test driver arrival 2~10 seconds in scheduled tasks
+- [ ] Test Shelf order set
 - [ ] Order overflow shelf selection -- different shelf composition, what to discard
+
+---
+
+
