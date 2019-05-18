@@ -1,7 +1,12 @@
 package com.css.kitchen.common;
 
+import com.css.kitchen.service.OrderProcessor;
 import com.css.kitchen.util.MetricsManager;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.InterruptedException;
 import java.util.HashSet;
@@ -16,6 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Getter
 public class Shelf {
+  private static Logger logger = LoggerFactory.getLogger(Shelf.class);
   public static int SHELF_SIZE = 15;
   public static int OVERFLOW_SIZE = 20;
 
@@ -30,7 +36,6 @@ public class Shelf {
   @Getter final private int capacity;
   final private ReentrantLock lock = new ReentrantLock();
   final private HashSet<ShelfOrder> shelvedOrders;
-  @Getter private int numShelvedOrders = 0;
 
   final private Semaphore semaphore = new Semaphore(1);
 
@@ -46,7 +51,13 @@ public class Shelf {
 
   public boolean isOverflow() { return this.shelfType == Type.Overflow; }
 
-  public boolean add(Order order) {
+  // Add a new Order to a normal shelf and keep the Overflow shelf internal
+  public boolean addOrder(Order order) {
+    Preconditions.checkState(shelfType != Type.Overflow);
+    return add(order);
+  }
+
+  private boolean add(Order order) {
     if (order == null)
       return false;
     ShelfOrder shelfOrder = new ShelfOrder(order);
@@ -66,14 +77,25 @@ public class Shelf {
     return result;
   }
 
-  public Optional<Order> fetch(long now) {
+  // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
+  public Optional<Order> fetchOrder(long now) {
+    Preconditions.checkState(shelfType != Type.Overflow);
+    return fetch(now);
+  }
+
+  private Optional<Order> fetch(long now) {
     Order result = null;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0) {
+        boolean backfill = shelvedOrders.size() >= this.capacity;
         ShelfOrder order = maxValueOrder(now);
         result = order.getOrder();
         shelvedOrders.remove(order);
+        // backfill an order from the Overflow shelf
+        if (backfill) {
+
+        }
       }
       semaphore.release();
     } catch (InterruptedException e) {
@@ -89,12 +111,17 @@ public class Shelf {
         new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
     shelvedOrders.forEach( o -> {
       o.setCurrentValue(now, isOverflow());
+      logger.debug(String.format("shelf order value as of %d: %s", now, o));
       priorityQueue.add(o);
     });
     return priorityQueue.peek();
   }
 
   public boolean overflow(Order order) {
+    Preconditions.checkState(shelfType == Type.Overflow);
+
     return false;
   }
+
+  public int getNumShelvedOrders() { return shelvedOrders.size(); }
 }

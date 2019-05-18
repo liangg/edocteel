@@ -20,11 +20,15 @@ import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTimeUtils;
 
 /**
- * An order processor that encapsulates order shelving strategy
+ * An order processor that encapsulates order shelving business logic.
+ *
+ * It is important to uses a buffer queue to absorb inbound food orders. It is
+ * implemented with bounded blocking queue. In production, it could be a persistent
+ * pub-sub work queue (e.g. Kafka, Kinesis).
  */
 public class OrderProcessor extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(OrderProcessor.class);
-  private static int ORDER_QUEUE_SIZE = 50;
+  private static int ORDER_QUEUE_SIZE = 250;
 
   private final Kitchen kitchen;
   private final Shelf[] foodShelves;
@@ -44,6 +48,7 @@ public class OrderProcessor extends CssScheduler {
   @Override
   public String name() { return "OrderProcessor"; }
 
+  // read a new Order from the orders queue, if available
   private Optional<Order> nextOrder() {
     Order order = null;
     try {
@@ -54,7 +59,7 @@ public class OrderProcessor extends CssScheduler {
     return Optional.ofNullable(order);
   }
 
-  // submit Order to the bounded blocking queue
+  // submit Order to the bounded orders queue
   public void submit(Order order) {
     try {
       ordersQueue.put(order);
@@ -64,11 +69,13 @@ public class OrderProcessor extends CssScheduler {
     }
   }
 
+  // simple business logic to shelve an Order, in production it could be a
+  // food service rpc call.
   public void processOrder(Order order) {
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    if (!shelf.add(order)) {
+    if (!shelf.addOrder(order)) {
       foodShelves[OVERFLOW_SHELF].overflow(order);
     }
   }

@@ -30,6 +30,7 @@ public class ShelfOrder {
 
   // compute the current value, save in "value", and return it
   public double setCurrentValue(long now, boolean overflow) {
+    // FIXME: diminishing value from overflow to shelf
     int multiply = overflow ? 2 : 1;
     double age = (double)(now - submmittedAtMilli) / (double)1000;
     this.value = ((double)order.getShelfLife() - age) - (order.getDecayRate() * multiply * age);

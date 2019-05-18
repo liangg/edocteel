@@ -14,14 +14,17 @@
 
 __Notes__
 
-- Shelf life does not seem to matter, because order value changes dynamically with decay rate. 
-- The strategy is to optimize for max value order at driver delivery.
+Shelf life does not seem to matter, because order value changes dynamically with decay rate.
+
+The optimization strategy can be one of the two,
+  - minimize the number of wasted orders;
+  - maximize the values of orders.
 
 ## Tasks
 
 - [x] Raw Order immutable
 - [x] ShelfOrder wraps Order with order time in millisec and last determined value
-- [ ] Shelf: thread safe, order set
+- [x] Shelf: thread safe, order set
 - [ ] Shelf: priority queue on order value, give max value (pick) and min value (discard)
 - [ ] Overflow shelf decay 2x faster
 - [ ] Overflow shelf: selection
@@ -39,5 +42,4 @@ __Notes__
 - [ ] Order overflow shelf selection -- different shelf composition, what to discard
 
 ---
-
 
