@@ -1,37 +1,27 @@
 package com.css.kitchen;
 
 import com.css.kitchen.common.Order;
-import com.css.kitchen.impl.Shelf;
+import com.css.kitchen.impl.OrderBackend;
 import com.css.kitchen.service.DriverScheduler;
 import com.css.kitchen.service.OrderProcessor;
 import com.css.kitchen.service.OrderSource;
 import com.css.kitchen.util.MetricsManager;
-import lombok.Getter;
 
 import java.lang.System;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 
 /**
  * A CSS kitchen that takes food orders, process them to shelf, and dispatch orders to drivers.
  */
 public class Kitchen {
-  public static int HOT_SHELF = 0;
-  public static int COLD_SHELF = 1;
-  public static int FROZEN_SHELF = 2;
-  public static int OVERFLOW_SHELF = 3;
-  public static int NUM_SHELVES = 4;
-
-  @Getter final private Shelf[] foodShelves = new Shelf[NUM_SHELVES];
+  @Getter final private OrderBackend orderBackend;
   final private OrderProcessor orderProcessor;
   final private DriverScheduler driverScheduler;
 
   public Kitchen() {
-    // create food shelves and use simple order processor and dispatcher
-    foodShelves[HOT_SHELF] = new Shelf(Shelf.Type.HotFood);
-    foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
-    foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
-    foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
+    this.orderBackend = new OrderBackend(this);
     this.orderProcessor = new OrderProcessor(this);
     this.driverScheduler = new DriverScheduler(this);
   }
@@ -58,8 +48,7 @@ public class Kitchen {
 
   // used by DriverScheduler task to pick up a ready order for delivery to hungry customers
   public Optional<Order> pickup() {
-    // FIXME
-    return Optional.empty();
+    return this.orderBackend.pickup();
   }
 
   public static void main(String[] args) {
