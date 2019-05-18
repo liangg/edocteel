@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A CSS kitchen that takes food orders, shelf and dispatch order to drivers.
+ * A CSS kitchen that takes food orders, process them to shelf, and dispatch orders to drivers.
  */
 public class Kitchen {
   public static int HOT_SHELF = 0;
@@ -49,12 +49,14 @@ public class Kitchen {
       System.out.println("CSS Kitchen is closed");
   }
 
+  // used by OrderSource to submit new customer orders to the kitchen
   public void submitOrder(Order order) {
     this.orderProcessor.submit(order);
   }
 
   public void scheduleDriver() { this.driverScheduler.scheduleDriverPickup(); }
 
+  // used by DriverScheduler task to pick up a ready order for delivery to hungry customers
   public Optional<Order> pickup() {
     // FIXME
     return Optional.empty();
@@ -76,7 +78,7 @@ public class Kitchen {
     OrderSource sourcer = new OrderSource(kitchen);
     sourcer.start(ordersJsonFile);
 
-    // examine whether there is incoming orders
+    // examine whether there is incoming orders, used to coordinate kitchen close
     while (sourcer.hasOrder()) {
       try {
         TimeUnit.SECONDS.sleep(5);
