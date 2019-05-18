@@ -9,7 +9,6 @@ import java.lang.InterruptedException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
@@ -35,8 +34,6 @@ public class Shelf {
   @Getter final private int capacity;
   final private ReentrantLock lock = new ReentrantLock();
   final private HashSet<ShelfOrder> shelvedOrders;
-
-  final private Semaphore semaphore = new Semaphore(1);
 
   public Shelf(Type type, int capacity) {
     this.shelfType = type;
@@ -80,43 +77,27 @@ public class Shelf {
   }
 
   // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
-  public Optional<Order> fetchOrder(long now) {
+  public Optional<FetchResult> fetchOrder(long now) {
     Preconditions.checkState(shelfType != Type.Overflow);
     return fetch(now);
   }
 
-  private Optional<Order> fetch(long now) {
-    Order result = null;
+  private Optional<FetchResult> fetch(long now) {
+    FetchResult result = null;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0) {
         boolean backfill = shelvedOrders.size() >= this.capacity;
         ShelfOrder order = maxValueOrder(now);
-        result = order.getOrder();
+        result = new FetchResult(order.getOrder(), backfill);
         shelvedOrders.remove(order);
-        // backfill an order from the Overflow shelf
-        if (backfill) {
-
-        }
       }
-      semaphore.release();
     } catch (InterruptedException e) {
       System.out.println("Exception in fetching order from the Shelf");
     } finally {
       lock.unlock();
     }
     return Optional.empty().ofNullable(result);
-  }
-
-  private ShelfOrder maxValueOrder(long now) {
-    PriorityQueue<ShelfOrder> priorityQueue =
-        new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
-    shelvedOrders.forEach( o -> {
-      o.setCurrentValue(now, isOverflow());
-      logger.debug(String.format("shelf order value as of %d: %s", now, o));
-      priorityQueue.add(o);
-    });
-    return priorityQueue.peek();
   }
 
   public void overflow(Order order) {
@@ -133,5 +114,32 @@ public class Shelf {
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
+  public Optional<ShelfOrder> getBackfill() {
+    Preconditions.checkState(shelfType == Type.Overflow);
+    return Optional.empty();
+  }
+
+  private ShelfOrder maxValueOrder(long now) {
+    PriorityQueue<ShelfOrder> priorityQueue =
+        new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
+    shelvedOrders.forEach( o -> {
+      o.setCurrentValue(now, isOverflow());
+      logger.debug(String.format("shelf order value as of %d: %s", now, o));
+      priorityQueue.add(o);
+    });
+    return priorityQueue.peek();
+  }
+
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
+
+  /* Order fetch result indicate the need of backfill from Overflow shelf */
+  static public class FetchResult {
+    @Getter private final Order order;
+    @Getter private final Boolean backfill;
+
+    public FetchResult(Order order, boolean backfill) {
+      this.order = order;
+      this.backfill = backfill;
+    }
+  }
 }
