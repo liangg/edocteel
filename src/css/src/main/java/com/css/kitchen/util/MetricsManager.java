@@ -66,6 +66,7 @@ public abstract class MetricsManager {
     System.out.println(String.format("Number of delivered orders: %d", deliveredOrders.get()));
     System.out.println(String.format("Number of overflow orders: %d", overflowOrders.get()));
     System.out.println(String.format("Number of wasted orders: %d", wastedOrders.get()));
+    System.out.println(String.format("Number of invalid orders: %d", invalidOrders.get()));
     System.out.println(String.format("Order shelf errors: %d", shelfOrderErrors.get()));
   }
 }

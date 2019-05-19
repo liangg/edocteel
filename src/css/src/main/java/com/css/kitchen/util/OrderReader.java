@@ -43,13 +43,14 @@ public class OrderReader {
         !(name instanceof String) || !(temp instanceof String) ||
         !(life instanceof Long) || !(decay instanceof Double))
     {
-      // FIXME: log metrics
       logger.error("invalid order attributes");
+      MetricsManager.incr(MetricsManager.INVALID_ORDERS);
       return Optional.empty();
     }
     Order.Temperature temperature = Order.temperatureMap.get(((String) temp).toLowerCase());
     if (temperature == null) {
       logger.error("invalid order temperature value");
+      MetricsManager.incr(MetricsManager.INVALID_ORDERS);
       return Optional.empty();
     }
     MetricsManager.incr(MetricsManager.RECEIVED_ORDERS);
