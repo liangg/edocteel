@@ -1,6 +1,7 @@
 package com.css.kitchen.impl;
 
 import com.css.kitchen.Kitchen;
+import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
 import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
@@ -21,8 +22,8 @@ import java.util.Optional;
  * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
  * processing at run time.
  *
- * It generates a gloally unique order ID. In production, it should use a snowflake id
- * or simple uuid.
+ * It generates a gloally unique order ID for each food Order. In production, it should
+ * use a snowflake id or simple uuid.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -33,6 +34,7 @@ public class OrderBackend {
   public static int OVERFLOW_SHELF = 3;
   public static int NUM_SHELVES = 4;
 
+  // global unique order id source
   private static long orderId = 0;
 
   private final Kitchen kitchen;
@@ -80,9 +82,12 @@ public class OrderBackend {
     } finally {
       lock.unlock();
     }
+
+    // schedule a driver to pick up the order
+    this.kitchen.scheduleDriver(new DriverOrder(orderId, order.getTemperature()));
   }
 
-  public Optional<Order> pickup() {
+  public Optional<Order> pickup(DriverOrder order) {
     // start 2PL for concurrency correctness
     lock.lock();
     try {
