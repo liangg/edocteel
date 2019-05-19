@@ -36,8 +36,10 @@ public class DriverScheduler extends CssScheduler {
       // pick an order from the kitchen
       Optional<Order> orderOptional = kitchen.pickup(driverOrder);
       if (orderOptional.isPresent()) {
-        logger.debug("driver pickup order: " + orderOptional.get());
+        logger.debug(String.format("driver pickup order(%d): %s", driverOrder.getOrderId(), orderOptional.get()));
         MetricsManager.incr(MetricsManager.DELIVERED_ORDERS);
+      } else {
+        logger.debug(String.format("driver pickup missing order(%d)", driverOrder.getOrderId()));
       }
     }
   };

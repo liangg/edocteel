@@ -88,13 +88,33 @@ public class OrderBackend {
   }
 
   public Optional<Order> pickup(DriverOrder order) {
+    Order result = null;
     // start 2PL for concurrency correctness
     lock.lock();
     try {
-      // FIXME
+      Shelf shelf = shelfForOrder(order.getOrderType());
+      Optional<Shelf.FetchResult> fetchResult = shelf.fetchOrder(order.getOrderId());
+      if (fetchResult.isPresent()) {
+        result = fetchResult.get().getOrder();
+        // FIXME: backfill
+        if (fetchResult.get().getBackfill()) {
+        }
+      } else {
+        // try look up in the Overflow shelf
+        fetchResult = foodShelves[OVERFLOW_SHELF].fetchOrder(order.getOrderId());
+        if (fetchResult.isPresent()) {
+          result = fetchResult.get().getOrder();
+        }
+      }
     } finally {
       lock.unlock();
     }
-    return Optional.empty();
+    return Optional.ofNullable(result);
+  }
+
+  private Shelf shelfForOrder(Order.Temperature type) {
+    return type == Order.Temperature.Hot ?
+        foodShelves[HOT_SHELF] :
+        (type == Order.Temperature.Cold ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
   }
 }

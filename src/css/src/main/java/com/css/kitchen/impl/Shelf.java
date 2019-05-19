@@ -78,9 +78,9 @@ public class Shelf {
   }
 
   // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
-  public Optional<FetchResult> fetchOrder(long orderId) {
-    Preconditions.checkState(shelfType != Type.Overflow);
-    return fetch(Long.valueOf(orderId));
+  public Optional<FetchResult> fetchOrder(Long orderId) {
+    Preconditions.checkState(shelfType != Type.Overflow && orderId != null);
+    return fetch(orderId);
   }
 
   private Optional<FetchResult> fetch(Long orderId) {
