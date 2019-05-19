@@ -82,8 +82,4 @@ public class OrderProcessor extends CssScheduler {
     logger.info("OrderProcessor schedules task");
     executor.scheduleAtFixedRate(task, 25, 50, TimeUnit.MILLISECONDS);
   }
-
-  private static long now() {
-    return DateTimeUtils.currentTimeMillis();
-  }
 }

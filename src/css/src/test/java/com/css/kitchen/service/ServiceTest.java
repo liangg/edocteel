@@ -22,14 +22,14 @@ public class ServiceTest {
   public void init() {
     ramenOrder = Order.builder()
         .name("Ramen")
-        .temperature(Order.Temperature.Hot)
+        .type(Order.Temperature.Hot)
         .shelfLife(600)
         .decayRate(0.45)
         .build();
 
     sushiOrder = Order.builder()
         .name("Sushi dragonroll")
-        .temperature(Order.Temperature.Cold)
+        .type(Order.Temperature.Cold)
         .shelfLife(900)
         .decayRate(0.15)
         .build();

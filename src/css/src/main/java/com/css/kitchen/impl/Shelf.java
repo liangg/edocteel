@@ -57,6 +57,15 @@ public class Shelf {
     return result;
   }
 
+  // Backfill a ShelfOrder from the Overflow shelf
+  public boolean backfillOrder(ShelfOrder shelfOrder) {
+    Preconditions.checkState(shelfType != Type.Overflow && shelfOrder != null);
+    boolean result = add(shelfOrder);
+    logger.debug(String.format("Shelf-%s backfill order(%d) %s: %s",
+        shelfType, shelfOrder.getOrderId(), result ? "okay" : "full", shelfOrder.getOrder()));
+    return result;
+  }
+
   private boolean add(ShelfOrder shelfOrder) {
     if (shelfOrder == null)
       return false;
@@ -102,30 +111,6 @@ public class Shelf {
     return Optional.empty().ofNullable(result);
   }
 
-  // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
-  /*public Optional<FetchResult> fetchOrder(long now) {
-    Preconditions.checkState(shelfType != Type.Overflow);
-    return fetch(now);
-  }
-
-  private Optional<FetchResult> fetch(long now) {
-    FetchResult result = null;
-    try {
-      lock.tryLock(1, TimeUnit.SECONDS);
-      if (shelvedOrders.size() > 0) {
-        boolean backfill = shelvedOrders.size() >= this.capacity;
-        //ShelfOrder order = maxValueOrder(now);
-        result = new FetchResult(order.getOrder(), backfill);
-        shelvedOrders.remove(order);
-      }
-    } catch (InterruptedException e) {
-      System.out.println("Exception in fetching order from the Shelf");
-    } finally {
-      lock.unlock();
-    }
-    return Optional.empty().ofNullable(result);
-  }*/
-
   public void overflow(Order order, long orderId) {
     Preconditions.checkState(shelfType == Type.Overflow);
     final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
@@ -141,9 +126,38 @@ public class Shelf {
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
-  public Optional<ShelfOrder> getBackfill() {
+  public Optional<ShelfOrder> getBackfill(Order.Temperature orderType, long now) {
     Preconditions.checkState(shelfType == Type.Overflow);
-    return Optional.empty();
+    ShelfOrder backfillOrder = null;
+    try {
+      PriorityQueue<ShelfOrder> priorityQueue =
+          new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
+
+      lock.lock();
+      shelvedOrders.forEach((k, v) -> {
+        // compute the current value for each order on the shelf
+        v.setCurrentValue(now, isOverflow());
+        // prepare to discard orders whose values have deminished to zero
+        if (v.getValue() <= 0) {
+          logger.debug(String.format("Discard order(%d): %s", v.getOrderId(), v.getOrder()));
+          MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+        }
+        if (v.getOrder().getType() == orderType && v.getValue() > 0) {
+          priorityQueue.add(v);
+        }
+      });
+
+      // remove discarded orders from the Overflow shelf
+      shelvedOrders.entrySet().removeIf(e -> Double.compare(e.getValue().getValue(), 0f) == 0);
+
+      backfillOrder = priorityQueue.peek();
+      if (backfillOrder != null) {
+        shelvedOrders.remove(backfillOrder.getOrderId());
+      }
+    } finally {
+      lock.unlock();
+    }
+    return Optional.of(backfillOrder);
   }
 
   /*
@@ -158,6 +172,7 @@ public class Shelf {
     return priorityQueue.peek();
   }*/
 
+  // used for testing
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
 
   /* Order fetch result indicate the need of backfill from Overflow shelf */

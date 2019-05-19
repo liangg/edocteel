@@ -50,7 +50,7 @@ public class OrderUtilTest {
     assertTrue(orderOptional.isPresent());
     final Order order = orderOptional.get();
     assertEquals(order.getName(), "Ramen");
-    assertEquals(order.getTemperature(), Order.Temperature.Hot);
+    assertEquals(order.getType(), Order.Temperature.Hot);
     assertEquals(order.getShelfLife(), 600L);
     assertEquals(Double.valueOf(order.getDecayRate()), Double.valueOf(0.45));
 
@@ -58,7 +58,7 @@ public class OrderUtilTest {
     assertTrue(orderOptional.isPresent());
     final Order order2 = orderOptional.get();
     assertEquals(order2.getName(), "Sushi dragonroll");
-    assertEquals(order2.getTemperature(), Order.Temperature.Cold);
+    assertEquals(order2.getType(), Order.Temperature.Cold);
     assertEquals(order2.getShelfLife(), 900L);
     assertEquals(Double.valueOf(order2.getDecayRate()), Double.valueOf(0.15));
 
@@ -89,9 +89,9 @@ public class OrderUtilTest {
     List<Order> orders = OrderReader.toOrderList(orderArray);
     assertEquals(orders.size(), 2); // skip one invalid order
     assertEquals(orders.get(0).getName(), "Ramen");
-    assertEquals(orders.get(0).getTemperature(), Order.Temperature.Hot);
+    assertEquals(orders.get(0).getType(), Order.Temperature.Hot);
     assertEquals(orders.get(1).getName(), "Sushi dragonroll");
-    assertEquals(orders.get(1).getTemperature(), Order.Temperature.Cold);
+    assertEquals(orders.get(1).getType(), Order.Temperature.Cold);
   }
 
   // read a local orders json file and create a list of Orders
@@ -102,19 +102,19 @@ public class OrderUtilTest {
     List<Order> orders = OrderReader.readOrdersJson(ordersUrl.getFile());
     assertEquals(orders.size(), 4);
     assertEquals(orders.get(0).getName(), "Banana Split");
-    assertEquals(orders.get(0).getTemperature(), Order.Temperature.Frozen);
+    assertEquals(orders.get(0).getType(), Order.Temperature.Frozen);
     assertEquals(orders.get(0).getShelfLife(), 20L);
     assertEquals(Double.valueOf(orders.get(0).getDecayRate()), Double.valueOf(0.63));
     assertEquals(orders.get(1).getName(), "McFlury");
-    assertEquals(orders.get(1).getTemperature(), Order.Temperature.Frozen);
+    assertEquals(orders.get(1).getType(), Order.Temperature.Frozen);
     assertEquals(orders.get(1).getShelfLife(), 375L);
     assertEquals(Double.valueOf(orders.get(1).getDecayRate()), Double.valueOf(0.4));
     assertEquals(orders.get(2).getName(), "Acai Bowl");
-    assertEquals(orders.get(2).getTemperature(), Order.Temperature.Cold);
+    assertEquals(orders.get(2).getType(), Order.Temperature.Cold);
     assertEquals(orders.get(2).getShelfLife(), 249L);
     assertEquals(Double.valueOf(orders.get(2).getDecayRate()), Double.valueOf(0.3));
     assertEquals(orders.get(3).getName(), "Yogurt");
-    assertEquals(orders.get(3).getTemperature(), Order.Temperature.Cold);
+    assertEquals(orders.get(3).getType(), Order.Temperature.Cold);
     assertEquals(orders.get(3).getShelfLife(), 263L);
     assertEquals(Double.valueOf(orders.get(3).getDecayRate()), Double.valueOf(0.37));
   }
