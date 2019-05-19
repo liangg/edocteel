@@ -84,7 +84,7 @@ public class OrderBackend {
     }
 
     // schedule a driver to pick up the order
-    this.kitchen.scheduleDriver(new DriverOrder(orderId, order.getTemperature()));
+    this.kitchen.scheduleDriver(new DriverOrder(orderId, order.getType()));
   }
 
   public Optional<Order> pickup(DriverOrder order) {

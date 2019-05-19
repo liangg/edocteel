@@ -21,7 +21,7 @@ public class Order {
   public static final String ORDER_DECAYRATE = "decayRate";
 
   private final String name;
-  private final Temperature temperature;
+  private final Temperature type;
   private final int shelfLife; // seconds
   private final double decayRate;
 
@@ -35,8 +35,8 @@ public class Order {
   static public ImmutableMap<String, Temperature> temperatureMap = ImmutableMap.of(
       "hot", Temperature.Hot, "cold", Temperature.Cold, "frozen", Temperature.Frozen);
 
-  public boolean isHot() { return temperature == Temperature.Hot; }
-  public boolean isCold() { return temperature == Temperature.Cold; }
-  public boolean isFrozen() { return temperature == Temperature.Frozen; }
+  public boolean isHot() { return type == Temperature.Hot; }
+  public boolean isCold() { return type == Temperature.Cold; }
+  public boolean isFrozen() { return type == Temperature.Frozen; }
 }
 

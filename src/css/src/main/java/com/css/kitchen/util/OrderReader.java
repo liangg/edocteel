@@ -56,7 +56,7 @@ public class OrderReader {
     MetricsManager.incr(MetricsManager.RECEIVED_ORDERS);
     return Optional.of(Order.builder()
         .name((String) name)
-        .temperature(temperature)
+        .type(temperature)
         .shelfLife(((Long) life).intValue())
         .decayRate(((Double) decay).doubleValue())
         .build());
