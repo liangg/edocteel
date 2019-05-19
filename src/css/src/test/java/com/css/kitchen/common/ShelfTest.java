@@ -52,28 +52,33 @@ public class ShelfTest {
   public void testAddShelf() {
     Shelf hotShelf = new Shelf(Shelf.Type.HotFood, 3);
     hotShelf.addOrder(ramenOrder, 1L);
+    assertEquals(hotShelf.getNumShelvedOrders(), 1);
     hotShelf.addOrder(misoOrder, 2L);
+    assertEquals(hotShelf.getNumShelvedOrders(), 2);
     hotShelf.addOrder(burgerOrder, 3L);
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
     hotShelf.addOrder(tofuSoupOrder, 4L);
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
 
     long now = DateTimeUtils.currentTimeMillis();
-    Optional<Shelf.FetchResult> fetchedOrder = hotShelf.fetchOrder(now);
-    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1); // should be same
+    Optional<Shelf.FetchResult> fetchedOrder = hotShelf.fetchOrder(1L);
     assertTrue(fetchedOrder.isPresent());
-    //System.out.println(fetchedOrder.get());
     Shelf.FetchResult orderResult = fetchedOrder.get();
     assertEquals(orderResult.getOrder().getName(), ramenOrder.getName());
     assertTrue(orderResult.getBackfill());
-    Optional<Shelf.FetchResult> fetchedOrder2 = hotShelf.fetchOrder(now);
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1); // should be same with backfill
+
+    Optional<Shelf.FetchResult> fetchedOrder2 = hotShelf.fetchOrder(2L);
     assertTrue(fetchedOrder2.isPresent());
     Shelf.FetchResult orderResult2 = fetchedOrder2.get();
     assertEquals(orderResult2.getOrder().getName(), misoOrder.getName());
-    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-2); // should be -1
-    Optional<Shelf.FetchResult> fetchedOrder3 = hotShelf.fetchOrder(now);
+    assertEquals(hotShelf.getNumShelvedOrders(), 1); // should be 2
+
+    Optional<Shelf.FetchResult> fetchedOrder3 = hotShelf.fetchOrder(3L);
     assertTrue(fetchedOrder3.isPresent());
-    Optional<Shelf.FetchResult> fetchedOrder4 = hotShelf.fetchOrder(now);
+    assertEquals(hotShelf.getNumShelvedOrders(), 0); // should be 1
+
+    Optional<Shelf.FetchResult> fetchedOrder4 = hotShelf.fetchOrder(4L);
     assertFalse(fetchedOrder4.isPresent());
     assertEquals(hotShelf.getNumShelvedOrders(), 0);
   }
