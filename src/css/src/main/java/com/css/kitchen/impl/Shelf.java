@@ -57,6 +57,15 @@ public class Shelf {
     return result;
   }
 
+  // Backfill a ShelfOrder from the Overflow shelf
+  public boolean backfillOrder(ShelfOrder shelfOrder) {
+    Preconditions.checkState(shelfType != Type.Overflow && shelfOrder != null);
+    boolean result = add(shelfOrder);
+    logger.debug(String.format("Shelf-%s backfill order(%d) %s: %s",
+        shelfType, shelfOrder.getOrderId(), result ? "okay" : "full", shelfOrder.getOrder()));
+    return result;
+  }
+
   private boolean add(ShelfOrder shelfOrder) {
     if (shelfOrder == null)
       return false;

@@ -8,6 +8,7 @@ import com.css.kitchen.util.MetricsManager;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,8 +97,13 @@ public class OrderBackend {
       Optional<Shelf.FetchResult> fetchResult = shelf.fetchOrder(order.getOrderId());
       if (fetchResult.isPresent()) {
         result = fetchResult.get().getOrder();
-        // FIXME: backfill
+        // backfill an order from Overflow shelf, if any
         if (fetchResult.get().getBackfill()) {
+          Optional<ShelfOrder> backfillOptional = foodShelves[OVERFLOW_SHELF].getBackfill(result.getType(), now());
+          if (backfillOptional.isPresent()) {
+            shelf.backfillOrder(backfillOptional.get());
+            // FIXME: check backfill result
+          }
         }
       } else {
         // try look up in the Overflow shelf
@@ -116,5 +122,9 @@ public class OrderBackend {
     return type == Order.Temperature.Hot ?
         foodShelves[HOT_SHELF] :
         (type == Order.Temperature.Cold ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
+  }
+
+  private static long now() {
+    return DateTimeUtils.currentTimeMillis();
   }
 }

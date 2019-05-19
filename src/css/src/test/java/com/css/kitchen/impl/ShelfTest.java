@@ -102,17 +102,17 @@ public class ShelfTest {
     Shelf.FetchResult orderResult = fetchedOrder.get();
     assertEquals(orderResult.getOrder().getName(), ramenOrder.getName());
     assertTrue(orderResult.getBackfill());
-    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1); // should be same with backfill
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1); // no backfill
 
     Optional<Shelf.FetchResult> fetchedOrder2 = hotShelf.fetchOrder(2L);
     assertTrue(fetchedOrder2.isPresent());
     Shelf.FetchResult orderResult2 = fetchedOrder2.get();
     assertEquals(orderResult2.getOrder().getName(), misoOrder.getName());
-    assertEquals(hotShelf.getNumShelvedOrders(), 1); // should be 2
+    assertEquals(hotShelf.getNumShelvedOrders(), 1);
 
     Optional<Shelf.FetchResult> fetchedOrder3 = hotShelf.fetchOrder(3L);
     assertTrue(fetchedOrder3.isPresent());
-    assertEquals(hotShelf.getNumShelvedOrders(), 0); // should be 1
+    assertEquals(hotShelf.getNumShelvedOrders(), 0);
 
     Optional<Shelf.FetchResult> fetchedOrder4 = hotShelf.fetchOrder(4L);
     assertFalse(fetchedOrder4.isPresent());
