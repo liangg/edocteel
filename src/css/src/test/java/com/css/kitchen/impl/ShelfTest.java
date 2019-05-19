@@ -1,4 +1,4 @@
-package com.css.kitchen.common;
+package com.css.kitchen.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,6 +60,28 @@ public class ShelfTest {
         .shelfLife(120)
         .decayRate(1.0)
         .build();
+  }
+
+  @Test
+  public void testShelfOrder() {
+    ShelfOrder.ShelfOrderComparator comparator = new ShelfOrder.ShelfOrderComparator();
+
+    ShelfOrder order1 = new ShelfOrder(burgerOrder, 20L);
+    ShelfOrder order2 = new ShelfOrder(tofuSoupOrder, 28L);
+    assertTrue(comparator.compare(order1, order2) > 0);
+    ShelfOrder order3 = new ShelfOrder(ramenOrder, 50L);
+    assertTrue(comparator.compare(order3, order2) < 0);
+
+    assertTrue(Double.compare(order1.getValue(), (double) burgerOrder.getShelfLife()) == 0);
+    assertTrue(Double.compare(order2.getValue(), (double) tofuSoupOrder.getShelfLife()) == 0);
+    assertTrue(Double.compare(order3.getValue(), (double) ramenOrder.getShelfLife()) == 0);
+
+    long future = DateTimeUtils.currentTimeMillis() + 10000; // 10 sec from now
+    double order1Value = order1.setCurrentValue(future, false);
+    assertTrue(Double.compare(order1.getValue(), (double) burgerOrder.getShelfLife()) < 0);
+    double order1ValueOverflow = order1.setCurrentValue(future, true);
+    assertTrue(Double.compare(order1.getValue(), order1Value) < 0);
+    assertTrue(Double.compare(order1Value, order1ValueOverflow) > 0); // overflow decay faster
   }
 
   @Test

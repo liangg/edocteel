@@ -163,6 +163,7 @@ public class Shelf {
     return priorityQueue.peek();
   }*/
 
+  // used for testing
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
 
   /* Order fetch result indicate the need of backfill from Overflow shelf */
