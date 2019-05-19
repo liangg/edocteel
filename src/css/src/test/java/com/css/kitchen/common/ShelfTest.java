@@ -59,19 +59,22 @@ public class ShelfTest {
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
 
     long now = DateTimeUtils.currentTimeMillis();
-    Optional<Order> fetchedOrder = hotShelf.fetchOrder(now);
+    Optional<Shelf.FetchResult> fetchedOrder = hotShelf.fetchOrder(now);
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1); // should be same
     assertTrue(fetchedOrder.isPresent());
     //System.out.println(fetchedOrder.get());
-    assertEquals(fetchedOrder.get().getName(), ramenOrder.getName());
-    fetchedOrder = hotShelf.fetchOrder(now);
-    assertTrue(fetchedOrder.isPresent());
-    assertEquals(fetchedOrder.get().getName(), misoOrder.getName());
+    Shelf.FetchResult orderResult = fetchedOrder.get();
+    assertEquals(orderResult.getOrder().getName(), ramenOrder.getName());
+    assertTrue(orderResult.getBackfill());
+    Optional<Shelf.FetchResult> fetchedOrder2 = hotShelf.fetchOrder(now);
+    assertTrue(fetchedOrder2.isPresent());
+    Shelf.FetchResult orderResult2 = fetchedOrder2.get();
+    assertEquals(orderResult2.getOrder().getName(), misoOrder.getName());
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-2); // should be -1
-    fetchedOrder = hotShelf.fetchOrder(now);
-    assertTrue(fetchedOrder.isPresent());
-    fetchedOrder = hotShelf.fetchOrder(now);
-    assertFalse(fetchedOrder.isPresent());
+    Optional<Shelf.FetchResult> fetchedOrder3 = hotShelf.fetchOrder(now);
+    assertTrue(fetchedOrder3.isPresent());
+    Optional<Shelf.FetchResult> fetchedOrder4 = hotShelf.fetchOrder(now);
+    assertFalse(fetchedOrder4.isPresent());
     assertEquals(hotShelf.getNumShelvedOrders(), 0);
   }
 }

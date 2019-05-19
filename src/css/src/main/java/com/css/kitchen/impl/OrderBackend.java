@@ -5,14 +5,21 @@ import com.css.kitchen.common.Order;
 import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.Optional;
 
 /**
  * The Order backend implements Kitchen food order fullfillment business logic.
+ *
+ * In production, this should be a stateful service instance that has its own partition
+ * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
+ * processing at run time.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -25,6 +32,7 @@ public class OrderBackend {
 
   private final Kitchen kitchen;
   @Getter final private Shelf[] foodShelves;
+  private final ReentrantLock lock = new ReentrantLock();
 
   public OrderBackend(Kitchen kitchen) {
     this.kitchen = kitchen;
@@ -39,16 +47,32 @@ public class OrderBackend {
   // simple business logic to shelve an Order, in production it could be a
   // food service rpc call.
   public void process(Order order) {
+    Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    if (!shelf.addOrder(order)) {
-      foodShelves[OVERFLOW_SHELF].overflow(order);
+    logger.debug("OrderBackend process order: " + order);
+    // start 2PL for concurrency correctness
+    lock.lock();
+    try {
+      if (!shelf.addOrder(order)) {
+        logger.debug("OrderBackend process order overflow: " + order);
+        MetricsManager.incr(MetricsManager.OVERFLOW_ORDERS);
+        foodShelves[OVERFLOW_SHELF].overflow(order);
+      }
+    } finally {
+      lock.unlock();
     }
   }
 
   public Optional<Order> pickup() {
-    // FIXME
+    // start 2PL for concurrency correctness
+    lock.lock();
+    try {
+      // FIXME
+    } finally {
+      lock.unlock();
+    }
     return Optional.empty();
   }
 }

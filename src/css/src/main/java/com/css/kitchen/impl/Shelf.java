@@ -9,7 +9,6 @@ import java.lang.InterruptedException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
@@ -36,8 +35,6 @@ public class Shelf {
   final private ReentrantLock lock = new ReentrantLock();
   final private HashSet<ShelfOrder> shelvedOrders;
 
-  final private Semaphore semaphore = new Semaphore(1);
-
   public Shelf(Type type, int capacity) {
     this.shelfType = type;
     this.capacity = capacity;
@@ -52,24 +49,27 @@ public class Shelf {
 
   // Add a new Order to a normal shelf and keep the Overflow shelf internal
   public boolean addOrder(Order order) {
-    Preconditions.checkState(shelfType != Type.Overflow);
-    return add(order);
+    Preconditions.checkState(shelfType != Type.Overflow && order != null);
+    boolean result = add(order);
+    logger.debug(String.format("Shelf-%s add order %s: %s", shelfType, result ? "okay" : "full", order));
+    return result;
   }
 
   private boolean add(Order order) {
     if (order == null)
       return false;
     ShelfOrder shelfOrder = new ShelfOrder(order);
-    boolean result = true;
+    boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() < this.capacity) {
         shelvedOrders.add(shelfOrder);
+        result = true;
       }
     } catch (InterruptedException e) {
       System.out.println("Exception in adding order to the Shelf");
-      MetricsManager.incr(MetricsManager.SHELF_ORDER_ERRORS);
       result = false;
+      MetricsManager.incr(MetricsManager.SHELF_ORDER_ERRORS);
     } finally {
       lock.unlock();
     }
@@ -77,32 +77,46 @@ public class Shelf {
   }
 
   // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
-  public Optional<Order> fetchOrder(long now) {
+  public Optional<FetchResult> fetchOrder(long now) {
     Preconditions.checkState(shelfType != Type.Overflow);
     return fetch(now);
   }
 
-  private Optional<Order> fetch(long now) {
-    Order result = null;
+  private Optional<FetchResult> fetch(long now) {
+    FetchResult result = null;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0) {
         boolean backfill = shelvedOrders.size() >= this.capacity;
         ShelfOrder order = maxValueOrder(now);
-        result = order.getOrder();
+        result = new FetchResult(order.getOrder(), backfill);
         shelvedOrders.remove(order);
-        // backfill an order from the Overflow shelf
-        if (backfill) {
-
-        }
       }
-      semaphore.release();
     } catch (InterruptedException e) {
       System.out.println("Exception in fetching order from the Shelf");
     } finally {
       lock.unlock();
     }
     return Optional.empty().ofNullable(result);
+  }
+
+  public void overflow(Order order) {
+    Preconditions.checkState(shelfType == Type.Overflow);
+    if (!add(order)) {
+      // resolve and unblock order fullfillment
+      resolve(order);
+    }
+  }
+
+  // Resolve the blocked order by choosing an Order to discard
+  private void resolve(Order order) {
+    // simple resolution is to discard the new order
+    MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+  }
+
+  public Optional<ShelfOrder> getBackfill() {
+    Preconditions.checkState(shelfType == Type.Overflow);
+    return Optional.empty();
   }
 
   private ShelfOrder maxValueOrder(long now) {
@@ -116,11 +130,16 @@ public class Shelf {
     return priorityQueue.peek();
   }
 
-  public boolean overflow(Order order) {
-    Preconditions.checkState(shelfType == Type.Overflow);
-
-    return false;
-  }
-
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
+
+  /* Order fetch result indicate the need of backfill from Overflow shelf */
+  static public class FetchResult {
+    @Getter private final Order order;
+    @Getter private final Boolean backfill;
+
+    public FetchResult(Order order, boolean backfill) {
+      this.order = order;
+      this.backfill = backfill;
+    }
+  }
 }
