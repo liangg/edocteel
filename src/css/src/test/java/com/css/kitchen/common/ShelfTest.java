@@ -51,11 +51,11 @@ public class ShelfTest {
   @Test
   public void testAddShelf() {
     Shelf hotShelf = new Shelf(Shelf.Type.HotFood, 3);
-    hotShelf.addOrder(ramenOrder);
-    hotShelf.addOrder(misoOrder);
-    hotShelf.addOrder(burgerOrder);
+    hotShelf.addOrder(ramenOrder, 1L);
+    hotShelf.addOrder(misoOrder, 2L);
+    hotShelf.addOrder(burgerOrder, 3L);
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
-    hotShelf.addOrder(tofuSoupOrder);
+    hotShelf.addOrder(tofuSoupOrder, 4L);
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
 
     long now = DateTimeUtils.currentTimeMillis();

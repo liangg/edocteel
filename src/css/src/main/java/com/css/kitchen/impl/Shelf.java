@@ -48,17 +48,17 @@ public class Shelf {
   public boolean isOverflow() { return this.shelfType == Type.Overflow; }
 
   // Add a new Order to a normal shelf and keep the Overflow shelf internal
-  public boolean addOrder(Order order) {
+  public boolean addOrder(Order order, long orderId) {
     Preconditions.checkState(shelfType != Type.Overflow && order != null);
-    boolean result = add(order);
-    logger.debug(String.format("Shelf-%s add order %s: %s", shelfType, result ? "okay" : "full", order));
+    ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
+    boolean result = add(shelfOrder);
+    logger.debug(String.format("Shelf-%s add order(%d) %s: %s", shelfType, orderId, result ? "okay" : "full", order));
     return result;
   }
 
-  private boolean add(Order order) {
-    if (order == null)
+  private boolean add(ShelfOrder shelfOrder) {
+    if (shelfOrder == null)
       return false;
-    ShelfOrder shelfOrder = new ShelfOrder(order);
     boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
@@ -100,16 +100,17 @@ public class Shelf {
     return Optional.empty().ofNullable(result);
   }
 
-  public void overflow(Order order) {
+  public void overflow(Order order, long orderId) {
     Preconditions.checkState(shelfType == Type.Overflow);
-    if (!add(order)) {
+    final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
+    if (!add(shelfOrder)) {
       // resolve and unblock order fullfillment
-      resolve(order);
+      resolve(order, orderId);
     }
   }
 
   // Resolve the blocked order by choosing an Order to discard
-  private void resolve(Order order) {
+  private void resolve(Order order, long orderId) {
     // simple resolution is to discard the new order
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }

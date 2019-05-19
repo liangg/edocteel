@@ -20,6 +20,9 @@ import java.util.Optional;
  * In production, this should be a stateful service instance that has its own partition
  * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
  * processing at run time.
+ *
+ * It generates a gloally unique order ID. In production, it should use a snowflake id
+ * or simple uuid.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -29,6 +32,8 @@ public class OrderBackend {
   public static int FROZEN_SHELF = 2;
   public static int OVERFLOW_SHELF = 3;
   public static int NUM_SHELVES = 4;
+
+  private static long orderId = 0;
 
   private final Kitchen kitchen;
   @Getter final private Shelf[] foodShelves;
@@ -44,21 +49,33 @@ public class OrderBackend {
     foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
   }
 
-  // simple business logic to shelve an Order, in production it could be a
+  // Simple unique order ID generation, but should be snowflake or uuid.
+  private long generateOrderId() {
+    lock.lock();
+    try {
+      orderId += 1;
+    } finally {
+      lock.unlock();
+    }
+    return orderId;
+  }
+
+  // Simple business logic to shelve an Order, in production it could be a
   // food service rpc call.
   public void process(Order order) {
     Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    logger.debug("OrderBackend process order: " + order);
+    final long orderId = generateOrderId();
+    logger.debug(String.format("OrderBackend process order(%d): %s", orderId, order));
     // start 2PL for concurrency correctness
     lock.lock();
     try {
-      if (!shelf.addOrder(order)) {
-        logger.debug("OrderBackend process order overflow: " + order);
+      if (!shelf.addOrder(order, orderId)) {
+        logger.debug(String.format("OrderBackend process order(%d) overflow: %s ", orderId, order));
         MetricsManager.incr(MetricsManager.OVERFLOW_ORDERS);
-        foodShelves[OVERFLOW_SHELF].overflow(order);
+        foodShelves[OVERFLOW_SHELF].overflow(order, orderId);
       }
     } finally {
       lock.unlock();
