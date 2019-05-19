@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.css.kitchen.Kitchen;
+import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
 import com.css.kitchen.impl.Shelf;
 import org.junit.Before;
@@ -56,8 +57,8 @@ public class ServiceTest {
   public void testDriverSchedulerTask() {
     DriverScheduler driverScheduler = new DriverScheduler(kitchen);
     driverScheduler.start();
-    driverScheduler.scheduleDriverPickup();
-    driverScheduler.scheduleDriverPickup();
+    driverScheduler.scheduleDriverPickup(new DriverOrder(1L, Order.Temperature.Hot));
+    driverScheduler.scheduleDriverPickup(new DriverOrder(2L, Order.Temperature.Cold));
     // wait for driver tasks to be done
     try {
       TimeUnit.SECONDS.sleep(1);

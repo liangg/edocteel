@@ -9,6 +9,7 @@ import java.lang.InterruptedException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
@@ -33,12 +34,12 @@ public class Shelf {
   @Getter final private Type shelfType;
   @Getter final private int capacity;
   final private ReentrantLock lock = new ReentrantLock();
-  final private HashSet<ShelfOrder> shelvedOrders;
+  final private ConcurrentHashMap<Long, ShelfOrder> shelvedOrders; // (orderId -> ShelfOrder)
 
   public Shelf(Type type, int capacity) {
     this.shelfType = type;
     this.capacity = capacity;
-    this.shelvedOrders = new HashSet<>(capacity);
+    this.shelvedOrders = new ConcurrentHashMap<>();
   }
 
   public Shelf(Type type) {
@@ -48,22 +49,22 @@ public class Shelf {
   public boolean isOverflow() { return this.shelfType == Type.Overflow; }
 
   // Add a new Order to a normal shelf and keep the Overflow shelf internal
-  public boolean addOrder(Order order) {
+  public boolean addOrder(Order order, long orderId) {
     Preconditions.checkState(shelfType != Type.Overflow && order != null);
-    boolean result = add(order);
-    logger.debug(String.format("Shelf-%s add order %s: %s", shelfType, result ? "okay" : "full", order));
+    ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
+    boolean result = add(shelfOrder);
+    logger.debug(String.format("Shelf-%s add order(%d) %s: %s", shelfType, orderId, result ? "okay" : "full", order));
     return result;
   }
 
-  private boolean add(Order order) {
-    if (order == null)
+  private boolean add(ShelfOrder shelfOrder) {
+    if (shelfOrder == null)
       return false;
-    ShelfOrder shelfOrder = new ShelfOrder(order);
     boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() < this.capacity) {
-        shelvedOrders.add(shelfOrder);
+        shelvedOrders.put(Long.valueOf(shelfOrder.getOrderId()), shelfOrder);
         result = true;
       }
     } catch (InterruptedException e) {
@@ -77,7 +78,32 @@ public class Shelf {
   }
 
   // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
-  public Optional<FetchResult> fetchOrder(long now) {
+  public Optional<FetchResult> fetchOrder(Long orderId) {
+    Preconditions.checkState(shelfType != Type.Overflow && orderId != null);
+    return fetch(orderId);
+  }
+
+  private Optional<FetchResult> fetch(Long orderId) {
+    Preconditions.checkState(orderId != null);
+    FetchResult result = null;
+    try {
+      lock.tryLock(1, TimeUnit.SECONDS);
+      if (shelvedOrders.size() > 0 && shelvedOrders.containsKey(orderId)) {
+        boolean backfill = shelvedOrders.size() >= this.capacity;
+        ShelfOrder order = shelvedOrders.get(orderId);
+        result = new FetchResult(order.getOrder(), backfill);
+        shelvedOrders.remove(orderId);
+      }
+    } catch (InterruptedException e) {
+      System.out.println("Exception in fetching order from the Shelf");
+    } finally {
+      lock.unlock();
+    }
+    return Optional.empty().ofNullable(result);
+  }
+
+  // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
+  /*public Optional<FetchResult> fetchOrder(long now) {
     Preconditions.checkState(shelfType != Type.Overflow);
     return fetch(now);
   }
@@ -88,7 +114,7 @@ public class Shelf {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0) {
         boolean backfill = shelvedOrders.size() >= this.capacity;
-        ShelfOrder order = maxValueOrder(now);
+        //ShelfOrder order = maxValueOrder(now);
         result = new FetchResult(order.getOrder(), backfill);
         shelvedOrders.remove(order);
       }
@@ -98,18 +124,19 @@ public class Shelf {
       lock.unlock();
     }
     return Optional.empty().ofNullable(result);
-  }
+  }*/
 
-  public void overflow(Order order) {
+  public void overflow(Order order, long orderId) {
     Preconditions.checkState(shelfType == Type.Overflow);
-    if (!add(order)) {
+    final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
+    if (!add(shelfOrder)) {
       // resolve and unblock order fullfillment
-      resolve(order);
+      resolve(order, orderId);
     }
   }
 
   // Resolve the blocked order by choosing an Order to discard
-  private void resolve(Order order) {
+  private void resolve(Order order, long orderId) {
     // simple resolution is to discard the new order
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
@@ -119,6 +146,7 @@ public class Shelf {
     return Optional.empty();
   }
 
+  /*
   private ShelfOrder maxValueOrder(long now) {
     PriorityQueue<ShelfOrder> priorityQueue =
         new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
@@ -128,7 +156,7 @@ public class Shelf {
       priorityQueue.add(o);
     });
     return priorityQueue.peek();
-  }
+  }*/
 
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
 

@@ -5,7 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
-/** CSS kitchen food order */
+/**
+ * CSS kitchen food order.
+ *
+ * In production code, this should be a IDL (Thrift or protobuf) struct with
+ * modern Java class code generation.
+ */
 @AllArgsConstructor
 @Builder
 @Value

@@ -1,6 +1,7 @@
 package com.css.kitchen.impl;
 
 import com.css.kitchen.Kitchen;
+import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
 import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
@@ -20,6 +21,9 @@ import java.util.Optional;
  * In production, this should be a stateful service instance that has its own partition
  * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
  * processing at run time.
+ *
+ * It generates a gloally unique order ID for each food Order. In production, it should
+ * use a snowflake id or simple uuid.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -29,6 +33,9 @@ public class OrderBackend {
   public static int FROZEN_SHELF = 2;
   public static int OVERFLOW_SHELF = 3;
   public static int NUM_SHELVES = 4;
+
+  // global unique order id source
+  private static long orderId = 0;
 
   private final Kitchen kitchen;
   @Getter final private Shelf[] foodShelves;
@@ -44,35 +51,70 @@ public class OrderBackend {
     foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
   }
 
-  // simple business logic to shelve an Order, in production it could be a
+  // Simple unique order ID generation, but should be snowflake or uuid.
+  private long generateOrderId() {
+    lock.lock();
+    try {
+      orderId += 1;
+    } finally {
+      lock.unlock();
+    }
+    return orderId;
+  }
+
+  // Simple business logic to shelve an Order, in production it could be a
   // food service rpc call.
   public void process(Order order) {
     Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    logger.debug("OrderBackend process order: " + order);
+    final long orderId = generateOrderId();
+    logger.debug(String.format("OrderBackend process order(%d): %s", orderId, order));
     // start 2PL for concurrency correctness
     lock.lock();
     try {
-      if (!shelf.addOrder(order)) {
-        logger.debug("OrderBackend process order overflow: " + order);
+      if (!shelf.addOrder(order, orderId)) {
+        logger.debug(String.format("OrderBackend process order(%d) overflow: %s ", orderId, order));
         MetricsManager.incr(MetricsManager.OVERFLOW_ORDERS);
-        foodShelves[OVERFLOW_SHELF].overflow(order);
+        foodShelves[OVERFLOW_SHELF].overflow(order, orderId);
       }
     } finally {
       lock.unlock();
     }
+
+    // schedule a driver to pick up the order
+    this.kitchen.scheduleDriver(new DriverOrder(orderId, order.getTemperature()));
   }
 
-  public Optional<Order> pickup() {
+  public Optional<Order> pickup(DriverOrder order) {
+    Order result = null;
     // start 2PL for concurrency correctness
     lock.lock();
     try {
-      // FIXME
+      Shelf shelf = shelfForOrder(order.getOrderType());
+      Optional<Shelf.FetchResult> fetchResult = shelf.fetchOrder(order.getOrderId());
+      if (fetchResult.isPresent()) {
+        result = fetchResult.get().getOrder();
+        // FIXME: backfill
+        if (fetchResult.get().getBackfill()) {
+        }
+      } else {
+        // try look up in the Overflow shelf
+        fetchResult = foodShelves[OVERFLOW_SHELF].fetchOrder(order.getOrderId());
+        if (fetchResult.isPresent()) {
+          result = fetchResult.get().getOrder();
+        }
+      }
     } finally {
       lock.unlock();
     }
-    return Optional.empty();
+    return Optional.ofNullable(result);
+  }
+
+  private Shelf shelfForOrder(Order.Temperature type) {
+    return type == Order.Temperature.Hot ?
+        foodShelves[HOT_SHELF] :
+        (type == Order.Temperature.Cold ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
   }
 }

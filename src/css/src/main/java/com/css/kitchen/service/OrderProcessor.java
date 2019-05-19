@@ -77,8 +77,6 @@ public class OrderProcessor extends CssScheduler {
       MetricsManager.incr(MetricsManager.PROCESSED_ORDERS);
       // forward the order to Kitchen backend
       backend.process(order);
-      // schedule a driver to pick up the order
-      this.kitchen.scheduleDriver();
     };
 
     logger.info("OrderProcessor schedules task");

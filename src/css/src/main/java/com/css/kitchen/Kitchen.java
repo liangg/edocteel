@@ -1,5 +1,6 @@
 package com.css.kitchen;
 
+import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
 import com.css.kitchen.impl.OrderBackend;
 import com.css.kitchen.service.DriverScheduler;
@@ -44,11 +45,13 @@ public class Kitchen {
     this.orderProcessor.submit(order);
   }
 
-  public void scheduleDriver() { this.driverScheduler.scheduleDriverPickup(); }
+  public void scheduleDriver(DriverOrder order) {
+    this.driverScheduler.scheduleDriverPickup(order);
+  }
 
   // used by DriverScheduler task to pick up a ready order for delivery to hungry customers
-  public Optional<Order> pickup() {
-    return this.orderBackend.pickup();
+  public Optional<Order> pickup(DriverOrder order) {
+    return this.orderBackend.pickup(order);
   }
 
   public static void main(String[] args) {

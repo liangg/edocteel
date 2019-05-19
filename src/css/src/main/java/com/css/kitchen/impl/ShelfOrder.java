@@ -12,6 +12,7 @@ import org.joda.time.DateTimeUtils;
  * The "value" is what the order is valued at last shelf order queue operation.
  */
 public class ShelfOrder {
+  @Getter private final long orderId;
   @Getter private final Order order;
   private final long submmittedAtMilli;
   @Getter private double value; // the deteriorating order value
@@ -23,7 +24,8 @@ public class ShelfOrder {
     }
   }
 
-  public ShelfOrder(Order order) {
+  public ShelfOrder(Order order, long id) {
+    this.orderId = id;
     this.order = order;
     this.submmittedAtMilli = DateTimeUtils.currentTimeMillis();
     this.value = (double) order.getShelfLife();
