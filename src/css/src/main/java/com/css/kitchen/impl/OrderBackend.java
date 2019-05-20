@@ -43,13 +43,16 @@ public class OrderBackend {
   private final ReentrantLock lock = new ReentrantLock();
 
   public OrderBackend(Kitchen kitchen) {
+    this(kitchen, Shelf.SHELF_SIZE, Shelf.OVERFLOW_SIZE);
+  }
+
+  public OrderBackend(Kitchen kitchen, int shelfSize, int overflowSize) {
     this.kitchen = kitchen;
     this.foodShelves = new Shelf[NUM_SHELVES];
-    // create food shelves and use simple order processor and dispatcher
-    foodShelves[HOT_SHELF] = new Shelf(Shelf.Type.HotFood);
-    foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
-    foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
-    foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
+    foodShelves[HOT_SHELF] = new Shelf(Shelf.Type.HotFood, shelfSize);
+    foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood, shelfSize);
+    foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood, shelfSize);
+    foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow, overflowSize);
   }
 
   // Simple unique order ID generation, but should be snowflake or uuid.
