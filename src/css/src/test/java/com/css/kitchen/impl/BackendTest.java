@@ -25,7 +25,6 @@ public class BackendTest {
   private Order icecreamOrder;
 
   private Kitchen kitchen;
-  private OrderBackend backend;
 
   @Before
   public void init() {
@@ -67,15 +66,34 @@ public class BackendTest {
         .build();
 
     kitchen = new Kitchen();
-    backend = new OrderBackend(kitchen, 3, 4);
   }
 
-  public void testPickup() {
+  @Test
+  public void testBackendBasicFlow() {
+    OrderBackend backend = new OrderBackend(kitchen, 3, 4);
     backend.process(ramenOrder);
     backend.process(tofuSoupOrder);
     backend.process(misoOrder);
-    backend.process(burgerOrder);
+    backend.process(burgerOrder); // overflow
     backend.process(cheesecakeOrder);
 
+    final Shelf[] foodShelves = backend.getFoodShelves();
+    final Shelf hotShelf = foodShelves[OrderBackend.HOT_SHELF];
+    final Shelf overflowShelf = foodShelves[OrderBackend.OVERFLOW_SHELF];
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
+    assertEquals(overflowShelf.getNumShelvedOrders(), 1);
+
+    Optional<Order> ramenOrder = backend.pickup(new DriverOrder(1L, Order.Temperature.Hot));
+    assertTrue(ramenOrder.isPresent());
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()); // burgerOrder should be backfilled
+    assertEquals(overflowShelf.getNumShelvedOrders(), 0);
+
+    Optional<Order> burgerOrder = backend.pickup(new DriverOrder(4L, Order.Temperature.Hot));
+    assertTrue(burgerOrder.isPresent());
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-1);
+
+    Optional<Order> tofusoupOrder = backend.pickup(new DriverOrder(2L, Order.Temperature.Hot));
+    assertTrue(tofusoupOrder.isPresent());
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-2);
   }
 }

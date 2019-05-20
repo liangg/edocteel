@@ -3,7 +3,6 @@ package com.css.kitchen.impl;
 import com.css.kitchen.Kitchen;
 import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
-import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
 
 import com.google.common.base.Preconditions;
@@ -12,18 +11,17 @@ import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Optional;
 
 /**
- * The Order backend implements Kitchen food order fullfillment business logic.
+ * The Order service backend implements Kitchen food order fulfillment business logic.
  *
  * In production, this should be a stateful service instance that has its own partition
- * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
+ * of Shelf. A multiple distributed backend instances allow better concurrency of Order
  * processing at run time.
  *
- * It generates a gloally unique order ID for each food Order. In production, it should
+ * It generates a globally unique order ID for each food Order. In production, it should
  * use a snowflake id or simple uuid.
  */
 public class OrderBackend {
@@ -66,8 +64,7 @@ public class OrderBackend {
     return orderId;
   }
 
-  // Simple business logic to shelve an Order, in production it could be a
-  // food service rpc call.
+  // Simple business logic to shelve an Order
   public void process(Order order) {
     Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?

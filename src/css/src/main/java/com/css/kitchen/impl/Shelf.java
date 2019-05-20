@@ -157,7 +157,7 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
-    return Optional.of(backfillOrder);
+    return Optional.ofNullable(backfillOrder);
   }
 
   /*
