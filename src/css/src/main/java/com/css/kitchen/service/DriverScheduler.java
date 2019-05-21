@@ -6,6 +6,7 @@ import com.css.kitchen.common.Order;
 import com.css.kitchen.util.MetricsManager;
 
 import java.lang.Long;
+import java.lang.Math;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +41,7 @@ public class DriverScheduler extends CssScheduler {
         MetricsManager.incr(MetricsManager.DELIVERED_ORDERS);
       } else {
         logger.debug(String.format("driver pickup missing order(%d)", driverOrder.getOrderId()));
+        MetricsManager.incr(MetricsManager.MISSED_PICKUPS);
       }
     }
   };
@@ -51,9 +53,13 @@ public class DriverScheduler extends CssScheduler {
   public void scheduleDriverPickup(DriverOrder order) {
     // add order_id to driver work orders queue
     this.workOrders.add(order);
-    // FIXME: pick a random delay 2-10
-    // a driver typically take 2 to 10 seconds to arrive for order pickup
-    int driveTime = 1;
+    int driveTime = estimatedArrival();
     executor.schedule(task, driveTime, TimeUnit.SECONDS);
+    logger.debug(String.format("driver will arrive in %d seconds for order(%d)", driveTime, order.getOrderId()));
+  }
+
+  // A driver typically take 2 to 10 seconds to arrive for order pickup
+  private static int estimatedArrival() {
+    return (int)(Math.random() * 9 + 2);
   }
 }

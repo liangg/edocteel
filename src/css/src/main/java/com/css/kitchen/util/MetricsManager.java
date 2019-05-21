@@ -14,7 +14,8 @@ public abstract class MetricsManager {
   public static final int OVERFLOW_ORDERS  = 4;
   public static final int WASTED_ORDERS    = 5;
   public static final int INVALID_ORDERS   = 6;
-  public static final int SHELF_ORDER_ERRORS = 7;
+  public static final int MISSED_PICKUPS   = 7;
+  public static final int SHELF_ORDER_ERRORS = 8;
 
   private static AtomicInteger receivedOrders = new AtomicInteger(0);
   private static AtomicInteger submittedOrders = new AtomicInteger(0);
@@ -23,6 +24,7 @@ public abstract class MetricsManager {
   private static AtomicInteger overflowOrders = new AtomicInteger(0);
   private static AtomicInteger wastedOrders = new AtomicInteger(0);
   private static AtomicInteger invalidOrders = new AtomicInteger(0);
+  private static AtomicInteger missedPickups = new AtomicInteger(0);
 
   private static AtomicInteger shelfOrderErrors = new AtomicInteger(0);
 
@@ -49,6 +51,9 @@ public abstract class MetricsManager {
       case INVALID_ORDERS:
         invalidOrders.incrementAndGet();
         break;
+      case MISSED_PICKUPS:
+        missedPickups.incrementAndGet();
+        break;
       case SHELF_ORDER_ERRORS:
         shelfOrderErrors.incrementAndGet();
         break;
@@ -67,6 +72,7 @@ public abstract class MetricsManager {
     System.out.println(String.format("Number of overflow orders: %d", overflowOrders.get()));
     System.out.println(String.format("Number of wasted orders: %d", wastedOrders.get()));
     System.out.println(String.format("Number of invalid orders: %d", invalidOrders.get()));
+    System.out.println(String.format("Number of missed order pickup: %d", missedPickups.get()));
     System.out.println(String.format("Order shelf errors: %d", shelfOrderErrors.get()));
   }
 }
