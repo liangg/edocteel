@@ -56,7 +56,7 @@ public class OrderBackend {
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    final long orderId = IdGenerator.nextOrderId();
+    final long orderId = Kitchen.ID_GENERATOR.nextOrderId();
     logger.debug(String.format("OrderBackend process order(%d): %s", orderId, order));
     // start 2PL for concurrency correctness
     lock.lock();

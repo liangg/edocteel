@@ -23,8 +23,7 @@ public class BackendTest {
   private Order tofuSoupOrder;
   private Order cheesecakeOrder;
   private Order icecreamOrder;
-
-  private Kitchen kitchen;
+  private Order burritoOrder;
 
   @Before
   public void init() {
@@ -64,12 +63,17 @@ public class BackendTest {
         .shelfLife(120)
         .decayRate(1.0)
         .build();
-
-    kitchen = new Kitchen();
+    burritoOrder = Order.builder()
+        .name("Beef Burrito")
+        .type(Order.Temperature.Hot)
+        .shelfLife(360)
+        .decayRate(0.20)
+        .build();
   }
 
   @Test
   public void testBackendBasicFlow() {
+    Kitchen kitchen = new Kitchen();
     OrderBackend backend = new OrderBackend(kitchen, 3, 4);
     backend.process(ramenOrder);
     backend.process(tofuSoupOrder);
@@ -95,5 +99,27 @@ public class BackendTest {
     Optional<Order> tofusoupOrder = backend.pickup(new DriverOrder(2L, Order.Temperature.Hot));
     assertTrue(tofusoupOrder.isPresent());
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity()-2);
+  }
+
+  @Test
+  public void testPickupOverflow() {
+    Kitchen kitchen = new Kitchen();
+    OrderBackend backend = new OrderBackend(kitchen, 3, 3);
+    backend.process(ramenOrder);
+    backend.process(tofuSoupOrder);
+    backend.process(misoOrder);
+    backend.process(burgerOrder); // overflow
+    backend.process(cheesecakeOrder);
+
+    final Shelf[] foodShelves = backend.getFoodShelves();
+    final Shelf hotShelf = foodShelves[OrderBackend.HOT_SHELF];
+    final Shelf overflowShelf = foodShelves[OrderBackend.OVERFLOW_SHELF];
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
+    assertEquals(overflowShelf.getNumShelvedOrders(), 1);
+
+    Optional<Order> burgerOrder = backend.pickup(new DriverOrder(8L, Order.Temperature.Hot));
+    assertTrue(burgerOrder.isPresent());
+    assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
+    assertEquals(overflowShelf.getNumShelvedOrders(), 0);
   }
 }
