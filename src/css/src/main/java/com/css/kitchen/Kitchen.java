@@ -19,26 +19,36 @@ import lombok.Getter;
  */
 public class Kitchen {
   @Getter final private OrderBackend orderBackend;
+  final private OrderSource orderSourcer;
   final private OrderProcessor orderProcessor;
   final private DriverScheduler driverScheduler;
 
   public Kitchen() {
+    this.orderSourcer = new OrderSource(this);
     this.orderBackend = new OrderBackend(this);
     this.orderProcessor = new OrderProcessor(this);
     this.driverScheduler = new DriverScheduler(this);
   }
 
-  private void open() {
+  private void open(String ordersJsonFile) {
     System.out.println("CSS Kitchen is open");
+    // start simulated order source processor
+    this.orderSourcer.start(ordersJsonFile);
+    // start order delivery scheduling service
     this.driverScheduler.start();
     this.orderProcessor.start();
   }
 
   private void close() {
-      this.orderProcessor.shutdown();
-      this.driverScheduler.shutdown();
-      MetricsManager.report();
-      System.out.println("CSS Kitchen is closed");
+    this.orderSourcer.shutdown();
+    this.orderProcessor.shutdown();
+    this.driverScheduler.shutdown();
+    MetricsManager.report();
+    System.out.println("CSS Kitchen is closed");
+  }
+
+  private boolean isOpen() {
+    return orderSourcer.hasOrder() || driverScheduler.hasOrder();
   }
 
   // used by OrderSource to submit new customer orders to the kitchen
@@ -46,6 +56,7 @@ public class Kitchen {
     this.orderProcessor.submit(order);
   }
 
+  // used by OrderBackend to schedule a driver to deliver an order
   public void scheduleDriver(DriverOrder order) {
     this.driverScheduler.scheduleDriverPickup(order);
   }
@@ -61,18 +72,13 @@ public class Kitchen {
       System.out.println("Error: missing orders json file");
       System.exit(0);
     }
-    // "/Users/liang_guo/workspace/edocteel/src/css/src/main/resources/food_orders.json"
     final String ordersJsonFile = args[0];
 
     Kitchen kitchen = new Kitchen();
-    kitchen.open();
-
-    // start simulated order source processor
-    OrderSource sourcer = new OrderSource(kitchen);
-    sourcer.start(ordersJsonFile);
+    kitchen.open(ordersJsonFile);
 
     // examine whether there is incoming orders, used to coordinate kitchen close
-    while (sourcer.hasOrder()) {
+    while (kitchen.isOpen()) {
       try {
         TimeUnit.SECONDS.sleep(5);
       } catch (InterruptedException ex) {
@@ -80,7 +86,6 @@ public class Kitchen {
     }
 
     // shutdown the application
-    sourcer.shutdown();
     kitchen.close();
   }
 }

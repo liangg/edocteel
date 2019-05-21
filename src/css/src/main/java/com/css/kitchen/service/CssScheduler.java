@@ -28,7 +28,7 @@ public abstract class CssScheduler {
     try {
       logger.info(name() + " is about to shut down");
       this.executor.shutdown();
-      this.executor.awaitTermination(5, TimeUnit.SECONDS);
+      this.executor.awaitTermination(10, TimeUnit.SECONDS);
     }
     catch (InterruptedException e) {
       logger.error(name() + " interrupted");
