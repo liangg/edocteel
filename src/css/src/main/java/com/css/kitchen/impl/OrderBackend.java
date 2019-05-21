@@ -20,9 +20,6 @@ import java.util.Optional;
  * In production, this should be a stateful service instance that has its own partition
  * of Shelf. A multiple distributed backend instances allow better concurrency of Order
  * processing at run time.
- *
- * It generates a globally unique order ID for each food Order. In production, it should
- * use a snowflake id or simple uuid.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -53,24 +50,13 @@ public class OrderBackend {
     foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow, overflowSize);
   }
 
-  // Simple unique order ID generation, but should be snowflake or uuid.
-  private long generateOrderId() {
-    lock.lock();
-    try {
-      orderId += 1;
-    } finally {
-      lock.unlock();
-    }
-    return orderId;
-  }
-
   // Simple business logic to shelve an Order
   public void process(Order order) {
     Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    final long orderId = generateOrderId();
+    final long orderId = IdGenerator.nextOrderId();
     logger.debug(String.format("OrderBackend process order(%d): %s", orderId, order));
     // start 2PL for concurrency correctness
     lock.lock();
