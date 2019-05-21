@@ -2,6 +2,7 @@ package com.css.kitchen;
 
 import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
+import com.css.kitchen.impl.IdGenerator;
 import com.css.kitchen.impl.OrderBackend;
 import com.css.kitchen.service.DriverScheduler;
 import com.css.kitchen.service.OrderProcessor;

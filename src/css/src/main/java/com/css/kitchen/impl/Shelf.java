@@ -86,19 +86,14 @@ public class Shelf {
     return result;
   }
 
-  // Fetch a ready Order from the normal shelf and keep the Overflow shelf internal
   public Optional<FetchResult> fetchOrder(Long orderId) {
-    Preconditions.checkState(shelfType != Type.Overflow && orderId != null);
-    return fetch(orderId);
-  }
-
-  private Optional<FetchResult> fetch(Long orderId) {
     Preconditions.checkState(orderId != null);
     FetchResult result = null;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
       if (shelvedOrders.size() > 0 && shelvedOrders.containsKey(orderId)) {
-        boolean backfill = shelvedOrders.size() >= this.capacity;
+        // backfill is required for normal shelf only
+        boolean backfill = shelvedOrders.size() >= this.capacity && shelfType != Type.Overflow;
         ShelfOrder order = shelvedOrders.get(orderId);
         result = new FetchResult(order.getOrder(), backfill);
         shelvedOrders.remove(orderId);
@@ -115,7 +110,7 @@ public class Shelf {
     Preconditions.checkState(shelfType == Type.Overflow);
     final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
     if (!add(shelfOrder)) {
-      // resolve and unblock order fullfillment
+      // resolve and unblock order fulfillment
       resolve(order, orderId);
     }
   }
@@ -137,7 +132,7 @@ public class Shelf {
       shelvedOrders.forEach((k, v) -> {
         // compute the current value for each order on the shelf
         v.setCurrentValue(now, isOverflow());
-        // prepare to discard orders whose values have deminished to zero
+        // prepare to discard orders whose values have diminished to zero
         if (v.getValue() <= 0) {
           logger.debug(String.format("Discard order(%d): %s", v.getOrderId(), v.getOrder()));
           MetricsManager.incr(MetricsManager.WASTED_ORDERS);
@@ -157,7 +152,7 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
-    return Optional.of(backfillOrder);
+    return Optional.ofNullable(backfillOrder);
   }
 
   /*

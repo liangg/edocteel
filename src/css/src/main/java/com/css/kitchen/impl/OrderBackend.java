@@ -3,7 +3,6 @@ package com.css.kitchen.impl;
 import com.css.kitchen.Kitchen;
 import com.css.kitchen.common.DriverOrder;
 import com.css.kitchen.common.Order;
-import com.css.kitchen.impl.Shelf;
 import com.css.kitchen.util.MetricsManager;
 
 import com.google.common.base.Preconditions;
@@ -12,19 +11,15 @@ import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Optional;
 
 /**
- * The Order backend implements Kitchen food order fullfillment business logic.
+ * The Order service backend implements Kitchen food order fulfillment business logic.
  *
  * In production, this should be a stateful service instance that has its own partition
- * of Shelf. A mutiple distributed backend instances allow better concurrency of Order
+ * of Shelf. A multiple distributed backend instances allow better concurrency of Order
  * processing at run time.
- *
- * It generates a gloally unique order ID for each food Order. In production, it should
- * use a snowflake id or simple uuid.
  */
 public class OrderBackend {
   private static Logger logger = LoggerFactory.getLogger(OrderBackend.class);
@@ -39,38 +34,30 @@ public class OrderBackend {
   private static long orderId = 0;
 
   private final Kitchen kitchen;
+  private final IdGenerator idGenerator = new IdGenerator();
   @Getter final private Shelf[] foodShelves;
   private final ReentrantLock lock = new ReentrantLock();
 
   public OrderBackend(Kitchen kitchen) {
+    this(kitchen, Shelf.SHELF_SIZE, Shelf.OVERFLOW_SIZE);
+  }
+
+  public OrderBackend(Kitchen kitchen, int shelfSize, int overflowSize) {
     this.kitchen = kitchen;
     this.foodShelves = new Shelf[NUM_SHELVES];
-    // create food shelves and use simple order processor and dispatcher
-    foodShelves[HOT_SHELF] = new Shelf(Shelf.Type.HotFood);
-    foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood);
-    foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood);
-    foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow);
+    foodShelves[HOT_SHELF] = new Shelf(Shelf.Type.HotFood, shelfSize);
+    foodShelves[COLD_SHELF] = new Shelf(Shelf.Type.ColdFood, shelfSize);
+    foodShelves[FROZEN_SHELF] = new Shelf(Shelf.Type.FrozenFood, shelfSize);
+    foodShelves[OVERFLOW_SHELF] = new Shelf(Shelf.Type.Overflow, overflowSize);
   }
 
-  // Simple unique order ID generation, but should be snowflake or uuid.
-  private long generateOrderId() {
-    lock.lock();
-    try {
-      orderId += 1;
-    } finally {
-      lock.unlock();
-    }
-    return orderId;
-  }
-
-  // Simple business logic to shelve an Order, in production it could be a
-  // food service rpc call.
+  // Simple business logic to shelve an Order
   public void process(Order order) {
     Preconditions.checkState(order != null);
     final Shelf shelf = order.isHot() ?
         foodShelves[HOT_SHELF] :
         (order.isCold() ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
-    final long orderId = generateOrderId();
+    final long orderId = idGenerator.nextOrderId();
     logger.debug(String.format("OrderBackend process order(%d): %s", orderId, order));
     // start 2PL for concurrency correctness
     lock.lock();
