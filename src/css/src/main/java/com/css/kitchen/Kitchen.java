@@ -18,8 +18,6 @@ import lombok.Getter;
  * A CSS kitchen that takes food orders, process them to shelf, and dispatch orders to drivers.
  */
 public class Kitchen {
-  public static IdGenerator ID_GENERATOR = new IdGenerator();
-
   @Getter final private OrderBackend orderBackend;
   final private OrderProcessor orderProcessor;
   final private DriverScheduler driverScheduler;

@@ -117,7 +117,7 @@ public class BackendTest {
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
     assertEquals(overflowShelf.getNumShelvedOrders(), 1);
 
-    Optional<Order> burgerOrder = backend.pickup(new DriverOrder(8L, Order.Temperature.Hot));
+    Optional<Order> burgerOrder = backend.pickup(new DriverOrder(4L, Order.Temperature.Hot));
     assertTrue(burgerOrder.isPresent());
     assertEquals(hotShelf.getNumShelvedOrders(), hotShelf.getCapacity());
     assertEquals(overflowShelf.getNumShelvedOrders(), 0);
