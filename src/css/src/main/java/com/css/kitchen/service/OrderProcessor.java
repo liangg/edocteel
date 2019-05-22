@@ -28,7 +28,6 @@ public class OrderProcessor extends CssScheduler {
   private static int ORDER_QUEUE_SIZE = 250;
 
   private final Kitchen kitchen;
-  private final OrderBackend backend;
   private BlockingQueue<Order> ordersQueue;
 
   public OrderProcessor(Kitchen kitchen) {
@@ -38,7 +37,6 @@ public class OrderProcessor extends CssScheduler {
   public OrderProcessor(Kitchen kitchen, int ordersQueueSize) {
     super(1);
     this.kitchen = kitchen;
-    this.backend = kitchen.getOrderBackend();
     this.ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
   }
 
@@ -76,7 +74,7 @@ public class OrderProcessor extends CssScheduler {
       logger.debug("process order: " + order);
       MetricsManager.incr(MetricsManager.PROCESSED_ORDERS);
       // forward the order to Kitchen backend
-      backend.process(order);
+      kitchen.fulfill(order);
     };
 
     logger.info("OrderProcessor schedules task");

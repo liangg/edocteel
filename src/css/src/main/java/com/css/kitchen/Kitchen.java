@@ -18,7 +18,7 @@ import lombok.Getter;
  * A CSS kitchen that takes food orders, process them to shelf, and dispatch orders to drivers.
  */
 public class Kitchen {
-  @Getter final private OrderBackend orderBackend;
+  final private OrderBackend orderBackend;
   final private OrderSource orderSourcer;
   final private OrderProcessor orderProcessor;
   final private DriverScheduler driverScheduler;
@@ -51,9 +51,14 @@ public class Kitchen {
     return orderSourcer.hasOrder() || driverScheduler.hasOrder();
   }
 
-  // used by OrderSource to submit new customer orders to the kitchen
+  // used by OrderSource to submit new customer orders to the Kitchen
   public void submitOrder(Order order) {
     this.orderProcessor.submit(order);
+  }
+
+  // used by OrderProcessor to route an order for fulfillment
+  public void fulfill(Order order) {
+    this.orderBackend.process(order);
   }
 
   // used by OrderBackend to schedule a driver to deliver an order
