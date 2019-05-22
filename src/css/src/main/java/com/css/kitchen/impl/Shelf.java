@@ -6,6 +6,8 @@ import com.css.kitchen.util.MetricsManager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import java.lang.InterruptedException;
+import java.lang.String;
+import java.lang.StringBuilder;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -83,6 +85,8 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (result)
+      printShelf();
     return result;
   }
 
@@ -103,6 +107,8 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (result != null)
+      printShelf();
     return Optional.empty().ofNullable(result);
   }
 
@@ -152,6 +158,8 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (backfillOrder != null)
+      printShelf();
     return Optional.ofNullable(backfillOrder);
   }
 
@@ -169,6 +177,17 @@ public class Shelf {
 
   // used for testing
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
+
+  public void printShelf() {
+    StringBuilder output = new StringBuilder();
+    output.append(shelfType);
+    output.append(" {");
+    shelvedOrders.forEach( (k,v) -> {
+      output.append(v.toString());
+    });
+    output.append("}\n");
+    logger.info(output.toString());
+  }
 
   /* Order fetch result indicate the need of backfill from Overflow shelf */
   static public class FetchResult {
