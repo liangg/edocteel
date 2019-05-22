@@ -62,4 +62,8 @@ public class DriverScheduler extends CssScheduler {
   private static int estimatedArrival() {
     return (int)(Math.random() * 9 + 2);
   }
+
+  public boolean hasOrder() {
+    return this.workOrders.size() == 0;
+  }
 }

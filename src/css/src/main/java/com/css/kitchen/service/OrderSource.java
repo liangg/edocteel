@@ -67,7 +67,7 @@ public class OrderSource extends CssScheduler {
     };
 
     logger.info("OrderSource schedules task");
-    executor.scheduleAtFixedRate(task, 100, 100, TimeUnit.MILLISECONDS);
+    executor.scheduleAtFixedRate(task, 100, 300, TimeUnit.MILLISECONDS);
   }
 
   public boolean hasOrder() {
