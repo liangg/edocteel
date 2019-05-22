@@ -21,22 +21,22 @@ public class Order {
   public static final String ORDER_DECAYRATE = "decayRate";
 
   private final String name;
-  private final Temperature type;
+  private final FoodType type;
   private final int shelfLife; // seconds
   private final double decayRate;
 
-  public enum Temperature {
+  public enum FoodType {
     Hot,
     Cold,
     Frozen
   }
 
   // valid map of Temperature string value
-  static public ImmutableMap<String, Temperature> temperatureMap = ImmutableMap.of(
-      "hot", Temperature.Hot, "cold", Temperature.Cold, "frozen", Temperature.Frozen);
+  static public ImmutableMap<String, FoodType> temperatureMap = ImmutableMap.of(
+      "hot", FoodType.Hot, "cold", FoodType.Cold, "frozen", FoodType.Frozen);
 
-  public boolean isHot() { return type == Temperature.Hot; }
-  public boolean isCold() { return type == Temperature.Cold; }
-  public boolean isFrozen() { return type == Temperature.Frozen; }
+  public boolean isHot() { return type == FoodType.Hot; }
+  public boolean isCold() { return type == FoodType.Cold; }
+  public boolean isFrozen() { return type == FoodType.Frozen; }
 }
 

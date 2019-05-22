@@ -105,10 +105,10 @@ public class OrderBackend {
     return Optional.ofNullable(result);
   }
 
-  private Shelf shelfForOrder(Order.Temperature type) {
-    return type == Order.Temperature.Hot ?
+  private Shelf shelfForOrder(Order.FoodType type) {
+    return type == Order.FoodType.Hot ?
         foodShelves[HOT_SHELF] :
-        (type == Order.Temperature.Cold ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
+        (type == Order.FoodType.Cold ? foodShelves[COLD_SHELF] : foodShelves[FROZEN_SHELF]);
   }
 
   private static long now() {

@@ -121,7 +121,7 @@ public class Shelf {
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
-  public Optional<ShelfOrder> getBackfill(Order.Temperature orderType, long now) {
+  public Optional<ShelfOrder> getBackfill(Order.FoodType orderType, long now) {
     Preconditions.checkState(shelfType == Type.Overflow);
     ShelfOrder backfillOrder = null;
     try {

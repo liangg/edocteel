@@ -22,14 +22,14 @@ public class ServiceTest {
   public void init() {
     ramenOrder = Order.builder()
         .name("Ramen")
-        .type(Order.Temperature.Hot)
+        .type(Order.FoodType.Hot)
         .shelfLife(600)
         .decayRate(0.45)
         .build();
 
     sushiOrder = Order.builder()
         .name("Sushi dragonroll")
-        .type(Order.Temperature.Cold)
+        .type(Order.FoodType.Cold)
         .shelfLife(900)
         .decayRate(0.15)
         .build();
@@ -57,8 +57,8 @@ public class ServiceTest {
   public void testDriverSchedulerTask() {
     DriverScheduler driverScheduler = new DriverScheduler(kitchen);
     driverScheduler.start();
-    driverScheduler.scheduleDriverPickup(new DriverOrder(1L, Order.Temperature.Hot));
-    driverScheduler.scheduleDriverPickup(new DriverOrder(2L, Order.Temperature.Cold));
+    driverScheduler.scheduleDriverPickup(new DriverOrder(1L, Order.FoodType.Hot));
+    driverScheduler.scheduleDriverPickup(new DriverOrder(2L, Order.FoodType.Cold));
     // wait for driver tasks to be done
     try {
       TimeUnit.SECONDS.sleep(1);
