@@ -9,7 +9,7 @@ import org.joda.time.DateTimeUtils;
 
 
 /**
- * It wraps the raw Order with order id and value decay decay computation.
+ * It wraps the raw Order with a unique order id and decaying value computation.
  *
  * The "value" is eseentially the remaining shelf life time. It is a dynamically
  * changing, and its value is what was computed at last shelf order operation.
@@ -17,7 +17,7 @@ import org.joda.time.DateTimeUtils;
 public class ShelfOrder {
   @Getter private final long orderId;
   @Getter private final Order order;
-  @Getter private double value; // the deteriorating order value
+  @Getter private double value; // the decaying order value
   private long lastValuedAtMilli;
 
   static class ShelfOrderComparator implements Comparator<ShelfOrder> {
@@ -52,5 +52,10 @@ public class ShelfOrder {
   @Override
   public int hashCode() {
     return order.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return String.format("[Order-%d value %f %s", orderId, value, order);
   }
 }
