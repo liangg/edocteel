@@ -7,16 +7,18 @@ import java.lang.Override;
 import java.util.Comparator;
 import org.joda.time.DateTimeUtils;
 
+
 /**
- * It wraps the raw Order with order start time for decay value computation.
- * The "value" is what the order is valued at last shelf order queue operation.
+ * It wraps the raw Order with order id and value decay decay computation.
+ *
+ * The "value" is eseentially the remaining shelf life time. It is a dynamically
+ * changing, and its value is what was computed at last shelf order operation.
  */
 public class ShelfOrder {
   @Getter private final long orderId;
   @Getter private final Order order;
   @Getter private double value; // the deteriorating order value
-  private int shelfLife;
-  private final long lastValuedAtMilli;
+  private long lastValuedAtMilli;
 
   static class ShelfOrderComparator implements Comparator<ShelfOrder> {
     @Override
@@ -29,27 +31,22 @@ public class ShelfOrder {
     this.orderId = id;
     this.order = order;
     this.value = (double) order.getShelfLife();
-    this.shelfLife = (double) order.getShelfLife();
     this.lastValuedAtMilli = DateTimeUtils.currentTimeMillis();
   }
 
-  //
-  public void transferShelf() {
-
-  }
-
-  // compute the current value, save in "value", and return it
-  // value = (shelf_life - order_age) - decay_rate * order_age
-  public double setCurrentValue(long now, boolean overflow) {
-    // FIXME: diminishing value from overflow to shelf
+  // Compute the current value, i.e. remaining shelf life time
+  public double computeAndSetValue(long now, boolean overflow) {
+    // overflow shelf decay 2x faster
     int multiply = overflow ? 2 : 1;
     double age = (double)(now - lastValuedAtMilli) / (double)1000;
-    this.value = ((double)order.shelfLife - age) - (order.getDecayRate() * multiply * age);
+    // formula: value = (shelf_life - order_age) - decay_rate * order_age
+    value = (value - age) - (order.getDecayRate() * multiply * age);
+    lastValuedAtMilli = now;
     return value;
   }
 
   public double normalizedValue() {
-    return this.value / (double)order.getShelfLife();
+    return value / (double)order.getShelfLife();
   }
 
   @Override

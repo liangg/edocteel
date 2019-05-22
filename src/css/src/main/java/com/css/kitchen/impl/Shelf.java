@@ -131,7 +131,7 @@ public class Shelf {
       lock.lock();
       shelvedOrders.forEach((k, v) -> {
         // compute the current value for each order on the shelf
-        v.setCurrentValue(now, isOverflow());
+        v.computeAndSetValue(now, isOverflow());
         // prepare to discard orders whose values have diminished to zero
         if (v.getValue() <= 0) {
           logger.debug(String.format("Discard order(%d): %s", v.getOrderId(), v.getOrder()));
