@@ -15,5 +15,5 @@ import lombok.Value;
 @Value
 public class DriverOrder {
   final private Long orderId;
-  final private Order.Temperature orderType;
+  final private Order.FoodType orderType;
 }

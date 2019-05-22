@@ -26,37 +26,37 @@ public class ShelfTest {
   public void init() {
     ramenOrder = Order.builder()
         .name("Ramen")
-        .type(Order.Temperature.Hot)
+        .type(Order.FoodType.Hot)
         .shelfLife(500)
         .decayRate(0.45)
         .build();
     misoOrder = Order.builder()
         .name("seafood miso")
-        .type(Order.Temperature.Hot)
+        .type(Order.FoodType.Hot)
         .shelfLife(600)
         .decayRate(0.35)
         .build();
     burgerOrder = Order.builder()
         .name("Duper Burger")
-        .type(Order.Temperature.Hot)
+        .type(Order.FoodType.Hot)
         .shelfLife(1200)
         .decayRate(0.10)
         .build();
     tofuSoupOrder = Order.builder()
         .name("Tofu soup")
-        .type(Order.Temperature.Hot)
+        .type(Order.FoodType.Hot)
         .shelfLife(1000)
         .decayRate(0.30)
         .build();
     cheesecakeOrder = Order.builder()
         .name("Cheesecake")
-        .type(Order.Temperature.Cold)
+        .type(Order.FoodType.Cold)
         .shelfLife(700)
         .decayRate(0.50)
         .build();
     icecreamOrder = Order.builder()
         .name("Icecream rockyroad")
-        .type(Order.Temperature.Frozen)
+        .type(Order.FoodType.Frozen)
         .shelfLife(120)
         .decayRate(1.0)
         .build();
@@ -129,21 +129,21 @@ public class ShelfTest {
     assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
 
     long now = DateTimeUtils.currentTimeMillis() + 2000;
-    Optional<ShelfOrder> backfill = overflowShelf.getBackfill(Order.Temperature.Cold, now);
+    Optional<ShelfOrder> backfill = overflowShelf.getBackfill(Order.FoodType.Cold, now);
     assertTrue(backfill.isPresent());
     assertEquals(backfill.get().getOrder().getName(), cheesecakeOrder.getName());
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());
     assertTrue(overflowShelf.getNumShelvedOrders() < 4);
 
     long now2 = DateTimeUtils.currentTimeMillis() + 4000;
-    Optional<ShelfOrder> backfillHot = overflowShelf.getBackfill(Order.Temperature.Hot, now2);
+    Optional<ShelfOrder> backfillHot = overflowShelf.getBackfill(Order.FoodType.Hot, now2);
     assertTrue(backfillHot.isPresent());
     assertEquals(backfillHot.get().getOrder().getName(), ramenOrder.getName()); // smaller value
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());
     assertTrue(overflowShelf.getNumShelvedOrders() < 3);
 
     long now3 = DateTimeUtils.currentTimeMillis() + 5000;
-    Optional<ShelfOrder> backfillHot2 = overflowShelf.getBackfill(Order.Temperature.Hot, now3);
+    Optional<ShelfOrder> backfillHot2 = overflowShelf.getBackfill(Order.FoodType.Hot, now3);
     assertTrue(backfillHot2.isPresent());
     assertEquals(backfillHot2.get().getOrder().getName(), burgerOrder.getName()); // smaller value
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());

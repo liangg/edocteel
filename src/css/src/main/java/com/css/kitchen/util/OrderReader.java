@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An order util that convert json data to Order
+ * An order util that convert json data to the raw Order.
  */
 public class OrderReader {
   private static Logger logger = LoggerFactory.getLogger(OrderReader.class);
@@ -47,7 +47,7 @@ public class OrderReader {
       MetricsManager.incr(MetricsManager.INVALID_ORDERS);
       return Optional.empty();
     }
-    Order.Temperature temperature = Order.temperatureMap.get(((String) temp).toLowerCase());
+    Order.FoodType temperature = Order.temperatureMap.get(((String) temp).toLowerCase());
     if (temperature == null) {
       logger.error("invalid order temperature value");
       MetricsManager.incr(MetricsManager.INVALID_ORDERS);
