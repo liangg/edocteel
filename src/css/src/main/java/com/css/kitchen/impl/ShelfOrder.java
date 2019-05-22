@@ -14,8 +14,9 @@ import org.joda.time.DateTimeUtils;
 public class ShelfOrder {
   @Getter private final long orderId;
   @Getter private final Order order;
-  private final long submmittedAtMilli;
   @Getter private double value; // the deteriorating order value
+  private int shelfLife;
+  private final long lastValuedAtMilli;
 
   static class ShelfOrderComparator implements Comparator<ShelfOrder> {
     @Override
@@ -27,16 +28,23 @@ public class ShelfOrder {
   public ShelfOrder(Order order, long id) {
     this.orderId = id;
     this.order = order;
-    this.submmittedAtMilli = DateTimeUtils.currentTimeMillis();
     this.value = (double) order.getShelfLife();
+    this.shelfLife = (double) order.getShelfLife();
+    this.lastValuedAtMilli = DateTimeUtils.currentTimeMillis();
+  }
+
+  //
+  public void transferShelf() {
+
   }
 
   // compute the current value, save in "value", and return it
+  // value = (shelf_life - order_age) - decay_rate * order_age
   public double setCurrentValue(long now, boolean overflow) {
     // FIXME: diminishing value from overflow to shelf
     int multiply = overflow ? 2 : 1;
-    double age = (double)(now - submmittedAtMilli) / (double)1000;
-    this.value = ((double)order.getShelfLife() - age) - (order.getDecayRate() * multiply * age);
+    double age = (double)(now - lastValuedAtMilli) / (double)1000;
+    this.value = ((double)order.shelfLife - age) - (order.getDecayRate() * multiply * age);
     return value;
   }
 
