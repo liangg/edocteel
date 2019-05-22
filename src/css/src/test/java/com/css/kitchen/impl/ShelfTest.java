@@ -77,11 +77,33 @@ public class ShelfTest {
     assertTrue(Double.compare(order3.getValue(), (double) ramenOrder.getShelfLife()) == 0);
 
     long future = DateTimeUtils.currentTimeMillis() + 10000; // 10 sec from now
-    double order1Value = order1.setCurrentValue(future, false);
+    double order1Value = order1.computeAndSetValue(future, false);
     assertTrue(Double.compare(order1.getValue(), (double) burgerOrder.getShelfLife()) < 0);
-    double order1ValueOverflow = order1.setCurrentValue(future, true);
-    assertTrue(Double.compare(order1.getValue(), order1Value) < 0);
-    assertTrue(Double.compare(order1Value, order1ValueOverflow) > 0); // overflow decay faster
+
+    ShelfOrder order11 = new ShelfOrder(burgerOrder, 20L);
+    double order11Value = order11.computeAndSetValue(future, true); // overflow
+    assertTrue(Double.compare(order1Value, order11Value) > 0); // normal shelf has longer life than overflow
+  }
+
+  @Test
+  public void testValueDecay() {
+    Order hotpotOrder = Order.builder()
+        .name("Hotpot")
+        .type(Order.FoodType.Hot)
+        .shelfLife(10000)
+        .decayRate(0.25)
+        .build();
+    ShelfOrder shelfOrder = new ShelfOrder(hotpotOrder, 100L);
+    long now = DateTimeUtils.currentTimeMillis();
+    double value = shelfOrder.computeAndSetValue(now+1000000, true); // overflow shelf
+    assertTrue(Double.compare(value, shelfOrder.getValue()) == 0);
+    double value2 = shelfOrder.computeAndSetValue(now+2000000, false);
+    assertTrue(Double.compare(value2, shelfOrder.getValue()) == 0);
+    assertTrue(Double.compare(value, value2) > 0);
+    double diff = 10000 - value;
+    double diff2 = value - value2;
+    System.out.println(String.format("diff %f,%f - %f,%f", value, value2, diff, diff2));
+    assertTrue(Double.compare(diff, diff2) > 0);
   }
 
   @Test
