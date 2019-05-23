@@ -69,8 +69,7 @@ public class Shelf {
   }
 
   private boolean add(ShelfOrder shelfOrder) {
-    if (shelfOrder == null)
-      return false;
+    Preconditions.checkState(shelfOrder != null);
     boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
@@ -112,18 +111,51 @@ public class Shelf {
     return Optional.empty().ofNullable(result);
   }
 
-  public void overflow(Order order, long orderId) {
+  public void overflow(Order order, long orderId, long now) {
     Preconditions.checkState(shelfType == Type.Overflow);
     final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
     if (!add(shelfOrder)) {
       // resolve and unblock order fulfillment
-      resolve(order, orderId);
+      resolve(order, orderId, now);
     }
   }
 
   // Resolve the blocked order by choosing an Order to discard
-  private void resolve(Order order, long orderId) {
-    // simple resolution is to discard the new order
+  private void resolve(Order order, long orderId, long now) {
+    Preconditions.checkState(shelfType == Type.Overflow);
+    // simple resolution is to discard the new order, but we optimize for minimizing the
+    // number of wasted order by discarding an order that will most likely waste
+    try {
+      PriorityQueue<ShelfOrder> priorityQueue =
+          new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
+      lock.lock();
+      shelvedOrders.forEach((k, v) -> {
+        // compute the current value for each order on the shelf
+        v.computeAndSetValue(now, isOverflow());
+        // prepare to discard orders whose values have diminished to zero
+        if (v.getValue() > 0) {
+          priorityQueue.add(v);
+        } else {
+          logger.debug(String.format("Discard order(%d): %s", v.getOrderId(), v.getOrder()));
+          MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+        }
+      });
+
+      // it either has vacated slot or has to discard an order that has the smallest value
+      shelvedOrders.entrySet().removeIf(e -> Double.compare(e.getValue().getValue(), 0f) == 0);
+      if (shelvedOrders.size() == capacity) {
+        ShelfOrder discardedOrder = priorityQueue.peek();
+        if (discardedOrder != null) {
+          shelvedOrders.remove(discardedOrder.getOrderId());
+          logger.debug(String.format("Discard overflow order(%d): %s",
+              discardedOrder.getOrderId(), discardedOrder.getOrder()));
+          MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+        }
+      }
+      add(new ShelfOrder(order, orderId));
+    } finally {
+      lock.unlock();
+    }
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
