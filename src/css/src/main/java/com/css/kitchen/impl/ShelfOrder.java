@@ -56,6 +56,6 @@ public class ShelfOrder {
 
   @Override
   public String toString() {
-    return String.format("[Order-%d value %f %s", orderId, value, order);
+    return String.format("[Order(%d) value(%.2f) %s]", orderId, value, order);
   }
 }

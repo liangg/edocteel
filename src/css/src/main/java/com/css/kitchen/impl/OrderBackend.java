@@ -65,7 +65,7 @@ public class OrderBackend {
       if (!shelf.addOrder(order, orderId)) {
         logger.debug(String.format("OrderBackend process order(%d) overflow: %s ", orderId, order));
         MetricsManager.incr(MetricsManager.OVERFLOW_ORDERS);
-        foodShelves[OVERFLOW_SHELF].overflow(order, orderId);
+        foodShelves[OVERFLOW_SHELF].overflow(order, orderId, now());
       }
     } finally {
       lock.unlock();

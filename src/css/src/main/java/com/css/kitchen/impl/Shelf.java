@@ -6,6 +6,8 @@ import com.css.kitchen.util.MetricsManager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import java.lang.InterruptedException;
+import java.lang.String;
+import java.lang.StringBuilder;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -67,8 +69,7 @@ public class Shelf {
   }
 
   private boolean add(ShelfOrder shelfOrder) {
-    if (shelfOrder == null)
-      return false;
+    Preconditions.checkState(shelfOrder != null);
     boolean result = false;
     try {
       lock.tryLock(1, TimeUnit.SECONDS);
@@ -83,6 +84,8 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (result)
+      printShelf();
     return result;
   }
 
@@ -103,21 +106,56 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (result != null)
+      printShelf();
     return Optional.empty().ofNullable(result);
   }
 
-  public void overflow(Order order, long orderId) {
+  public void overflow(Order order, long orderId, long now) {
     Preconditions.checkState(shelfType == Type.Overflow);
     final ShelfOrder shelfOrder = new ShelfOrder(order, orderId);
     if (!add(shelfOrder)) {
       // resolve and unblock order fulfillment
-      resolve(order, orderId);
+      resolve(order, orderId, now);
     }
   }
 
   // Resolve the blocked order by choosing an Order to discard
-  private void resolve(Order order, long orderId) {
-    // simple resolution is to discard the new order
+  private void resolve(Order order, long orderId, long now) {
+    Preconditions.checkState(shelfType == Type.Overflow);
+    // simple resolution is to discard the new order, but we optimize for minimizing the
+    // number of wasted order by discarding an order that will most likely waste
+    try {
+      PriorityQueue<ShelfOrder> priorityQueue =
+          new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
+      lock.lock();
+      shelvedOrders.forEach((k, v) -> {
+        // compute the current value for each order on the shelf
+        v.computeAndSetValue(now, isOverflow());
+        // prepare to discard orders whose values have diminished to zero
+        if (v.getValue() > 0) {
+          priorityQueue.add(v);
+        } else {
+          logger.debug(String.format("Discard order(%d): %s", v.getOrderId(), v.getOrder()));
+          MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+        }
+      });
+
+      // it either has vacated slot or has to discard an order that has the smallest value
+      shelvedOrders.entrySet().removeIf(e -> Double.compare(e.getValue().getValue(), 0f) == 0);
+      if (shelvedOrders.size() == capacity) {
+        ShelfOrder discardedOrder = priorityQueue.peek();
+        if (discardedOrder != null) {
+          shelvedOrders.remove(discardedOrder.getOrderId());
+          logger.debug(String.format("Discard overflow order(%d): %s",
+              discardedOrder.getOrderId(), discardedOrder.getOrder()));
+          MetricsManager.incr(MetricsManager.WASTED_ORDERS);
+        }
+      }
+      add(new ShelfOrder(order, orderId));
+    } finally {
+      lock.unlock();
+    }
     MetricsManager.incr(MetricsManager.WASTED_ORDERS);
   }
 
@@ -152,23 +190,24 @@ public class Shelf {
     } finally {
       lock.unlock();
     }
+    if (backfillOrder != null)
+      printShelf();
     return Optional.ofNullable(backfillOrder);
   }
 
-  /*
-  private ShelfOrder maxValueOrder(long now) {
-    PriorityQueue<ShelfOrder> priorityQueue =
-        new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
-    shelvedOrders.forEach( o -> {
-      o.setCurrentValue(now, isOverflow());
-      logger.debug(String.format("shelf order value as of %d: %s", now, o));
-      priorityQueue.add(o);
-    });
-    return priorityQueue.peek();
-  }*/
-
   // used for testing
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
+
+  public void printShelf() {
+    StringBuilder output = new StringBuilder();
+    output.append(shelfType);
+    output.append(" {");
+    shelvedOrders.forEach( (k,v) -> {
+      output.append(v.toString());
+    });
+    output.append("}\n");
+    logger.info(output.toString());
+  }
 
   /* Order fetch result indicate the need of backfill from Overflow shelf */
   static public class FetchResult {

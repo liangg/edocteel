@@ -23,12 +23,12 @@ The optimization strategy can be one of the two,
 ## Tasks
 
 - [x] Raw Order immutable
-- [x] ShelfOrder wraps Order with order time in millisec and last determined value
+- [x] ShelfOrder wraps Order with order time in millisec and last computed value
 - [x] Shelf: thread safe, map order_id -> ShelfOrder
-- [ ] Shelf: priority queue on order value, give max value (pick) and min value (discard)
+- [x] Shelf: priority queue on order value, give max value (pick) and min value (discard)
 - [x] Overflow shelf decay 2x faster
-- [x] Overflow shelf: selection
-- [x] Delivery driver fetch by order_id
+- [x] Overflow shelf: resolve full shelf - optimize minimized wasted orders
+- [x] Delivery driver fetch order by order_id
 - [ ] Asynchronously read orders in poisson distribution
 - [x] Scheduled arrival of drivers every 2~10 seconds
 - [x] Metric counters for total orders, delivered orders, normalized values, number of wasted orders etc.
@@ -38,8 +38,8 @@ The optimization strategy can be one of the two,
 - [x] Read, parse orders json file, and create list of Order
 - [x] Test poisson distribution with avg 3.25 orders per second
 - [x] Test driver arrival 2~10 seconds in scheduled tasks
-- [x] Test Shelf order
-- [ ] Order overflow shelf selection -- different shelf composition, what to discard
+- [x] Test Shelf order, Shelf operations
+- [x] Order overflow shelf -- different shelf composition, resolve what to discard
 
 ---
 

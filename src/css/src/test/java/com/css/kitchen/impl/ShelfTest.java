@@ -143,15 +143,15 @@ public class ShelfTest {
 
   @Test
   public void testBackfill() {
+    long now = DateTimeUtils.currentTimeMillis();
     Shelf overflowShelf = new Shelf(Shelf.Type.Overflow, 4);
-    overflowShelf.overflow(ramenOrder, 1L);
-    overflowShelf.overflow(icecreamOrder, 2L);
-    overflowShelf.overflow(burgerOrder, 3L);
-    overflowShelf.overflow(cheesecakeOrder, 4L);
+    overflowShelf.overflow(ramenOrder, 1L, now);
+    overflowShelf.overflow(icecreamOrder, 2L, now+10);
+    overflowShelf.overflow(burgerOrder, 3L, now+20);
+    overflowShelf.overflow(cheesecakeOrder, 4L, now+30);
     assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
 
-    long now = DateTimeUtils.currentTimeMillis() + 2000;
-    Optional<ShelfOrder> backfill = overflowShelf.getBackfill(Order.FoodType.Cold, now);
+    Optional<ShelfOrder> backfill = overflowShelf.getBackfill(Order.FoodType.Cold, now+2000);
     assertTrue(backfill.isPresent());
     assertEquals(backfill.get().getOrder().getName(), cheesecakeOrder.getName());
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());
@@ -170,5 +170,23 @@ public class ShelfTest {
     assertEquals(backfillHot2.get().getOrder().getName(), burgerOrder.getName()); // smaller value
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());
     assertTrue(overflowShelf.getNumShelvedOrders() < 2);
+  }
+
+  public void testOverflowResolve() {
+    long now = DateTimeUtils.currentTimeMillis();
+    Shelf overflowShelf = new Shelf(Shelf.Type.Overflow, 3);
+    overflowShelf.overflow(ramenOrder, 1L, now);
+    overflowShelf.overflow(icecreamOrder, 2L, now+10);
+    overflowShelf.overflow(burgerOrder, 3L, now+20);
+    assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
+
+    overflowShelf.overflow(cheesecakeOrder, 4L, now+2000);
+    assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
+    Optional<Shelf.FetchResult> fetchedOrder = overflowShelf.fetchOrder(2L);
+    assertFalse(fetchedOrder.isPresent()); // icecream order was discarded
+    Optional<Shelf.FetchResult> fetchedOrder4 = overflowShelf.fetchOrder(4L);
+    assertTrue(fetchedOrder4.isPresent()); // cheesecake order was added to overflow
+    Optional<Shelf.FetchResult> fetchedOrder3 = overflowShelf.fetchOrder(3L);
+    assertTrue(fetchedOrder3.isPresent());
   }
 }
