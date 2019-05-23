@@ -24,7 +24,10 @@ public class DriverScheduler extends CssScheduler {
   private final Kitchen kitchen;
   private final ConcurrentLinkedDeque<DriverOrder> workOrders = new ConcurrentLinkedDeque<>();
 
-  public DriverScheduler(Kitchen kitchen) { this.kitchen = kitchen; }
+  public DriverScheduler(Kitchen kitchen) {
+    super(3);
+    this.kitchen = kitchen;
+  }
 
   @Override
   public String name() { return "DriverScheduler"; }
