@@ -38,8 +38,8 @@ The optimization strategy can be one of the two,
 - [x] Read, parse orders json file, and create list of Order
 - [x] Test poisson distribution with avg 3.25 orders per second
 - [x] Test driver arrival 2~10 seconds in scheduled tasks
-- [x] Test Shelf order
-- [ ] Order overflow shelf selection -- different shelf composition, what to discard
+- [x] Test Shelf order, Shelf operations
+- [x] Order overflow shelf -- different shelf composition, resolve what to discard
 
 ---
 

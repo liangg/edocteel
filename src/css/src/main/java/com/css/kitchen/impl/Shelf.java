@@ -195,18 +195,6 @@ public class Shelf {
     return Optional.ofNullable(backfillOrder);
   }
 
-  /*
-  private ShelfOrder maxValueOrder(long now) {
-    PriorityQueue<ShelfOrder> priorityQueue =
-        new PriorityQueue<ShelfOrder>(OVERFLOW_SIZE, new ShelfOrder.ShelfOrderComparator());
-    shelvedOrders.forEach( o -> {
-      o.setCurrentValue(now, isOverflow());
-      logger.debug(String.format("shelf order value as of %d: %s", now, o));
-      priorityQueue.add(o);
-    });
-    return priorityQueue.peek();
-  }*/
-
   // used for testing
   public int getNumShelvedOrders() { return shelvedOrders.size(); }
 

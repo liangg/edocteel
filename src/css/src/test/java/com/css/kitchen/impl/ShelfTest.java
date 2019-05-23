@@ -171,4 +171,22 @@ public class ShelfTest {
     System.out.println("overflow shelf " + overflowShelf.getNumShelvedOrders());
     assertTrue(overflowShelf.getNumShelvedOrders() < 2);
   }
+
+  public void testOverflowResolve() {
+    long now = DateTimeUtils.currentTimeMillis();
+    Shelf overflowShelf = new Shelf(Shelf.Type.Overflow, 3);
+    overflowShelf.overflow(ramenOrder, 1L, now);
+    overflowShelf.overflow(icecreamOrder, 2L, now+10);
+    overflowShelf.overflow(burgerOrder, 3L, now+20);
+    assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
+
+    overflowShelf.overflow(cheesecakeOrder, 4L, now+2000);
+    assertEquals(overflowShelf.getNumShelvedOrders(), overflowShelf.getCapacity());
+    Optional<Shelf.FetchResult> fetchedOrder = overflowShelf.fetchOrder(2L);
+    assertFalse(fetchedOrder.isPresent()); // icecream order was discarded
+    Optional<Shelf.FetchResult> fetchedOrder4 = overflowShelf.fetchOrder(4L);
+    assertTrue(fetchedOrder4.isPresent()); // cheesecake order was added to overflow
+    Optional<Shelf.FetchResult> fetchedOrder3 = overflowShelf.fetchOrder(3L);
+    assertTrue(fetchedOrder3.isPresent());
+  }
 }
