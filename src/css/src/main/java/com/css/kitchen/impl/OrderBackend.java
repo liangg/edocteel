@@ -89,7 +89,6 @@ public class OrderBackend {
           Optional<ShelfOrder> backfillOptional = foodShelves[OVERFLOW_SHELF].getBackfill(result.getType(), now());
           if (backfillOptional.isPresent()) {
             shelf.backfillOrder(backfillOptional.get());
-            // FIXME: check backfill result
           }
         }
       } else {
