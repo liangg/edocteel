@@ -35,7 +35,7 @@ public class OrderProcessor extends CssScheduler {
   }
 
   public OrderProcessor(Kitchen kitchen, int ordersQueueSize) {
-    super(3);
+    super(4);
     this.kitchen = kitchen;
     this.ordersQueue = new LinkedBlockingQueue<>(ordersQueueSize);
   }
