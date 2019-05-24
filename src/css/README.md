@@ -4,7 +4,35 @@ Author: Liang Guo (liangg.guo@gmail.com)
 
 ## Setup
 
-You need to install _Java 8_ and _gradle_.
+Install _Java 8_ and _gradle_.
+
+```
+liang_guo:~/workspace/css{master} $ java -version
+java version "1.8.0_191"
+Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
+Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
+```
+
+```
+liang_guo:~/workspace/css{master} $ gradle -version
+
+------------------------------------------------------------
+Gradle 4.10.2
+------------------------------------------------------------
+
+Build time:   2018-09-19 18:10:15 UTC
+Revision:     b4d8d5d170bb4ba516e88d7fe5647e2323d791dd
+
+Kotlin DSL:   1.0-rc-6
+Kotlin:       1.2.61
+Groovy:       2.4.15
+Ant:          Apache Ant(TM) version 1.9.11 compiled on March 23 2018
+JVM:          1.8.0_191 (Oracle Corporation 25.191-b12)
+OS:           Mac OS X 10.14.4 x86_64
+```
+
+To run the application, run the following commands. You can change log level to `debug`
+to see more outputs.
 
 ```
 cd css
@@ -100,13 +128,13 @@ provides locking synchronization for threading between `OrderProcessor` and `Dri
 
 ### Concurrency
 
-Although `Shelf` uses ConcurrentHashMap, a Reentrant lock in `OrderBackend` still required
-for concurrency correctness because a regular shelf and Overflow shelf can be mutated on a
-slow path. Optimization in separating fast path from slow path is possible, but it will
+Although `Shelf` uses ConcurrentHashMap, a Reentrant lock in `OrderBackend` is still required
+for concurrency correctness because a regular shelf and the Overflow shelf can be both mutated 
+on a slow path. Optimization in separating fast path from slow path is possible, but it will
 be complex.
 
-In real production, it should use partitioned data set, probably as follows,
+In real production, it could use partitioned dataset, possibly as follows,
 
-- Each OrderBackend instance has its own set of Shelves.
-- Each Shelf has its own Overflow shelf, instead of Hot, Cold, and Frozen shelves share the 
-  same Overflow shelf.
+- Each `OrderBackend` instance has its own set of Shelves.
+- Each `Shelf` has its own `Overflow` shelf, instead of `Hot`, `Cold`, and `Frozen` shelves 
+  share the same `Overflow` shelf.
