@@ -57,6 +57,7 @@ public class ShelfOrder {
   @Override
   public String toString() {
     // display normalized value
-    return String.format("[Order(%d) value(%.2f) %s]", orderId, normalizedValue(), order);
+    return String.format("[Order(%d) normalized_value(%.2f) value(%.2f) %s]",
+        orderId, normalizedValue(), value, order);
   }
 }

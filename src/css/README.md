@@ -97,3 +97,16 @@ in `DriverScheduler`.
 
 While `Shelf` uses `ConcurrentHashMap` for its core {OrderID, ShelfOrder} map, `OrderBackend`
 provides locking synchronization for threading between `OrderProcessor` and `DriverDispatcher`.
+
+### Concurrency
+
+Although `Shelf` uses ConcurrentHashMap, a Reentrant lock in `OrderBackend` still required
+for concurrency correctness because a regular shelf and Overflow shelf can be mutated on a
+slow path. Optimization in separating fast path from slow path is possible, but it will
+be complex.
+
+In real production, it should use partitioned data set, probably as follows,
+
+- Each OrderBackend instance has its own set of Shelves.
+- Each Shelf has its own Overflow shelf, instead of Hot, Cold, and Frozen shelves share the 
+  same Overflow shelf.
