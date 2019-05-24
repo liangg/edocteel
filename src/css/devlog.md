@@ -29,7 +29,7 @@ The optimization strategy can be one of the two,
 - [x] Overflow shelf decay 2x faster
 - [x] Overflow shelf: resolve full shelf - optimize minimized wasted orders
 - [x] Delivery driver fetch order by order_id
-- [ ] Asynchronously read orders in poisson distribution
+- [x] Asynchronously read orders in poisson distribution
 - [x] Scheduled arrival of drivers every 2~10 seconds
 - [x] Metric counters for total orders, delivered orders, normalized values, number of wasted orders etc.
 

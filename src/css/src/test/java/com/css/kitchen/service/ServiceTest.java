@@ -45,7 +45,8 @@ public class ServiceTest {
     sourcer.start(ordersUrl.getFile());
     while (sourcer.hasOrder()) {
       try {
-        TimeUnit.SECONDS.sleep(1);
+        // 3 sec is enough to take 4 orders with poisson lambda 3.25/sec
+        TimeUnit.SECONDS.sleep(3);
       } catch (InterruptedException ex) {
       }
     }
