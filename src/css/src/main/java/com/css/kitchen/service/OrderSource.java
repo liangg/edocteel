@@ -24,6 +24,9 @@ import org.slf4j.LoggerFactory;
 public class OrderSource extends CssScheduler {
   private static Logger logger = LoggerFactory.getLogger(OrderSource.class);
 
+  // a rough estimated poisson process probability of order every 100ms
+  static final double orderRateLambda = 0.325;
+
   private Kitchen kitchen;
   private Lock lock = new ReentrantLock();
   private volatile boolean ordersExhausted = false; // used for app termination
@@ -44,10 +47,12 @@ public class OrderSource extends CssScheduler {
     // submit orders in simulated poisson distribution rate
     Runnable task = () -> {
       if (lastPosition < orders.size()) {
-        Order order = orders.get(lastPosition++);
-        logger.debug("submit order " + order);
-        kitchen.submitOrder(order);
-        MetricsManager.incr(MetricsManager.SUBMITTED_ORDERS);
+        if (orderArrived()) {
+          Order order = orders.get(lastPosition++);
+          logger.debug("submit order " + order);
+          kitchen.submitOrder(order);
+          MetricsManager.incr(MetricsManager.SUBMITTED_ORDERS);
+        }
         return;
       }
 
@@ -67,7 +72,7 @@ public class OrderSource extends CssScheduler {
     };
 
     logger.info("OrderSource schedules task");
-    executor.scheduleAtFixedRate(task, 100, 300, TimeUnit.MILLISECONDS);
+    executor.scheduleAtFixedRate(task, 50, 100, TimeUnit.MILLISECONDS);
   }
 
   public boolean hasOrder() {
@@ -83,5 +88,10 @@ public class OrderSource extends CssScheduler {
       lock.unlock();
     }
     return !result;
+  }
+
+  // simulated order rate with poisson process at a rate 3.25 every second
+  private boolean orderArrived() {
+    return Double.compare(Math.random(), orderRateLambda) < 0;
   }
 }
