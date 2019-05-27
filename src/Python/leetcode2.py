@@ -1403,6 +1403,45 @@ class AsteroidCollision(object):
 
 AsteroidCollision.test()
 
+# Q-763 Partition Labels
+#
+# A string S of lowercase letters is given. We want to partition this string into as 
+# many parts as possible so that each letter appears in at most one part, and return 
+# a list of integers representing the size of these parts.
+class PartitionLabels(object):
+    def partitionLabels(self, S):
+        """
+        :type S: str
+        :rtype: List[int]
+        """
+        charRange = {}
+        for i in xrange(len(S)):
+            if S[i] in charRange:
+                charRange[S[i]][1] = i
+            else:
+                charRange[S[i]] = [i,i]
+        curr = [charRange[S[0]][0], charRange[S[0]][1]]
+        result = []
+        for i in xrange(1, len(S), 1):
+            ir = charRange[S[i]]
+            if curr[1] < ir[0]: # not overlap
+                result.append(curr[1] - curr[0] + 1)
+                curr = [ir[0], ir[1]]
+            else:
+                # adjust range rightmost index
+                curr[1] = max(curr[1], ir[1])
+        result.append(len(S)-curr[0])
+        print result
+        return result
+
+    @staticmethod
+    def test():
+        print "Q-763 Partition Labels"
+        pl = PartitionLabels()
+        pl.partitionLabels("ababcbacadefegdehijhklij")
+
+PartitionLabels.test()
+
 # Q-767 Reorganize String (max heap priority queue)
 #
 # Given a string S, check if the letters can be rearranged so that two characters that 

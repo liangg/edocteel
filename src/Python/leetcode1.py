@@ -1,84 +1,7 @@
-
-# Q-318 Maximum Product of Word Lengths
-class MaxProductWordLengths:
-    def maxProduct(self, words):
-        cbits = {}
-        cbits['a'] = bit = 1
-        for c in "bcdefghijklmnopqrstuvwxyz":
-            bit <<= 1
-            cbits[c] = bit
-
-        word_bits = {}
-        for w in words:
-            wbits = 0
-            for c in w:
-                wbits |= cbits[c]
-            word_bits[w] = wbits
-
-        N = len(words)
-        max_prod = 0
-        pair = ("","")
-        for i in xrange(N):
-            len1 = len(words[i])
-            for j in xrange(i+1, N):
-                if word_bits[words[i]] & word_bits[words[j]] == 0:
-                    prod = len1 * len(words[j])
-                    if prod > max_prod:
-                        max_prod = prod
-                        pair = (words[i], words[j])
-
-        print max_prod, pair
-        return max_prod
-
-    @staticmethod
-    def test():
-        print "Max Product of Word Lengths"
-        mp = MaxProductWordLengths()
-        print mp.maxProduct(["abcw", "baz", "foo", "bar", "xtfn", "abcdef"])
-        print mp.maxProduct(["a", "ab", "abc", "d", "cd", "bcd", "abcd"])
-        print mp.maxProduct(["a", "aa", "aaa", "aaaa"])
-
-MaxProductWordLengths.test()
-
-# Q-326: Power of three
 #
-# Any number that is power of 3 should divide the largest power of 3 (3^19).
-class PowerOfThree(object):
-    def isPowerOfThree(n):
-        """
-        :type n: int
-        :rtype: bool
-        """
-        return n > 0 and 3**19 % n == 0
+# Leetcode questions 350 - 600
+#
 
-# Q-338 Counting Bits
-# 
-# Given a non negative integer number num. For every numbers i in the range 0 <= i <= num calculate 
-# the number of 1's in their binary representation and return them as an array.
-class CountingBits(object):
-    def countBits(self, num):
-        """
-        :type num: int
-        :rtype: List[int]
-        """
-        if num == 0:
-            return [0]
-        result, right, left = [0,1], 2, 0
-        for i in xrange(2, num+1):
-            result.append(result[left]+1)
-            left += 1
-            if left == right:
-                left, right = 0, len(result)
-        return result
-
-    @staticmethod
-    def test():
-        print "Q-338 Counting Bits"
-        cb = CountingBits()
-        print cb.countBits(5) # [0, 1, 1, 2, 1, 2]
-        print cb.countBits(20)
-
-CountingBits.test()
 
 # Q-347 Top K Frequent Elements (priority queue)
 #
@@ -288,8 +211,7 @@ MaxRotateFunction.test()
 # "Atlantic ocean" touches the right and bottom edges. Water can only flow in four directions
 # (up, down, left, or right) from a cell to another one with height equal or lower. Find the
 # list of grid coordinates where water can flow to both the Pacific and Atlantic ocean.
-
-class PacificAtlanticWaterFlow:
+class PacificAtlanticWaterFlow(object):
     def converge_water_flow_path(self, matrix, M, N, pacific, atlantic):
         n_changes = 0
         # whether can flow to pacific
@@ -601,7 +523,6 @@ class MinimumMovesEqualArrayElements(object):
         return result
 
 
-
 # Q-477 Total Hamming Distance
 #
 # The Hamming distance between two integers is the number of positions at which the corresponding bits are 
@@ -776,4 +697,210 @@ class NextGreaterElement(object):
 
 NextGreaterElement.test()
 
-FindDifference.test()
+# Q-523 Continuous Subarray Sum
+#
+# Given a list of non-negative numbers and a target integer k, write a function to check if the
+# array has a continuous subarray of size at least 2 that sums up to the multiple of k, that is,
+# sums up to n*k where n is also an integer.
+class ContinuousSubarraySum:
+    def checkSubarraySum(self, nums, k):
+        if len(nums) == 0:
+            return False
+        tsum = 0
+        abs_k = abs(k)
+        # actually, {0: -1} will work for the 2 special cases
+        memo = {}
+        for i in xrange(len(nums)):
+            tsum += nums[i]
+            # the subarrary [0..i] has prefix sum that is multiple of k
+            if k != 0 and tsum % abs_k == 0 and i > 0:
+                return True
+            m = tsum % abs_k if k != 0 else tsum
+            if m not in memo:
+                memo[m] = i
+            else:
+                if memo[m] + 1 < i:
+                    return True
+        # check case such as ([0,0], 0)
+        if tsum == 0 and len(nums) > 1:
+            return True
+        return False
+
+    @staticmethod
+    def test():
+        print "Continuous Subarray Sum"
+        css = ContinuousSubarraySum()
+        print css.checkSubarraySum([0,0], 0) # True
+        print css.checkSubarraySum([1,1], 2) # True
+        print css.checkSubarraySum([23,2,4,6,7], -6) # True
+        print css.checkSubarraySum([23,2,4,6,7], 8) # False
+        print css.checkSubarraySum([23,2,4,6,7], 19) # True
+        print css.checkSubarraySum([0,7,5,5,6,2,1,3,3,5,0,0,4,4,7,1,5,3,2,4,7,2,1,6,9,6,6,7,7,9,9,6,8,7,8,9,4,7,7,0,7,7,4,8,5,5,5,0,5,5,4,5,6,7,4,5],
+                                    -2147483640) # True because subarray [0,0]
+        print css.checkSubarraySum([358,432,465,409,331,226,256,387,35,468,313,153,139,326,161,451,450,241,213,26,449,185,522,389,192,348,14,370,433],
+                                    732193917) # False because no subarray [0,0]
+
+ContinuousSubarraySum.test()
+
+# Q-540: Single Element in Sorted Array
+#
+# Given a sorted array consisting of only integers where every element appears twice except for
+# one element which appears once. Find this single element that appears only once.
+class FindSingleNumber:
+    def findSingleNumber(self, nums):
+        l, r = (0, len(nums)-1)
+        while (l <= r):
+            m = l + (r-l)/2
+            ml = (m > 0) and (nums[m] == nums[m-1])
+            mr = (m < len(nums)-1) and (nums[m] == nums[m+1])
+            if not (ml or mr):
+                return nums[m]
+            mp = m if ml else m+1
+            if ((mp+1) % 2 == 0):
+                l = mp+1
+            else:
+                r = mp-2
+        return -1
+
+    @staticmethod
+    def test():
+        print "Find single number"
+        fsn = FindSingleNumber()
+        print fsn.findSingleNumber([1,1,2,2,3,3,4,5,5])
+        print fsn.findSingleNumber([1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,9,9,10,10,11,11])
+        print fsn.findSingleNumber([1,1,2,2,3,3,4,4,5])
+        print fsn.findSingleNumber([2,3,3,4,4,5,5,6,6])
+
+FindSingleNumber.test()
+
+
+# Q-567 Permutation in String
+#
+# Given two strings s1 and s2, write a function to return true if s2 contains the permutation of 
+# s1. In other words, one of the first string's permutations is the substring of the second string.
+class PermutationInString(object):
+    def checkInclusion(self, s1, s2):
+        if len(s1) == 0:
+            return True
+        if len(s2) == 0:
+            return False
+
+        s1chars = {}
+        for c in s1:
+            s1chars[c] = 1 if c not in s1chars else s1chars[c]+1
+        print s1chars
+
+        s1_chars = s1chars.copy() 
+        matched = 0
+        for i in xrange(len(s2)):
+            c = s2[i]
+            if c not in s1chars:
+                matched = 0
+                s1_chars = s1chars.copy() 
+            else:
+                # adjust the matched substring to after the first occurrence of this char
+                if s1_chars[c] == 0:
+                    start = i-matched
+                    for j in xrange(start, i):
+                        s1_chars[s2[j]] += 1
+                        matched -= 1
+                        if s2[j] == c:
+                            break
+                matched += 1
+                s1_chars[c] -= 1
+            if matched == len(s1):
+                return True
+        return False
+
+    @staticmethod
+    def test():
+        print "Permutation in String"
+        ps = PermutationInString()
+        print ps.checkInclusion("ab", "eidbaooo")
+        print ps.checkInclusion("dao", "eidboadoo")
+        print ps.checkInclusion("bad", "eidboadoo")
+
+PermutationInString.test()
+
+
+# Q-560 Subarray Sum Equals K
+#
+# Given an array of integers and an integer k, you need to find the total number of continuous subarrays whose sum equals to k.
+class SubarraySumEqualsK(object):
+    def subarraySum_dp(self, nums, k):
+        """
+        :type nums: List[int]
+        :type k: int
+        :rtype: int
+        """
+        N = len(nums)
+        dp = [[0 for i in xrange(N+1)] for j in xrange(N)]
+        count = 0
+        # dp[i,j] = dp[i,j-1] + nums[j], but O(N^2) is too slow to pass large testcase
+        for l in xrange(1, N+1):
+            for i in xrange(0, N+1-l):
+                dp[i][i+l] = dp[i][i+l-1] + nums[i+l-1]
+                if dp[i][i+l] == k:
+                    count += 1
+        return count
+
+    def subarraySum(self, nums, k):
+        """
+        :type nums: List[int]
+        :type k: int
+        :rtype: int
+        """
+        sumSet = {} # count the number of prefix sums
+        prefixSum, count = 0, 0
+        for i in xrange(len(nums)):
+            prefixSum += nums[i]
+            if prefixSum == k:
+                count += 1
+            if (prefixSum - k) in sumSet:
+                count += sumSet[prefixSum - k]
+            sumSet[prefixSum] = 1 if prefixSum not in sumSet else sumSet[prefixSum]+1
+        return count
+
+    @staticmethod
+    def test():
+        print "Q-560 Subarray Sum Equals K"
+        ssk = SubarraySumEqualsK()
+        print ssk.subarraySum([2,-1,5,3,1,-2,2], 4) # 3
+        print ssk.subarraySum([0,0,0,0,0,0,0,0,0,0],0) # 55
+
+SubarraySumEqualsK.test()
+
+# Q-593 Valid Square (Math)
+#
+# Given the coordinates of four points in 2D space, return whether the four points could construct a square.
+# The coordinate (x,y) of a point is represented by an integer array with two integers.
+class ValidSquare(object):
+    def validSquare(self, p1, p2, p3, p4):
+        """
+        :type p1: List[int]
+        :type p2: List[int]
+        :type p3: List[int]
+        :type p4: List[int]
+        :rtype: bool
+        """
+        points = [p1,p2,p3,p4]
+        distCount = {}
+        # a sqaure has 4 edges of the same length and 2 diagonal edges of the same length
+        for i in xrange(4):
+            for j in xrange(i+1,4):
+                # distance([x1,y1], [x2,y2]) = sqrt((x1-x2)^2 + (y1-y2)^2)
+                x1,y1,x2,y2 = points[i][0], points[i][1], points[j][0], points[j][1]
+                dist = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)
+                if dist == 0:
+                    return False
+                cnt = 1 if not distCount.has_key(dist) else distCount.get(dist)
+                distCount[dist] = cnt
+        return len(distCount.keys()) == 2
+
+    @staticmethod
+    def test():
+        print "Q-592 Valid Square"
+        vs = ValidSquare()
+        print vs.validSquare([0,0],[1,1],[0,1],[2,0]) # False
+
+ValidSquare.test()

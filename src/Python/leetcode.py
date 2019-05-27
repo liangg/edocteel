@@ -1,3 +1,6 @@
+#
+# Leetcode questions 1 - 349
+#
 
 import math
 import Queue
@@ -280,7 +283,6 @@ CombinationSum3.test()
 #
 # Given an integer array of size n, find all elements that appear more than
 # one third times. The algorithm should run in linear time and in O(1) space.
-
 def majorityElement(nums):
     """
     :type nums: List[int]
@@ -391,339 +393,42 @@ def test_shortest_palindrome():
 test_shortest_palindrome()
 
 
-
-# Q-303 Range Sum Query
+# Q-228 Summary Ranges
 #
-# Given an integer array nums, find the sum of the elements between indices
-# i and j (i <= j), inclusive.
-class RangeSumQuery:
-    def __init__(self, nums):
-        self.prefix_sums = None
+# Given a sorted integer array without duplicates, return the summary of its ranges.
+class SummaryRanges(object):
+    def summaryRanges(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[str]
+        """
+        result = []
         if len(nums) == 0:
-            return
-
-        self.prefix_sums = [0 for i in xrange(len(nums))]
-        self.prefix_sums[0] = nums[0]
+            return result
+        start, prev = nums[0], nums[0]
         for i in xrange(1, len(nums)):
-            self.prefix_sums[i] = self.prefix_sums[i-1] + nums[i]
-
-    def sumRange(self, i, j):
-        if self.prefix_sums is None:
-            return 0
-        return self.prefix_sums[j] - self.prefix_sums[i-1] if i > 0 else self.prefix_sums[j]
-
-    @staticmethod
-    def test():
-        print "Range Sum Query"
-        r = RangeSumQuery([])
-        print r.sumRange(0,0)
-        rsq = RangeSumQuery([-2,0,3,-5,2,-1,4])
-        print rsq.sumRange(0,2)
-        print rsq.sumRange(0,5)
-        print rsq.sumRange(2,5)
-        print rsq.sumRange(1,4)
-
-RangeSumQuery.test()
-
-# Q-304 Range Sum Query (2D)
-#
-# Given a 2D matrix matrix, find the sum of the elements inside the rectangle defined by its upper
-# left corner (row1, col1) and lower right corner (row2, col2). The matrix is given as a 2D array.
-class RangeSumQuery2D:
-    def __init__(self, matrix):
-        self.m_sum = None
-        if len(matrix) == 0:
-            return
-
-        self.m_sum = [[0 for j in xrange(len(matrix[0]))] for i in xrange(len(matrix))]
-        for i in xrange(len(matrix)):
-            prefix = 0
-            for j in xrange(len(matrix[0])):
-                s = 0 if i == 0 else self.m_sum[i-1][j]
-                self.m_sum[i][j] = s + prefix + matrix[i][j]
-                prefix += matrix[i][j]
-        print self.m_sum
-
-    def sumRegion(self, row1, col1, row2, col2):
-        if self.m_sum is None:
-            return 0
-        top_sum = 0 if row1 == 0 else self.m_sum[row1-1][col2]
-        left_sum = 0 if col1 == 0 else self.sumRegion(row1, 0, row2, col1-1)
-        return self.m_sum[row2][col2] - top_sum - left_sum
+            if nums[i] - prev > 1:
+                summary = str(start)
+                if prev > start:
+                    summary += "->" + str(prev)
+                result.append(summary)
+                start = nums[i]
+            prev = nums[i]
+        # add the last range
+        summary = str(start)
+        if prev > start:
+            summary += "->" + str(prev)
+        result.append(summary)
+        return result
 
     @staticmethod
     def test():
-        print "Range Sum Query 2D"
-        m = [
-            [3, 0, 1, 4, 2],
-            [5, 6, 3, 2, 1],
-            [1, 2, 0, 1, 5],
-            [4, 1, 0, 1, 7],
-            [1, 0, 3, 0, 5]
-        ]
-        rsq = RangeSumQuery2D(m)
-        print rsq.sumRegion(2, 1, 4, 3) # 8
-        print rsq.sumRegion(1, 1, 2, 2) # 11
-        print rsq.sumRegion(1, 2, 2, 4) # 12
+        print "Q-228 Summary Ranges"
+        sr = SummaryRanges()
+        print sr.summaryRanges([0,1,2,4,5,7])
+        print sr.summaryRanges([0,2,3,4,6,8,9])
 
-RangeSumQuery2D.test()
-
-# Q-307 Range Sum Query - Mutable
-#
-# Given an integer array nums, find the sum of the elements between indices i and j, inclusive.
-# The update(i, val) function modifies nums by updating the element at index i to val.
-class RangeSumQueryMutable(object):
-    def __init__(self, nums):
-        if (len(nums) == 0):
-            return
-        self.N = len(nums)
-        height = int(math.ceil(math.log(self.N, 2))) + 1
-        self.seg_tree = [0 for i in xrange(2**(height))]
-        for i in xrange(self.N):
-            j = self.search(i, 0, self.N-1, 0)
-            self.updateSeg(i, 0, self.N-1, 0, nums[i])
-
-    # search for position of the k-th element in the "nums" array, within the range of
-    # left "l" and right "r", starting at segment tree index "seg_idx"
-    def search(self, kth, l, r, seg_idx):
-        if l == r:
-            return seg_idx
-        m = l + (r - l) / 2
-        return self.search(kth, l, m, seg_idx*2+1) if kth <= m else self.search(kth, m+1, r, seg_idx*2+2)
-
-    def prefixSum(self, kth, l, r, seg_idx):
-        if l == r:
-            return self.seg_tree[seg_idx]
-        m = l + (r - l) / 2
-        if kth > m:
-            return self.seg_tree[seg_idx*2+1] + self.prefixSum(kth, m+1, r, seg_idx*2+2)
-        return self.prefixSum(kth, l, m, seg_idx*2+1)
-
-    def updateSeg(self, kth, l, r, seg_idx, val):
-        if l == r:
-            self.seg_tree[seg_idx] = val
-            return
-        m = l + (r - l) / 2
-        if kth <= m:
-            self.updateSeg(kth, l, m, seg_idx*2+1, val)
-        else:
-            self.updateSeg(kth, m+1, r, seg_idx*2+2, val)
-        self.seg_tree[seg_idx] = self.seg_tree[seg_idx*2+1] + self.seg_tree[seg_idx*2+2]
-
-    # modifies nums by updating the element at index i to val
-    def update(self, i, val):
-        self.updateSeg(i, 0, self.N-1, 0, val)
-
-    # sum of the elements between indices i and j (i less than equal to j), inclusive
-    def sumRange(self, i, j):
-        return self.prefixSum(j, 0, self.N-1, 0) - self.prefixSum(i-1, 0, self.N-1, 0) if i > 0 \
-            else self.prefixSum(j, 0, self.N-1, 0)
-
-    @staticmethod
-    def test():
-        print "Range Sum Query - Mutable"
-        rsq = RangeSumQueryMutable([-2,0,3,-5,2,-1,4])
-        print rsq.sumRange(0,3)
-        print rsq.sumRange(2,5)
-        rsq.update(4,3)
-        print rsq.sumRange(2,5)
-        rsq.update(2,2)
-        print rsq.sumRange(0,5)
-
-        rsq2 = RangeSumQueryMutable([1,1,1,1,1,1,1,1,1,1])
-        print rsq2.sumRange(3,8)
-        rsq2.update(4,3)
-        print rsq2.sumRange(3,8)
-
-RangeSumQueryMutable.test()
-
-
-# Q-310 : Minimum Height Trees
-#
-# For a undirected graph with tree characteristics, we can choose any
-# node as the root. The result graph is then a rooted tree. Among all
-# possible rooted trees, those with minimum height are called minimum
-# height trees (MHTs). Given such a graph, write a function to find all
-# the MHTs and return a list of their root labels.
-class MinimumHeightTrees:
-    def find_minimum_height_trees(self, n, edges):
-        """
-        :type n: int
-        :type edges: List[List[int]]
-        :rtype: List[int]
-        """
-        if n == 1:
-            return [0]
-
-        my_edges = {}
-        for i in xrange(n):
-            my_edges[i] = set()
-        for edge in edges:
-            my_edges[edge[0]].add(edge[1])
-            my_edges[edge[1]].add(edge[0])
-
-        roots = []
-        for i in xrange(n):
-            if len(my_edges[i]) == 1:
-                roots.append(i)
-
-        removed = []
-        while len(roots) > 0:
-            del removed[:]
-            next_roots = []
-            for v in roots:
-                for neighbor in my_edges[v]:
-                    my_edges[neighbor].remove(v)
-                    if len(my_edges[neighbor]) == 1:
-                        next_roots.append(neighbor)
-                removed.append(v)
-            roots = next_roots
-
-        return removed
-
-    @staticmethod
-    def test():
-        print "Q-310: Minimum Height Trees"
-        mht = MinimumHeightTrees()
-        print mht.find_minimum_height_trees(1, [])
-        print mht.find_minimum_height_trees(2, [[0,1]])
-        print mht.find_minimum_height_trees(6, [[0, 3], [1, 3], [2, 3], [4, 3], [5, 4]])
-        print mht.find_minimum_height_trees(7, [[0, 3], [1, 3], [2, 3], [4, 3], [5, 4], [6,0]])
-
-MinimumHeightTrees.test()
-
-
-# Q-322 Coin Change
-#
-# You are given coins of different denominations and a total amount of money
-# amount. Write a function to compute the fewest number of coins that you need
-# to make up that amount. If that amount of money cannot be made up by any
-# combination of the coins, return -1. You may assume that you have an infinite
-# number of each kind of coin. For example, coins = [1, 2, 5], amount = 11
-# return 3 (11 = 5 + 5 + 1); coins = [2], amount = 3, return -1.
-#
-# Q-518 Coin Change 2
-#
-# You are given coins of different denominations and a total amount of money. 
-# Write a function to compute the number of combinations that make up that amount. 
-# You may assume that you have infinite number of each kind of coin.
-class CoinChange:
-    def coinChange(self, coins, amount):
-        """
-        :type coins: List[int]
-        :type amount: int
-        :rtype: int
-        """
-        if amount == 0 or len(coins) == 0:
-            return 0
-
-        n_coins = len(coins)
-        M = [amount+1 for i in xrange(amount+1)]
-        M[0] = 0
-
-        for i in xrange(amount+1):
-            for j in xrange(n_coins):
-                if i >= coins[j]:
-                    num = M[i - coins[j]] + 1
-                    if num < M[i]:
-                        M[i] = num
-
-        return -1 if M[amount] == amount+1 else M[amount]
-
-
-    def coinChange2(self, amount, coins):
-        """
-        :type amount: int
-        :type coins: List[int]
-        :rtype: int
-        """
-        if amount == 0:
-            return 1
-        combos = [0 for i in xrange(amount+1)]
-        combos[0] = 1
-        for i in xrange(len(coins)):
-            for j in xrange(1, amount+1):
-                if j >= coins[i]:
-                    combos[j] += combos[j - coins[i]]
-        return combos[amount]
-
-    @staticmethod
-    def test():
-        print "Coin Changes"
-        cc = CoinChange()
-        print cc.coinChange([3,1,5], 13)
-        print cc.coinChange([3,1,5], 12)
-        print cc.coinChange([3,1,10], 13)
-        print cc.coinChange([186,419,83,408], 6249) # = 20
-        print "Coin Changes 2"
-        print cc.coinChange2(0,[7])
-        print cc.coinChange2(12, [2,3,7])
-        print cc.coinChange2(5, [1,2,5])
-
-CoinChange.test()
-
-# Q-334 Increasing Triplet Subsequence
-#
-# Given an unsorted array return whether an increasing subsequence of length 3
-# exists or not in the array. That is, return true if there exists i, j, k
-# such that arr[i] < arr[j] < arr[k] given 0 <= i < j < k <= n-1 else return false.
-# Your algorithm should run in O(n) time complexity and O(1) space complexity.
-
-# If O(N) space is allowed, this is easy. With O(1) space requirement, it's
-# similar idea to know the min to the left and the max to the right of each
-# element. However, the tricky part is to scan twice, left-to-right and right-
-# to-left, and maintain the left min and right max differently.
-def search_triplet_seq(nums, direction):
-    """
-    : type direction: True for right-to-left, False for left-to-right
-    """
-    N = len(nums)
-    if N < 3:
-        return False
-    left_min = nums[0]
-    right_max = nums[N-1]
-    l = 0
-    r = N - 1
-    while l <= r:
-        if nums[l] < left_min:
-            left_min = nums[l]
-        if nums[r] > right_max:
-            right_max = nums[r]
-        if nums[l] > left_min and nums[l] < right_max:
-            return True
-        if nums[r] > left_min and nums[r] < right_max:
-            return True
-        if nums[l] >= nums[r]:
-            if direction:
-                r -= 1
-            else:
-                l += 1
-        else:
-            if direction:
-                l += 1
-            else:
-                r -= 1
-    return False
-
-def increasing_triplet_seq(nums):
-    """
-    :type nums: List[int]
-    :rtype: bool
-    """
-    return search_triplet_seq(nums, True) or search_triplet_seq(nums, False)
-
-def test_increasing_triplet_seq():
-    print "Increasing Triplet Sequence"
-    print increasing_triplet_seq([5, 4, 3, 2, 1])
-    print increasing_triplet_seq([5,3,0,-1,8,8,2,1,9,1,-2])
-    print increasing_triplet_seq([5,3,0,-1,2,2,2,1,1,-2])
-    print increasing_triplet_seq([5,3,0,-1,6,7,8,1,6,-2])
-    print increasing_triplet_seq([5,3,0,-1,6,0,1,5,6,-2])
-    print increasing_triplet_seq([1,2,3,1,2,1])
-    print increasing_triplet_seq([1,2,-10,-8,-7])
-
-test_increasing_triplet_seq()
-
+SummaryRanges.test()
 
 # Q-287 Find Duplicate Number
 #
@@ -873,43 +578,6 @@ def test_maximal_square():
 
 test_maximal_square()
 
-# Q-228 Summary Ranges
-#
-# Given a sorted integer array without duplicates, return the summary of its ranges.
-class SummaryRanges(object):
-    def summaryRanges(self, nums):
-        """
-        :type nums: List[int]
-        :rtype: List[str]
-        """
-        result = []
-        if len(nums) == 0:
-            return result
-        start, prev = nums[0], nums[0]
-        for i in xrange(1, len(nums)):
-            if nums[i] - prev > 1:
-                summary = str(start)
-                if prev > start:
-                    summary += "->" + str(prev)
-                result.append(summary)
-                start = nums[i]
-            prev = nums[i]
-        # add the last range
-        summary = str(start)
-        if prev > start:
-            summary += "->" + str(prev)
-        result.append(summary)
-        return result
-
-    @staticmethod
-    def test():
-        print "Q-228 Summary Ranges"
-        sr = SummaryRanges()
-        print sr.summaryRanges([0,1,2,4,5,7])
-        print sr.summaryRanges([0,2,3,4,6,8,9])
-
-SummaryRanges.test()
-
 class DetectCapital:
     def detectCapitalUse(self, word):
         first = True
@@ -939,214 +607,419 @@ class DetectCapital:
 DetectCapital.test()
 
 
-# Q-540: Single Element in Sorted Array
-#
-# Given a sorted array consisting of only integers where every element appears twice except for
-# one element which appears once. Find this single element that appears only once.
-class FindSingleNumber:
-    def findSingleNumber(self, nums):
-        l, r = (0, len(nums)-1)
-        while (l <= r):
-            m = l + (r-l)/2
-            ml = (m > 0) and (nums[m] == nums[m-1])
-            mr = (m < len(nums)-1) and (nums[m] == nums[m+1])
-            if not (ml or mr):
-                return nums[m]
-            mp = m if ml else m+1
-            if ((mp+1) % 2 == 0):
-                l = mp+1
-            else:
-                r = mp-2
-        return -1
+# Q-318 Maximum Product of Word Lengths
+class MaxProductWordLengths:
+    def maxProduct(self, words):
+        cbits = {}
+        cbits['a'] = bit = 1
+        for c in "bcdefghijklmnopqrstuvwxyz":
+            bit <<= 1
+            cbits[c] = bit
+
+        word_bits = {}
+        for w in words:
+            wbits = 0
+            for c in w:
+                wbits |= cbits[c]
+            word_bits[w] = wbits
+
+        N = len(words)
+        max_prod = 0
+        pair = ("","")
+        for i in xrange(N):
+            len1 = len(words[i])
+            for j in xrange(i+1, N):
+                if word_bits[words[i]] & word_bits[words[j]] == 0:
+                    prod = len1 * len(words[j])
+                    if prod > max_prod:
+                        max_prod = prod
+                        pair = (words[i], words[j])
+
+        print max_prod, pair
+        return max_prod
 
     @staticmethod
     def test():
-        print "Find single number"
-        fsn = FindSingleNumber()
-        print fsn.findSingleNumber([1,1,2,2,3,3,4,5,5])
-        print fsn.findSingleNumber([1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,9,9,10,10,11,11])
-        print fsn.findSingleNumber([1,1,2,2,3,3,4,4,5])
-        print fsn.findSingleNumber([2,3,3,4,4,5,5,6,6])
+        print "Max Product of Word Lengths"
+        mp = MaxProductWordLengths()
+        print mp.maxProduct(["abcw", "baz", "foo", "bar", "xtfn", "abcdef"])
+        print mp.maxProduct(["a", "ab", "abc", "d", "cd", "bcd", "abcd"])
+        print mp.maxProduct(["a", "aa", "aaa", "aaaa"])
 
-FindSingleNumber.test()
+MaxProductWordLengths.test()
 
-
-# Q-567 Permutation in String
+# Q-303 Range Sum Query
 #
-# Given two strings s1 and s2, write a function to return true if s2 contains the permutation of 
-# s1. In other words, one of the first string's permutations is the substring of the second string.
-class PermutationInString(object):
-    def checkInclusion(self, s1, s2):
-        if len(s1) == 0:
-            return True
-        if len(s2) == 0:
-            return False
-
-        s1chars = {}
-        for c in s1:
-            s1chars[c] = 1 if c not in s1chars else s1chars[c]+1
-        print s1chars
-
-        s1_chars = s1chars.copy() 
-        matched = 0
-        for i in xrange(len(s2)):
-            c = s2[i]
-            if c not in s1chars:
-                matched = 0
-                s1_chars = s1chars.copy() 
-            else:
-                # adjust the matched substring to after the first occurrence of this char
-                if s1_chars[c] == 0:
-                    start = i-matched
-                    for j in xrange(start, i):
-                        s1_chars[s2[j]] += 1
-                        matched -= 1
-                        if s2[j] == c:
-                            break
-                matched += 1
-                s1_chars[c] -= 1
-            if matched == len(s1):
-                return True
-        return False
-
-    @staticmethod
-    def test():
-        print "Permutation in String"
-        ps = PermutationInString()
-        print ps.checkInclusion("ab", "eidbaooo")
-        print ps.checkInclusion("dao", "eidboadoo")
-        print ps.checkInclusion("bad", "eidboadoo")
-
-PermutationInString.test()
-
-
-# Q-523 Continuous Subarray Sum
-#
-# Given a list of non-negative numbers and a target integer k, write a function to check if the
-# array has a continuous subarray of size at least 2 that sums up to the multiple of k, that is,
-# sums up to n*k where n is also an integer.
-class ContinuousSubarraySum:
-    def checkSubarraySum(self, nums, k):
+# Given an integer array nums, find the sum of the elements between indices
+# i and j (i <= j), inclusive.
+class RangeSumQuery:
+    def __init__(self, nums):
+        self.prefix_sums = None
         if len(nums) == 0:
-            return False
-        tsum = 0
-        abs_k = abs(k)
-        # actually, {0: -1} will work for the 2 special cases
-        memo = {}
-        for i in xrange(len(nums)):
-            tsum += nums[i]
-            # the subarrary [0..i] has prefix sum that is multiple of k
-            if k != 0 and tsum % abs_k == 0 and i > 0:
-                return True
-            m = tsum % abs_k if k != 0 else tsum
-            if m not in memo:
-                memo[m] = i
-            else:
-                if memo[m] + 1 < i:
-                    return True
-        # check case such as ([0,0], 0)
-        if tsum == 0 and len(nums) > 1:
-            return True
-        return False
+            return
+
+        self.prefix_sums = [0 for i in xrange(len(nums))]
+        self.prefix_sums[0] = nums[0]
+        for i in xrange(1, len(nums)):
+            self.prefix_sums[i] = self.prefix_sums[i-1] + nums[i]
+
+    def sumRange(self, i, j):
+        if self.prefix_sums is None:
+            return 0
+        return self.prefix_sums[j] - self.prefix_sums[i-1] if i > 0 else self.prefix_sums[j]
 
     @staticmethod
     def test():
-        print "Continuous Subarray Sum"
-        css = ContinuousSubarraySum()
-        print css.checkSubarraySum([0,0], 0) # True
-        print css.checkSubarraySum([1,1], 2) # True
-        print css.checkSubarraySum([23,2,4,6,7], -6) # True
-        print css.checkSubarraySum([23,2,4,6,7], 8) # False
-        print css.checkSubarraySum([23,2,4,6,7], 19) # True
-        print css.checkSubarraySum([0,7,5,5,6,2,1,3,3,5,0,0,4,4,7,1,5,3,2,4,7,2,1,6,9,6,6,7,7,9,9,6,8,7,8,9,4,7,7,0,7,7,4,8,5,5,5,0,5,5,4,5,6,7,4,5],
-                                    -2147483640) # True because subarray [0,0]
-        print css.checkSubarraySum([358,432,465,409,331,226,256,387,35,468,313,153,139,326,161,451,450,241,213,26,449,185,522,389,192,348,14,370,433],
-                                    732193917) # False because no subarray [0,0]
+        print "Range Sum Query"
+        r = RangeSumQuery([])
+        print r.sumRange(0,0)
+        rsq = RangeSumQuery([-2,0,3,-5,2,-1,4])
+        print rsq.sumRange(0,2)
+        print rsq.sumRange(0,5)
+        print rsq.sumRange(2,5)
+        print rsq.sumRange(1,4)
 
-ContinuousSubarraySum.test()
+RangeSumQuery.test()
 
-
-# Q-560 Subarray Sum Equals K
+# Q-304 Range Sum Query (2D)
 #
-# Given an array of integers and an integer k, you need to find the total number of continuous subarrays whose sum equals to k.
-class SubarraySumEqualsK(object):
-    def subarraySum_dp(self, nums, k):
-        """
-        :type nums: List[int]
-        :type k: int
-        :rtype: int
-        """
-        N = len(nums)
-        dp = [[0 for i in xrange(N+1)] for j in xrange(N)]
-        count = 0
-        # dp[i,j] = dp[i,j-1] + nums[j], but O(N^2) is too slow to pass large testcase
-        for l in xrange(1, N+1):
-            for i in xrange(0, N+1-l):
-                dp[i][i+l] = dp[i][i+l-1] + nums[i+l-1]
-                if dp[i][i+l] == k:
-                    count += 1
-        return count
+# Given a 2D matrix matrix, find the sum of the elements inside the rectangle defined by its upper
+# left corner (row1, col1) and lower right corner (row2, col2). The matrix is given as a 2D array.
+class RangeSumQuery2D:
+    def __init__(self, matrix):
+        self.m_sum = None
+        if len(matrix) == 0:
+            return
 
-    def subarraySum(self, nums, k):
-        """
-        :type nums: List[int]
-        :type k: int
-        :rtype: int
-        """
-        sumSet = {} # count the number of prefix sums
-        prefixSum, count = 0, 0
-        for i in xrange(len(nums)):
-            prefixSum += nums[i]
-            if prefixSum == k:
-                count += 1
-            if (prefixSum - k) in sumSet:
-                count += sumSet[prefixSum - k]
-            sumSet[prefixSum] = 1 if prefixSum not in sumSet else sumSet[prefixSum]+1
-        return count
+        self.m_sum = [[0 for j in xrange(len(matrix[0]))] for i in xrange(len(matrix))]
+        for i in xrange(len(matrix)):
+            prefix = 0
+            for j in xrange(len(matrix[0])):
+                s = 0 if i == 0 else self.m_sum[i-1][j]
+                self.m_sum[i][j] = s + prefix + matrix[i][j]
+                prefix += matrix[i][j]
+        print self.m_sum
+
+    def sumRegion(self, row1, col1, row2, col2):
+        if self.m_sum is None:
+            return 0
+        top_sum = 0 if row1 == 0 else self.m_sum[row1-1][col2]
+        left_sum = 0 if col1 == 0 else self.sumRegion(row1, 0, row2, col1-1)
+        return self.m_sum[row2][col2] - top_sum - left_sum
 
     @staticmethod
     def test():
-        print "Q-560 Subarray Sum Equals K"
-        ssk = SubarraySumEqualsK()
-        print ssk.subarraySum([2,-1,5,3,1,-2,2], 4) # 3
-        print ssk.subarraySum([0,0,0,0,0,0,0,0,0,0],0) # 55
+        print "Range Sum Query 2D"
+        m = [
+            [3, 0, 1, 4, 2],
+            [5, 6, 3, 2, 1],
+            [1, 2, 0, 1, 5],
+            [4, 1, 0, 1, 7],
+            [1, 0, 3, 0, 5]
+        ]
+        rsq = RangeSumQuery2D(m)
+        print rsq.sumRegion(2, 1, 4, 3) # 8
+        print rsq.sumRegion(1, 1, 2, 2) # 11
+        print rsq.sumRegion(1, 2, 2, 4) # 12
 
-SubarraySumEqualsK.test()
+RangeSumQuery2D.test()
 
-# Q-593 Valid Square (Math)
+# Q-307 Range Sum Query - Mutable
 #
-# Given the coordinates of four points in 2D space, return whether the four points could construct a square.
-# The coordinate (x,y) of a point is represented by an integer array with two integers.
-class ValidSquare(object):
-    def validSquare(self, p1, p2, p3, p4):
+# Given an integer array nums, find the sum of the elements between indices i and j, inclusive.
+# The update(i, val) function modifies nums by updating the element at index i to val.
+class RangeSumQueryMutable(object):
+    def __init__(self, nums):
+        if (len(nums) == 0):
+            return
+        self.N = len(nums)
+        height = int(math.ceil(math.log(self.N, 2))) + 1
+        self.seg_tree = [0 for i in xrange(2**(height))]
+        for i in xrange(self.N):
+            j = self.search(i, 0, self.N-1, 0)
+            self.updateSeg(i, 0, self.N-1, 0, nums[i])
+
+    # search for position of the k-th element in the "nums" array, within the range of
+    # left "l" and right "r", starting at segment tree index "seg_idx"
+    def search(self, kth, l, r, seg_idx):
+        if l == r:
+            return seg_idx
+        m = l + (r - l) / 2
+        return self.search(kth, l, m, seg_idx*2+1) if kth <= m else self.search(kth, m+1, r, seg_idx*2+2)
+
+    def prefixSum(self, kth, l, r, seg_idx):
+        if l == r:
+            return self.seg_tree[seg_idx]
+        m = l + (r - l) / 2
+        if kth > m:
+            return self.seg_tree[seg_idx*2+1] + self.prefixSum(kth, m+1, r, seg_idx*2+2)
+        return self.prefixSum(kth, l, m, seg_idx*2+1)
+
+    def updateSeg(self, kth, l, r, seg_idx, val):
+        if l == r:
+            self.seg_tree[seg_idx] = val
+            return
+        m = l + (r - l) / 2
+        if kth <= m:
+            self.updateSeg(kth, l, m, seg_idx*2+1, val)
+        else:
+            self.updateSeg(kth, m+1, r, seg_idx*2+2, val)
+        self.seg_tree[seg_idx] = self.seg_tree[seg_idx*2+1] + self.seg_tree[seg_idx*2+2]
+
+    # modifies nums by updating the element at index i to val
+    def update(self, i, val):
+        self.updateSeg(i, 0, self.N-1, 0, val)
+
+    # sum of the elements between indices i and j (i less than equal to j), inclusive
+    def sumRange(self, i, j):
+        return self.prefixSum(j, 0, self.N-1, 0) - self.prefixSum(i-1, 0, self.N-1, 0) if i > 0 \
+            else self.prefixSum(j, 0, self.N-1, 0)
+
+    @staticmethod
+    def test():
+        print "Range Sum Query - Mutable"
+        rsq = RangeSumQueryMutable([-2,0,3,-5,2,-1,4])
+        print rsq.sumRange(0,3)
+        print rsq.sumRange(2,5)
+        rsq.update(4,3)
+        print rsq.sumRange(2,5)
+        rsq.update(2,2)
+        print rsq.sumRange(0,5)
+
+        rsq2 = RangeSumQueryMutable([1,1,1,1,1,1,1,1,1,1])
+        print rsq2.sumRange(3,8)
+        rsq2.update(4,3)
+        print rsq2.sumRange(3,8)
+
+RangeSumQueryMutable.test()
+
+# Q-310 : Minimum Height Trees
+#
+# For a undirected graph with tree characteristics, we can choose any
+# node as the root. The result graph is then a rooted tree. Among all
+# possible rooted trees, those with minimum height are called minimum
+# height trees (MHTs). Given such a graph, write a function to find all
+# the MHTs and return a list of their root labels.
+class MinimumHeightTrees:
+    def find_minimum_height_trees(self, n, edges):
         """
-        :type p1: List[int]
-        :type p2: List[int]
-        :type p3: List[int]
-        :type p4: List[int]
+        :type n: int
+        :type edges: List[List[int]]
+        :rtype: List[int]
+        """
+        if n == 1:
+            return [0]
+
+        my_edges = {}
+        for i in xrange(n):
+            my_edges[i] = set()
+        for edge in edges:
+            my_edges[edge[0]].add(edge[1])
+            my_edges[edge[1]].add(edge[0])
+
+        roots = []
+        for i in xrange(n):
+            if len(my_edges[i]) == 1:
+                roots.append(i)
+
+        removed = []
+        while len(roots) > 0:
+            del removed[:]
+            next_roots = []
+            for v in roots:
+                for neighbor in my_edges[v]:
+                    my_edges[neighbor].remove(v)
+                    if len(my_edges[neighbor]) == 1:
+                        next_roots.append(neighbor)
+                removed.append(v)
+            roots = next_roots
+
+        return removed
+
+    @staticmethod
+    def test():
+        print "Q-310: Minimum Height Trees"
+        mht = MinimumHeightTrees()
+        print mht.find_minimum_height_trees(1, [])
+        print mht.find_minimum_height_trees(2, [[0,1]])
+        print mht.find_minimum_height_trees(6, [[0, 3], [1, 3], [2, 3], [4, 3], [5, 4]])
+        print mht.find_minimum_height_trees(7, [[0, 3], [1, 3], [2, 3], [4, 3], [5, 4], [6,0]])
+
+MinimumHeightTrees.test()
+
+
+# Q-322 Coin Change
+#
+# You are given coins of different denominations and a total amount of money
+# amount. Write a function to compute the fewest number of coins that you need
+# to make up that amount. If that amount of money cannot be made up by any
+# combination of the coins, return -1. You may assume that you have an infinite
+# number of each kind of coin. For example, coins = [1, 2, 5], amount = 11
+# return 3 (11 = 5 + 5 + 1); coins = [2], amount = 3, return -1.
+#
+# Q-518 Coin Change 2
+#
+# You are given coins of different denominations and a total amount of money. 
+# Write a function to compute the number of combinations that make up that amount. 
+# You may assume that you have infinite number of each kind of coin.
+class CoinChange:
+    def coinChange(self, coins, amount):
+        """
+        :type coins: List[int]
+        :type amount: int
+        :rtype: int
+        """
+        if amount == 0 or len(coins) == 0:
+            return 0
+
+        n_coins = len(coins)
+        M = [amount+1 for i in xrange(amount+1)]
+        M[0] = 0
+
+        for i in xrange(amount+1):
+            for j in xrange(n_coins):
+                if i >= coins[j]:
+                    num = M[i - coins[j]] + 1
+                    if num < M[i]:
+                        M[i] = num
+
+        return -1 if M[amount] == amount+1 else M[amount]
+
+
+    def coinChange2(self, amount, coins):
+        """
+        :type amount: int
+        :type coins: List[int]
+        :rtype: int
+        """
+        if amount == 0:
+            return 1
+        combos = [0 for i in xrange(amount+1)]
+        combos[0] = 1
+        for i in xrange(len(coins)):
+            for j in xrange(1, amount+1):
+                if j >= coins[i]:
+                    combos[j] += combos[j - coins[i]]
+        return combos[amount]
+
+    @staticmethod
+    def test():
+        print "Coin Changes"
+        cc = CoinChange()
+        print cc.coinChange([3,1,5], 13)
+        print cc.coinChange([3,1,5], 12)
+        print cc.coinChange([3,1,10], 13)
+        print cc.coinChange([186,419,83,408], 6249) # = 20
+        print "Coin Changes 2"
+        print cc.coinChange2(0,[7])
+        print cc.coinChange2(12, [2,3,7])
+        print cc.coinChange2(5, [1,2,5])
+
+CoinChange.test()
+
+# Q-326: Power of three
+#
+# Any number that is power of 3 should divide the largest power of 3 (3^19).
+class PowerOfThree(object):
+    def isPowerOfThree(n):
+        """
+        :type n: int
         :rtype: bool
         """
-        points = [p1,p2,p3,p4]
-        distCount = {}
-        # a sqaure has 4 edges of the same length and 2 diagonal edges of the same length
-        for i in xrange(4):
-            for j in xrange(i+1,4):
-                # distance([x1,y1], [x2,y2]) = sqrt((x1-x2)^2 + (y1-y2)^2)
-                x1,y1,x2,y2 = points[i][0], points[i][1], points[j][0], points[j][1]
-                dist = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)
-                if dist == 0:
-                    return False
-                cnt = 1 if not distCount.has_key(dist) else distCount.get(dist)
-                distCount[dist] = cnt
-        return len(distCount.keys()) == 2
+        return n > 0 and 3**19 % n == 0
+
+# Q-334 Increasing Triplet Subsequence
+#
+# Given an unsorted array return whether an increasing subsequence of length 3
+# exists or not in the array. That is, return true if there exists i, j, k
+# such that arr[i] < arr[j] < arr[k] given 0 <= i < j < k <= n-1 else return false.
+# Your algorithm should run in O(n) time complexity and O(1) space complexity.
+
+# If O(N) space is allowed, this is easy. With O(1) space requirement, it's
+# similar idea to know the min to the left and the max to the right of each
+# element. However, the tricky part is to scan twice, left-to-right and right-
+# to-left, and maintain the left min and right max differently.
+def search_triplet_seq(nums, direction):
+    """
+    : type direction: True for right-to-left, False for left-to-right
+    """
+    N = len(nums)
+    if N < 3:
+        return False
+    left_min = nums[0]
+    right_max = nums[N-1]
+    l = 0
+    r = N - 1
+    while l <= r:
+        if nums[l] < left_min:
+            left_min = nums[l]
+        if nums[r] > right_max:
+            right_max = nums[r]
+        if nums[l] > left_min and nums[l] < right_max:
+            return True
+        if nums[r] > left_min and nums[r] < right_max:
+            return True
+        if nums[l] >= nums[r]:
+            if direction:
+                r -= 1
+            else:
+                l += 1
+        else:
+            if direction:
+                l += 1
+            else:
+                r -= 1
+    return False
+
+def increasing_triplet_seq(nums):
+    """
+    :type nums: List[int]
+    :rtype: bool
+    """
+    return search_triplet_seq(nums, True) or search_triplet_seq(nums, False)
+
+def test_increasing_triplet_seq():
+    print "Increasing Triplet Sequence"
+    print increasing_triplet_seq([5, 4, 3, 2, 1])
+    print increasing_triplet_seq([5,3,0,-1,8,8,2,1,9,1,-2])
+    print increasing_triplet_seq([5,3,0,-1,2,2,2,1,1,-2])
+    print increasing_triplet_seq([5,3,0,-1,6,7,8,1,6,-2])
+    print increasing_triplet_seq([5,3,0,-1,6,0,1,5,6,-2])
+    print increasing_triplet_seq([1,2,3,1,2,1])
+    print increasing_triplet_seq([1,2,-10,-8,-7])
+
+test_increasing_triplet_seq()
+
+# Q-338 Counting Bits
+# 
+# Given a non negative integer number num. For every numbers i in the range 0 <= i <= num calculate 
+# the number of 1's in their binary representation and return them as an array.
+class CountingBits(object):
+    def countBits(self, num):
+        """
+        :type num: int
+        :rtype: List[int]
+        """
+        if num == 0:
+            return [0]
+        result, right, left = [0,1], 2, 0
+        for i in xrange(2, num+1):
+            result.append(result[left]+1)
+            left += 1
+            if left == right:
+                left, right = 0, len(result)
+        return result
 
     @staticmethod
     def test():
-        print "Q-592 Valid Square"
-        vs = ValidSquare()
-        print vs.validSquare([0,0],[1,1],[0,1],[2,0]) # False
+        print "Q-338 Counting Bits"
+        cb = CountingBits()
+        print cb.countBits(5) # [0, 1, 1, 2, 1, 2]
+        print cb.countBits(20)
 
-ValidSquare.test()
+CountingBits.test()
+
+
 
 # Q-971 Reverse Only Letters
 class ReverseOnlyLetters(object):
