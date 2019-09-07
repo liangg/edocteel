@@ -1,6 +1,7 @@
 #
-# All questions on Tree, List
+# Leetcode questions on Tree, List
 #
+# Queestions 650 - 850
 
 class TreeNode(object):
     def __init__(self, x):
@@ -1403,6 +1404,45 @@ class AsteroidCollision(object):
 
 AsteroidCollision.test()
 
+# Q-763 Partition Labels
+#
+# A string S of lowercase letters is given. We want to partition this string into as 
+# many parts as possible so that each letter appears in at most one part, and return 
+# a list of integers representing the size of these parts.
+class PartitionLabels(object):
+    def partitionLabels(self, S):
+        """
+        :type S: str
+        :rtype: List[int]
+        """
+        charRange = {}
+        for i in xrange(len(S)):
+            if S[i] in charRange:
+                charRange[S[i]][1] = i
+            else:
+                charRange[S[i]] = [i,i]
+        curr = [charRange[S[0]][0], charRange[S[0]][1]]
+        result = []
+        for i in xrange(1, len(S), 1):
+            ir = charRange[S[i]]
+            if curr[1] < ir[0]: # not overlap
+                result.append(curr[1] - curr[0] + 1)
+                curr = [ir[0], ir[1]]
+            else:
+                # adjust range rightmost index
+                curr[1] = max(curr[1], ir[1])
+        result.append(len(S)-curr[0])
+        print result
+        return result
+
+    @staticmethod
+    def test():
+        print "Q-763 Partition Labels"
+        pl = PartitionLabels()
+        pl.partitionLabels("ababcbacadefegdehijhklij")
+
+PartitionLabels.test()
+
 # Q-767 Reorganize String (max heap priority queue)
 #
 # Given a string S, check if the letters can be rearranged so that two characters that 
@@ -1459,6 +1499,62 @@ class ReorganizeString(object):
 
 ReorganizeString.test()
 
+# Q-787 Cheapest Flights within K stops (shortest path)
+#
+# There are n cities connected by m flights. Each fight starts from city u and arrives 
+# at v with a price w. Now given all the cities and flights, together with starting city 
+# src and the destination dst, your task is to find the cheapest price from src to dst 
+# with up to k stops. If there is no such route, output -1.
+class CheapestFlightsWithinKStops(object):
+    class StopCost:
+        def __init__(self, stop, nflights, cost):
+            self.stop = stop
+            self.nflights = nflights
+            self.cost = cost
+
+        # min heap
+        def __cmp__(self, other):
+            return self.cost > other.cost
+
+    def findCheapestPrice(self, n, flights, src, dst, K):
+        """
+        :type n: int
+        :type flights: List[List[int]]
+        :type src: int
+        :type dst: int
+        :type K: int
+        :rtype: int
+        """
+        import heapq
+        flightEdges = {}
+        # put in adjacency list
+        for e in flights:
+            ev = flightEdges.get(e[0]) if e[0] in flightEdges else []
+            ev.append([e[1],e[2]])
+            flightEdges[e[0]] = ev
+        workQueue = []
+        heapq.heappush(workQueue, self.StopCost(src, 0, 0))
+        while len(workQueue) > 0:
+            s = heapq.heappop(workQueue)
+            if s.stop == dst:
+                return s.cost
+            if s.stop in flightEdges:
+                for e in flightEdges.get(s.stop):
+                    # K stops means K+1 flights
+                    if s.nflights < K+1:
+                        heapq.heappush(workQueue, self.StopCost(e[0], s.nflights+1, s.cost + e[1]))
+        return -1
+
+    @staticmethod
+    def test():
+        print "Q-787 Cheapest Flights within K Stops"
+        cfwk = CheapestFlightsWithinKStops()
+        print cfwk.findCheapestPrice(3, [[0,1,100],[1,2,100],[0,2,500]], 0, 2, 1) # 200
+        print cfwk.findCheapestPrice(5, [[0,1,100],[0,2,500],[1,2,100],[1,3,500],[2,3,300],[2,4,100],[3,4,200]], 0, 4, 4) # 300
+        print cfwk.findCheapestPrice(15, [[10,14,43],[1,12,62],[4,2,62],[14,10,49],[9,5,29],[13,7,53],[4,12,90],[14,9,38],[11,2,64],[2,13,92],[11,5,42],[10,1,89],[14,0,32],[9,4,81],[3,6,97],[7,13,35],[11,9,63],[5,7,82],[13,6,57],[4,5,100],[2,9,34],[11,13,1],[14,8,1],[12,10,42],[2,4,41],[0,6,55],[5,12,1],[13,3,67],[3,13,36],[3,12,73],[7,5,72],[5,6,100],[7,6,52],[4,7,43],[6,3,67],[3,1,66],[8,12,30],[8,3,42],[9,3,57],[12,6,31],[2,7,10],[14,4,91],[2,3,29],[8,9,29],[2,11,65],[3,8,49],[6,14,22],[4,6,38],[13,0,78],[1,10,97],[8,14,40],[7,9,3],[14,6,4],[4,8,75],[1,6,56]],1,4,10) # 169
+
+CheapestFlightsWithinKStops.test()
+
 # Q-795 Number of Subarrays With Bounded Maximum
 class NumerOfSubarraysWithBoundedMaximum(object):
     def numSubarrayBoundedMax(self, A, L, R):
@@ -1490,6 +1586,44 @@ class NumerOfSubarraysWithBoundedMaximum(object):
         print nsbm.numSubarrayBoundedMax([2,1,3,4,3], 2, 3) # 6
 
 NumerOfSubarraysWithBoundedMaximum.test()
+
+# Q-797 All Paths from Source to Target
+#
+# Given a directed, acyclic graph of N nodes.  Find all possible paths from node 0 to node N-1,
+# and return them in any order.
+#
+# The graph is given as follows: the nodes are 0, 1, ..., graph.length - 1.  graph[i] is a list 
+# of all nodes j for which the edge (i, j) exists.
+class AllPathsFromSourceToTarget(object):
+    def allPathsSourceTarget(self, graph):
+        """
+        :type graph: List[List[int]]
+        :rtype: List[List[int]]
+        """
+        reachable = [[] for i in xrange(len(graph))]
+        for i in xrange(len(graph)):
+            for d in graph[i]:
+                reachable[d].append(i)
+        result = []
+        queue = [[len(graph)-1]]
+        while len(queue) > 0:
+            t = queue.pop(0)
+            for s in reachable[t[0]]:
+                p = list(t)
+                p.insert(0, s)
+                if s == 0:
+                    result.append(p)
+                else:
+                    queue.append(p)
+        return result
+
+    @staticmethod
+    def test():
+        print "Q-797 All Paths from Source to Destination"
+        ap = AllPathsFromSourceToTarget()
+        print ap.allPathsSourceTarget([[1,2], [3], [3], []])
+
+AllPathsFromSourceToTarget.test()
 
 # Q-807 Max Increase to Keep City Skyline
 #
@@ -1622,4 +1756,3 @@ class KeysAndRooms(object):
         print kr.canVisitAllRooms([[1,3],[3,0,1],[2],[0]]) # False
 
 KeysAndRooms.test()
-
