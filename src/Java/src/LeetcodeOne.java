@@ -615,65 +615,6 @@ class SimplifyPath
     }
 }
 
-
-class PermutationUnique
-{
-    private static void gen_permutation(int[] num, Integer[] perm_num, int idx,
-                                        HashMap<Integer, Integer> num_counts,
-                                        ArrayList<ArrayList<Integer>> result)
-    {
-        if (idx == num.length) {
-            ArrayList<Integer> perm = new ArrayList<Integer>(Arrays.asList(perm_num));
-            result.add(perm);
-            return;
-        }
-
-    /* iterate each disintct value in the hashmap */
-        for (Map.Entry<Integer, Integer> entry : num_counts.entrySet()) {
-            Integer elem = entry.getKey();
-            Integer val = entry.getValue();
-            int cnt = val.intValue();
-            if (cnt > 0) {
-                perm_num[idx] = elem;
-                num_counts.put(elem, new Integer(cnt-1));
-                gen_permutation(num, perm_num, idx+1, num_counts, result);
-                num_counts.put(elem, val);
-            }
-        }
-    }
-
-    public static ArrayList<ArrayList<Integer>> permuteUnique(int[] num) {
-        HashMap<Integer, Integer> num_counts = new HashMap<Integer, Integer>(2*num.length);
-        Integer[] perm_num = new Integer[num.length];
-        ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
-
-    /* count the number of appearance of each number */
-        for (int i = 0; i < num.length; ++i) {
-            Integer elem = new Integer(num[i]);
-            int cnt = 0;
-            if (num_counts.containsKey(elem) == true)
-                cnt = num_counts.get(elem);
-            num_counts.put(elem, new Integer(cnt+1));
-        }
-
-        gen_permutation(num, perm_num, 0, num_counts, result);
-        return result;
-    }
-
-    public static void run() {
-        System.out.println("-------- Permutation Unique ---------");
-        int[] v0 = new int[] {2,-1,-1};
-        ArrayList<ArrayList<Integer>> result = permuteUnique(v0);
-        for (ArrayList<Integer> perm : result) {
-            System.out.printf("(");
-            for (Integer elem : perm)
-                System.out.printf("%d", elem.intValue());
-            System.out.printf(")");
-        }
-        System.out.printf("\n");
-    }
-}
-
 /** Q-75 Sort Colors */
 class SortColors {
     private static void swap(int[] nums, int l, int r) {
