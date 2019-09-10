@@ -43,50 +43,192 @@ class LongestSubstringWithoutRepeatingChars {
     }
 }
 
-/** Q-17 Letter Combinations of Phone Number */
-class LetterComboOfPhoneNumber {
-    static String[] letterMap = new String[] {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
-
-    public static List<String> letterCombinations(String digits) {
-        int totals = 1;
-        for (char c : digits.toCharArray()) {
-            int nletters = letterMap[Character.getNumericValue(c)].length();
-            totals *= nletters;
-        }
-
-        // has digit 0 or 1, and therefore empty result
-        if (totals == 0) {
-            return new ArrayList<String>();
-        }
-
-        char strs[][] = new char[totals][digits.length()];
-        for (int di = 0, left = 1; di < digits.length(); ++di) {
-            String letters = letterMap[Character.getNumericValue(digits.charAt(di))];
-            int nletters = letters.length();
-            int strIdx = 0;
-            int right = totals / (left * nletters);
-            for (int l = 0; l < left; ++l) {
-                for (int i = 0; i < nletters; ++i) {
-                    for (int r = 0; r < right; ++r){
-                        strs[strIdx++][di] = letters.charAt(i);
-                    }
+/** Q-15 Three Sum */
+class ThreeSum {
+    public static List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> result = new ArrayList<List<Integer>>();
+        Arrays.sort(nums);
+        System.out.println(Arrays.toString(nums));
+        if (nums.length == 0 || nums[0] > 0 || nums[nums.length-1] < 0)
+            return result;
+        for (int i = 0; i < nums.length-2; ++i) {
+            if (nums[i] > 0) // no more possible solution
+                break;
+            if (i > 0 && nums[i] == nums[i-1])
+                continue;
+            int target = 0-nums[i], l = i+1, r = nums.length-1;
+            while (l < r) {
+                if (nums[l] + nums[r] == target) {
+                    Integer sol[] = new Integer[]{nums[i], nums[l], nums[r]};
+                    result.add(Arrays.asList(sol));
+                    while (l < r && nums[l] == nums[l+1]) ++l;
+                    while (r > l && nums[r] == nums[r-1]) --r;
+                    ++l;
+                    --r;
                 }
+                else if (nums[l] + nums[r] > target)
+                    --r;
+                else
+                    ++l;
             }
-            left *= nletters;
         }
-
-        List<String> result = new ArrayList<String>();
-        for (int i = 0; i < totals; ++i) {
-            result.add(new String(strs[i]));
-            System.out.println(result.get(i));
-        }
+        System.out.println(result.toString());
         return result;
     }
 
-    public static void run() {
-        System.out.println("------------ Letter Combinations of Phone Number ------------");
-        letterCombinations("234");
+    public static void test() {
+        System.out.println("Q-15 Three Sum");
+        threeSum(new int[]{0,0,0});
+        threeSum(new int[]{-1, 0, 1, 2, -1, -4});
     }
+}
+
+/** Q-17 Letter Combinations of Phone Number */
+class LetterComboOfPhoneNumber {
+  static String[] letterMap = new String[] {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+
+  public static List<String> letterCombinations(String digits) {
+      int totals = 1;
+      for (char c : digits.toCharArray()) {
+          int nletters = letterMap[Character.getNumericValue(c)].length();
+          totals *= nletters;
+      }
+
+      // has digit 0 or 1, and therefore empty result
+      if (totals == 0) {
+          return new ArrayList<String>();
+      }
+
+      char strs[][] = new char[totals][digits.length()];
+      for (int di = 0, left = 1; di < digits.length(); ++di) {
+          String letters = letterMap[Character.getNumericValue(digits.charAt(di))];
+          int nletters = letters.length();
+          int strIdx = 0;
+          int right = totals / (left * nletters);
+          for (int l = 0; l < left; ++l) {
+              for (int i = 0; i < nletters; ++i) {
+                  for (int r = 0; r < right; ++r){
+                      strs[strIdx++][di] = letters.charAt(i);
+                  }
+              }
+          }
+          left *= nletters;
+      }
+
+      List<String> result = new ArrayList<String>();
+      for (int i = 0; i < totals; ++i) {
+          result.add(new String(strs[i]));
+          System.out.println(result.get(i));
+      }
+      return result;
+  }
+
+  public static List<String> letterCombinationsRecursive(String digits) {
+    List<String> result = new ArrayList<String>();
+    if (digits == null || digits.isEmpty())
+      return result;
+    if (digits.length() == 1) {
+      for (char c : letterMap[digits.charAt(0) - '0'].toCharArray())
+        result.add(Character.toString(c));
+      return result;
+    }
+
+    char c = digits.charAt(0);
+    List<String> words = letterCombinationsRecursive(digits.substring(1));
+    for (String s : words) {
+      for (char lc : letterMap[c - '0'].toCharArray())
+        result.add(lc + s);
+    }
+    return result;
+  }
+
+  public static void run() {
+    System.out.println("------------ Letter Combinations of Phone Number ------------");
+    letterCombinations("234");
+    List<String> r = letterCombinationsRecursive("234");
+    System.out.println(r.toString());
+  }
+}
+
+/** Q-31 Next Permutation */
+class NextPermutation {
+  public static void nextPermutation(int[] nums) {
+    int i = 0;
+    // find the first number X that breaks a ascending order, e.g. 2 in "2531"
+    for (i = nums.length-2; i >= 0 && nums[i] >= nums[i+1]; --i);
+    if (i < 0) {
+      Arrays.sort(nums);
+      return;
+    }
+
+    // find the smallest number Y that is larger than X, and swap them
+    int k = i+1;
+    for (int j = i+2; j < nums.length; ++j) {
+      if (nums[j] <= nums[i])
+        break;
+      if (nums[j] < nums[k])
+        k = j;
+    }
+    int t = nums[k];
+    nums[k] = nums[i];
+    nums[i] = t;
+    // reverse sort numbers after Y
+    Arrays.sort(nums, i+1, nums.length);
+  }
+
+  public static void test() {
+    System.out.println("Q-31 Next Permutation");
+    int[] n = {1,3,2}; // 213
+    int[] n2 = {1,2,5,3}; // 1325
+    int[] n3 = {5,3,2,1}; // 1235
+    nextPermutation(n);
+    System.out.println(Arrays.toString(n));
+    nextPermutation(n2);
+    System.out.println(Arrays.toString(n2));
+    nextPermutation(n3);
+    System.out.println(Arrays.toString(n3));
+  }
+}
+
+/**
+ * Q-34. Find First and Last Position of Element in Sorted Array
+ */
+class FindFirstLastPosSortedArray {
+  public static int[] searchRange(int[] nums, int target) {
+    if (nums.length == 0)
+      return new int[]{-1, -1};
+
+    int l, r, left = -1, right = -1;
+    for (l = 0, r = nums.length-1; l < r;) {
+      int m = l + (r-l)/2;
+      if (nums[m] >= target)
+        r = m;
+      else
+        l = m+1;
+    }
+
+    if (nums[l] != target)
+      return new int[]{-1, -1};
+    left = l;
+
+    for (l = 0, r = nums.length-1; l < r;) {
+      int m = l + (r-l)/2 + 1;
+      if (nums[m] > target)
+        r = m-1;
+      else
+        l = m;
+    }
+    right = l;
+    return new int[]{left, right};
+  }
+
+  public static void test() {
+    System.out.println("Q-34 Find First and Last Position of Element in Sorted Array");
+    int[] a = new int[]{1,3,4,4,4,4,5};
+    System.out.println(Arrays.toString(searchRange(a, 4)));
+    System.out.println(Arrays.toString(searchRange(a, 5)));
+    System.out.println(Arrays.toString(searchRange(a, 6)));
+  }
 }
 
 /** Q-36 Valid Sodoku */
@@ -145,6 +287,80 @@ class ValidSudoku {
 }
 
 /**
+ * Q-39 Combination Sum
+ *
+ * Given a set of candidate numbers "candidates" (without duplicates) and a target number "target", find all unique
+ * combinations in candidates where the candidate numbers sums to target. The same repeated number may be chosen from
+ * candidates unlimited number of times.
+ *
+ * II:
+ *
+ * Given a collection of candidate numbers "candidates" and a target number (target), find all unique combinations in
+ * candidates where the candidate numbers sums to target. Each number in candidates may only be used once in the combination.
+ */
+class CombinationSum {
+  // I:
+  public static List<List<Integer>> combinationSum(int[] candidates, int target) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (candidates.length == 0)
+      return result;
+    Arrays.sort(candidates);
+    for (int i = 0; i < candidates.length; ++i) {
+      if (candidates[i] > target) break;
+      if (candidates[i] == target) {
+        List<Integer> sol = new ArrayList<Integer>();
+        sol.add(candidates[i]);
+        result.add(sol);
+        break;
+      }
+      // the crucial point is to clone candidates with begin at 'i', not 'i+1'; if use the entire
+      // candidate, the result would have duplicates such as (2,3,3), (3,2,3).
+      int[] restCandidates = Arrays.copyOfRange(candidates, i, candidates.length);
+      List<List<Integer>> sols = combinationSum(restCandidates, target - candidates[i]);
+      for (List<Integer> s : sols) {
+        s.add(0, candidates[i]);
+        result.add(s);
+      }
+    }
+
+    return result;
+  }
+
+  // II There are duplicates in candidates, and each can be used exactly once
+  public static List<List<Integer>> combinationSum2(int[] candidates, int target) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (candidates.length == 0)
+      return result;
+    Arrays.sort(candidates);
+    List<Integer> sol = new ArrayList<Integer>();
+    combinationSumRecursive2(candidates, target, 0, sol, result);
+    return result;
+  }
+
+  private static void combinationSumRecursive2(int[] candidates, int target, int start, List<Integer> sol, List<List<Integer>> result) {
+    if (target < 0)
+      return;
+    if (target == 0) {
+      result.add(new ArrayList<Integer>(sol));
+      return;
+    }
+    for (int i = start; i < candidates.length; ++i) {
+      if (i > start && candidates[i] == candidates[i - 1]) // skip duplicate solution
+        continue;
+      sol.add(candidates[i]);
+      combinationSumRecursive2(candidates, target-candidates[i], i+1, sol, result);
+      sol.remove(sol.size()-1); // pop the last number
+    }
+  }
+
+  public static void test() {
+    System.out.println("Q-39 Combination Sum I, II");
+    System.out.println(combinationSum(new int[]{2,3,5}, 8).toString());
+    System.out.println(combinationSum2(new int[]{10,1,2,7,6,1,5}, 8).toString());
+  }
+}
+
+/**
  * Q-44: Wildcard Matching
  */
 class WildcardMatching {
@@ -192,6 +408,47 @@ class WildcardMatching {
     }
 }
 
+/**
+ * Q-47 Permutation II
+ *
+ * Given a collection of numbers that might contain duplicates, return all possible unique permutations.
+ */
+class Permutations {
+  public static List<List<Integer>> permuteUnique(int[] nums) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (nums.length == 0)
+      return result;
+    Arrays.sort(nums);
+    boolean[] vivisted = new boolean[nums.length];
+    List<Integer> sol = new ArrayList<Integer>();
+    permSeearch(nums, 0, vivisted, sol, result);
+    return result;
+  }
+
+  private static void permSeearch(int[] nums, int level, boolean[] visited, List<Integer> sol, List<List<Integer>> result) {
+    if (level == nums.length) {
+      result.add(new ArrayList<Integer>(sol));
+      return;
+    }
+    for (int i = 0; i < nums.length; ++i) {
+      if (visited[i])
+        continue;
+      if (i > 0 && nums[i] == nums[i-1] && !visited[i-1])
+        continue;
+      visited[i] = true;
+      sol.add(nums[i]);
+      permSeearch(nums, level+1, visited, sol, result);
+      sol.remove(sol.size()-1);
+      visited[i] = false;
+    }
+  }
+
+  public static void test() {
+    System.out.println("Q-47 Permutation II");
+    System.out.println(permuteUnique(new int[]{1,2,1,3}).toString());
+  }
+}
+
 /** Q-48 Rotate Images */
 class RotateImage {
     public void rotate(int[][] matrix) {
@@ -219,6 +476,33 @@ class RotateImage {
             }
         }
     }
+}
+
+/**
+ * Q-55 Jump Game
+ *
+ * Given an array of non-negative integers, you are initially positioned at the first index of the array. Each element
+ * in the array represents your maximum jump length at that position. Determine if you are able to reach the last index.
+ */
+class JumpGame {
+  public static boolean canJump(int[] nums) {
+    // greedy algorithm to find the max reach point
+    int maxReach = 0;
+    for (int i = 0; i < nums.length; ++i) {
+      // max reach point no longer move, or reach the last index
+      if (i > maxReach || maxReach >= nums.length-1)
+        break;
+      maxReach = Math.max(maxReach, i+nums[i]);
+    }
+    return maxReach >= nums.length-1;
+  }
+
+  public static void test() {
+    System.out.println("Q-55 Jump Game");
+    System.out.println(canJump(new int[]{2,0,0})); // true
+    System.out.println(canJump(new int[]{2,3,1,1,4})); // true
+    System.out.println(canJump(new int[]{3,2,1,0,4})); // false
+  }
 }
 
 /** Q-56 Merge Intervals */
@@ -287,7 +571,7 @@ class SimplifyPath
         for (int i = 0; i < path.length(); ++i) {
             if (path.charAt(i) == '/') {
                 final String dir = dirStr.toString();
-                if (dir.equals("")) {
+                if (dir.equals("..")) {
                     if (!pathQueue.isEmpty())
                         pathQueue.removeLast();
                 } else if (!(dir.length() == 0 || dir.equals("."))) {
@@ -301,7 +585,7 @@ class SimplifyPath
         /* check last directory in path */
         if (dirStr.length() > 0) {
             final String lastDir = dirStr.toString();
-            if (lastDir.equals("")) {
+            if (lastDir.equals("..")) {
                 if (!pathQueue.isEmpty())
                     pathQueue.removeLast();
             } else if (!(lastDir.length() == 0 || lastDir.equals("."))) {
@@ -1413,19 +1697,25 @@ class FindRightInterval {
 }
 
 public class LeetcodeOne {
-    public static void main(String[] args) {
-        LongestSubstringWithoutRepeatingChars.test();
-        MergeIntervals.test();
-        SortColors.test();
-        RemoveDuplicatesFromSortedArray.test();
-        GasStation.test();
-        FindPeakElement.test();
-        LargestNumber.test();
-        CourseSchedule.test();
-        RepeatedDNASequence.test();
-        ShuffleArray.test();
-        LexicographicalNumbers.test();
-        FindRightInterval.test();
-    }
+  public static void main(String[] args) {
+    LongestSubstringWithoutRepeatingChars.test();
+    FindFirstLastPosSortedArray.test();
+    ThreeSum.test();
+    LetterComboOfPhoneNumber.run();
+    CombinationSum.test();
+    Permutations.test();
+    MergeIntervals.test();
+    JumpGame.test();
+    SortColors.test();
+    RemoveDuplicatesFromSortedArray.test();
+    GasStation.test();
+    FindPeakElement.test();
+    LargestNumber.test();
+    CourseSchedule.test();
+    RepeatedDNASequence.test();
+    ShuffleArray.test();
+    LexicographicalNumbers.test();
+    FindRightInterval.test();
+  }
 }
 
