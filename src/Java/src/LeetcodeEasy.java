@@ -208,12 +208,32 @@ class BalancedBinaryTree
         return left_bal && right_bal && height_bal;
     }
 
-    public boolean isBalanced(TreeNode root) {
+    public boolean isBalanced_OLD(TreeNode root) {
         if (root == null)
             return true;
         int[] pair = new int[2];
         pair[0] = pair[1] = 1;
         return balanced(root, 1, pair, 0);
+    }
+
+    private int getDepth(TreeNode root, int depth) {
+        if (root == null) return depth;
+        int ld = getDepth(root.left, depth+1);
+        if (ld == -1)
+            return -1;
+        int rd = getDepth(root.right, depth+1);
+        if (rd == -1)
+            return -1;
+        if (Math.abs(ld-rd) > 1)
+            return -1;
+        return Math.max(ld, rd);
+    }
+
+    public boolean isBalanced(TreeNode root) {
+        if (root == null)
+            return true;
+        // get the max depth, unless -1 if not balanced
+        return getDepth(root, 0) != -1;
     }
 }
 

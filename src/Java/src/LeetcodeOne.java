@@ -421,11 +421,11 @@ class Permutations {
     Arrays.sort(nums);
     boolean[] vivisted = new boolean[nums.length];
     List<Integer> sol = new ArrayList<Integer>();
-    permSeearch(nums, 0, vivisted, sol, result);
+    permSearch(nums, 0, vivisted, sol, result);
     return result;
   }
 
-  private static void permSeearch(int[] nums, int level, boolean[] visited, List<Integer> sol, List<List<Integer>> result) {
+  private static void permSearch(int[] nums, int level, boolean[] visited, List<Integer> sol, List<List<Integer>> result) {
     if (level == nums.length) {
       result.add(new ArrayList<Integer>(sol));
       return;
@@ -437,7 +437,7 @@ class Permutations {
         continue;
       visited[i] = true;
       sol.add(nums[i]);
-      permSeearch(nums, level+1, visited, sol, result);
+      permSearch(nums, level + 1, visited, sol, result);
       sol.remove(sol.size()-1);
       visited[i] = false;
     }

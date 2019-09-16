@@ -135,6 +135,20 @@ class DecodeWays {
   }
 }
 
+/** Q-120 Triangle */
+class TriangleMinSumPath {
+    public int minimumTotal(List<List<Integer>> triangle) {
+        List<Integer> memo = new ArrayList<>(triangle.get(triangle.size()-1));
+        for (int i = triangle.size()-2; i >= 0; --i) {
+            List<Integer> r = triangle.get(i);
+            for (int j = 0; j <= i; ++j) {
+                memo.set(j, Math.min(memo.get(j), memo.get(j+1)) + r.get(j));
+            }
+        }
+        return memo.get(0);
+    }
+}
+
 /**
  * Q-131: Palindrome Partition
  *
