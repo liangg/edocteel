@@ -43,50 +43,192 @@ class LongestSubstringWithoutRepeatingChars {
     }
 }
 
-/** Q-17 Letter Combinations of Phone Number */
-class LetterComboOfPhoneNumber {
-    static String[] letterMap = new String[] {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
-
-    public static List<String> letterCombinations(String digits) {
-        int totals = 1;
-        for (char c : digits.toCharArray()) {
-            int nletters = letterMap[Character.getNumericValue(c)].length();
-            totals *= nletters;
-        }
-
-        // has digit 0 or 1, and therefore empty result
-        if (totals == 0) {
-            return new ArrayList<String>();
-        }
-
-        char strs[][] = new char[totals][digits.length()];
-        for (int di = 0, left = 1; di < digits.length(); ++di) {
-            String letters = letterMap[Character.getNumericValue(digits.charAt(di))];
-            int nletters = letters.length();
-            int strIdx = 0;
-            int right = totals / (left * nletters);
-            for (int l = 0; l < left; ++l) {
-                for (int i = 0; i < nletters; ++i) {
-                    for (int r = 0; r < right; ++r){
-                        strs[strIdx++][di] = letters.charAt(i);
-                    }
+/** Q-15 Three Sum */
+class ThreeSum {
+    public static List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> result = new ArrayList<List<Integer>>();
+        Arrays.sort(nums);
+        System.out.println(Arrays.toString(nums));
+        if (nums.length == 0 || nums[0] > 0 || nums[nums.length-1] < 0)
+            return result;
+        for (int i = 0; i < nums.length-2; ++i) {
+            if (nums[i] > 0) // no more possible solution
+                break;
+            if (i > 0 && nums[i] == nums[i-1])
+                continue;
+            int target = 0-nums[i], l = i+1, r = nums.length-1;
+            while (l < r) {
+                if (nums[l] + nums[r] == target) {
+                    Integer sol[] = new Integer[]{nums[i], nums[l], nums[r]};
+                    result.add(Arrays.asList(sol));
+                    while (l < r && nums[l] == nums[l+1]) ++l;
+                    while (r > l && nums[r] == nums[r-1]) --r;
+                    ++l;
+                    --r;
                 }
+                else if (nums[l] + nums[r] > target)
+                    --r;
+                else
+                    ++l;
             }
-            left *= nletters;
         }
-
-        List<String> result = new ArrayList<String>();
-        for (int i = 0; i < totals; ++i) {
-            result.add(new String(strs[i]));
-            System.out.println(result.get(i));
-        }
+        System.out.println(result.toString());
         return result;
     }
 
-    public static void run() {
-        System.out.println("------------ Letter Combinations of Phone Number ------------");
-        letterCombinations("234");
+    public static void test() {
+        System.out.println("Q-15 Three Sum");
+        threeSum(new int[]{0,0,0});
+        threeSum(new int[]{-1, 0, 1, 2, -1, -4});
     }
+}
+
+/** Q-17 Letter Combinations of Phone Number */
+class LetterComboOfPhoneNumber {
+  static String[] letterMap = new String[] {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+
+  public static List<String> letterCombinations(String digits) {
+      int totals = 1;
+      for (char c : digits.toCharArray()) {
+          int nletters = letterMap[Character.getNumericValue(c)].length();
+          totals *= nletters;
+      }
+
+      // has digit 0 or 1, and therefore empty result
+      if (totals == 0) {
+          return new ArrayList<String>();
+      }
+
+      char strs[][] = new char[totals][digits.length()];
+      for (int di = 0, left = 1; di < digits.length(); ++di) {
+          String letters = letterMap[Character.getNumericValue(digits.charAt(di))];
+          int nletters = letters.length();
+          int strIdx = 0;
+          int right = totals / (left * nletters);
+          for (int l = 0; l < left; ++l) {
+              for (int i = 0; i < nletters; ++i) {
+                  for (int r = 0; r < right; ++r){
+                      strs[strIdx++][di] = letters.charAt(i);
+                  }
+              }
+          }
+          left *= nletters;
+      }
+
+      List<String> result = new ArrayList<String>();
+      for (int i = 0; i < totals; ++i) {
+          result.add(new String(strs[i]));
+          System.out.println(result.get(i));
+      }
+      return result;
+  }
+
+  public static List<String> letterCombinationsRecursive(String digits) {
+    List<String> result = new ArrayList<String>();
+    if (digits == null || digits.isEmpty())
+      return result;
+    if (digits.length() == 1) {
+      for (char c : letterMap[digits.charAt(0) - '0'].toCharArray())
+        result.add(Character.toString(c));
+      return result;
+    }
+
+    char c = digits.charAt(0);
+    List<String> words = letterCombinationsRecursive(digits.substring(1));
+    for (String s : words) {
+      for (char lc : letterMap[c - '0'].toCharArray())
+        result.add(lc + s);
+    }
+    return result;
+  }
+
+  public static void run() {
+    System.out.println("------------ Letter Combinations of Phone Number ------------");
+    letterCombinations("234");
+    List<String> r = letterCombinationsRecursive("234");
+    System.out.println(r.toString());
+  }
+}
+
+/** Q-31 Next Permutation */
+class NextPermutation {
+  public static void nextPermutation(int[] nums) {
+    int i = 0;
+    // find the first number X that breaks a ascending order, e.g. 2 in "2531"
+    for (i = nums.length-2; i >= 0 && nums[i] >= nums[i+1]; --i);
+    if (i < 0) {
+      Arrays.sort(nums);
+      return;
+    }
+
+    // find the smallest number Y that is larger than X, and swap them
+    int k = i+1;
+    for (int j = i+2; j < nums.length; ++j) {
+      if (nums[j] <= nums[i])
+        break;
+      if (nums[j] < nums[k])
+        k = j;
+    }
+    int t = nums[k];
+    nums[k] = nums[i];
+    nums[i] = t;
+    // reverse sort numbers after Y
+    Arrays.sort(nums, i+1, nums.length);
+  }
+
+  public static void test() {
+    System.out.println("Q-31 Next Permutation");
+    int[] n = {1,3,2}; // 213
+    int[] n2 = {1,2,5,3}; // 1325
+    int[] n3 = {5,3,2,1}; // 1235
+    nextPermutation(n);
+    System.out.println(Arrays.toString(n));
+    nextPermutation(n2);
+    System.out.println(Arrays.toString(n2));
+    nextPermutation(n3);
+    System.out.println(Arrays.toString(n3));
+  }
+}
+
+/**
+ * Q-34. Find First and Last Position of Element in Sorted Array
+ */
+class FindFirstLastPosSortedArray {
+  public static int[] searchRange(int[] nums, int target) {
+    if (nums.length == 0)
+      return new int[]{-1, -1};
+
+    int l, r, left = -1, right = -1;
+    for (l = 0, r = nums.length-1; l < r;) {
+      int m = l + (r-l)/2;
+      if (nums[m] >= target)
+        r = m;
+      else
+        l = m+1;
+    }
+
+    if (nums[l] != target)
+      return new int[]{-1, -1};
+    left = l;
+
+    for (l = 0, r = nums.length-1; l < r;) {
+      int m = l + (r-l)/2 + 1;
+      if (nums[m] > target)
+        r = m-1;
+      else
+        l = m;
+    }
+    right = l;
+    return new int[]{left, right};
+  }
+
+  public static void test() {
+    System.out.println("Q-34 Find First and Last Position of Element in Sorted Array");
+    int[] a = new int[]{1,3,4,4,4,4,5};
+    System.out.println(Arrays.toString(searchRange(a, 4)));
+    System.out.println(Arrays.toString(searchRange(a, 5)));
+    System.out.println(Arrays.toString(searchRange(a, 6)));
+  }
 }
 
 /** Q-36 Valid Sodoku */
@@ -145,6 +287,80 @@ class ValidSudoku {
 }
 
 /**
+ * Q-39 Combination Sum
+ *
+ * Given a set of candidate numbers "candidates" (without duplicates) and a target number "target", find all unique
+ * combinations in candidates where the candidate numbers sums to target. The same repeated number may be chosen from
+ * candidates unlimited number of times.
+ *
+ * II:
+ *
+ * Given a collection of candidate numbers "candidates" and a target number (target), find all unique combinations in
+ * candidates where the candidate numbers sums to target. Each number in candidates may only be used once in the combination.
+ */
+class CombinationSum {
+  // I:
+  public static List<List<Integer>> combinationSum(int[] candidates, int target) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (candidates.length == 0)
+      return result;
+    Arrays.sort(candidates);
+    for (int i = 0; i < candidates.length; ++i) {
+      if (candidates[i] > target) break;
+      if (candidates[i] == target) {
+        List<Integer> sol = new ArrayList<Integer>();
+        sol.add(candidates[i]);
+        result.add(sol);
+        break;
+      }
+      // the crucial point is to clone candidates with begin at 'i', not 'i+1'; if use the entire
+      // candidate, the result would have duplicates such as (2,3,3), (3,2,3).
+      int[] restCandidates = Arrays.copyOfRange(candidates, i, candidates.length);
+      List<List<Integer>> sols = combinationSum(restCandidates, target - candidates[i]);
+      for (List<Integer> s : sols) {
+        s.add(0, candidates[i]);
+        result.add(s);
+      }
+    }
+
+    return result;
+  }
+
+  // II There are duplicates in candidates, and each can be used exactly once
+  public static List<List<Integer>> combinationSum2(int[] candidates, int target) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (candidates.length == 0)
+      return result;
+    Arrays.sort(candidates);
+    List<Integer> sol = new ArrayList<Integer>();
+    combinationSumRecursive2(candidates, target, 0, sol, result);
+    return result;
+  }
+
+  private static void combinationSumRecursive2(int[] candidates, int target, int start, List<Integer> sol, List<List<Integer>> result) {
+    if (target < 0)
+      return;
+    if (target == 0) {
+      result.add(new ArrayList<Integer>(sol));
+      return;
+    }
+    for (int i = start; i < candidates.length; ++i) {
+      if (i > start && candidates[i] == candidates[i - 1]) // skip duplicate solution
+        continue;
+      sol.add(candidates[i]);
+      combinationSumRecursive2(candidates, target-candidates[i], i+1, sol, result);
+      sol.remove(sol.size()-1); // pop the last number
+    }
+  }
+
+  public static void test() {
+    System.out.println("Q-39 Combination Sum I, II");
+    System.out.println(combinationSum(new int[]{2,3,5}, 8).toString());
+    System.out.println(combinationSum2(new int[]{10,1,2,7,6,1,5}, 8).toString());
+  }
+}
+
+/**
  * Q-44: Wildcard Matching
  */
 class WildcardMatching {
@@ -192,6 +408,47 @@ class WildcardMatching {
     }
 }
 
+/**
+ * Q-47 Permutation II
+ *
+ * Given a collection of numbers that might contain duplicates, return all possible unique permutations.
+ */
+class Permutations {
+  public static List<List<Integer>> permuteUnique(int[] nums) {
+    List<List<Integer>> result = new ArrayList<List<Integer>>();
+    if (nums.length == 0)
+      return result;
+    Arrays.sort(nums);
+    boolean[] vivisted = new boolean[nums.length];
+    List<Integer> sol = new ArrayList<Integer>();
+    permSearch(nums, 0, vivisted, sol, result);
+    return result;
+  }
+
+  private static void permSearch(int[] nums, int level, boolean[] visited, List<Integer> sol, List<List<Integer>> result) {
+    if (level == nums.length) {
+      result.add(new ArrayList<Integer>(sol));
+      return;
+    }
+    for (int i = 0; i < nums.length; ++i) {
+      if (visited[i])
+        continue;
+      if (i > 0 && nums[i] == nums[i-1] && !visited[i-1])
+        continue;
+      visited[i] = true;
+      sol.add(nums[i]);
+      permSearch(nums, level + 1, visited, sol, result);
+      sol.remove(sol.size()-1);
+      visited[i] = false;
+    }
+  }
+
+  public static void test() {
+    System.out.println("Q-47 Permutation II");
+    System.out.println(permuteUnique(new int[]{1,2,1,3}).toString());
+  }
+}
+
 /** Q-48 Rotate Images */
 class RotateImage {
     public void rotate(int[][] matrix) {
@@ -219,6 +476,33 @@ class RotateImage {
             }
         }
     }
+}
+
+/**
+ * Q-55 Jump Game
+ *
+ * Given an array of non-negative integers, you are initially positioned at the first index of the array. Each element
+ * in the array represents your maximum jump length at that position. Determine if you are able to reach the last index.
+ */
+class JumpGame {
+  public static boolean canJump(int[] nums) {
+    // greedy algorithm to find the max reach point
+    int maxReach = 0;
+    for (int i = 0; i < nums.length; ++i) {
+      // max reach point no longer move, or reach the last index
+      if (i > maxReach || maxReach >= nums.length-1)
+        break;
+      maxReach = Math.max(maxReach, i+nums[i]);
+    }
+    return maxReach >= nums.length-1;
+  }
+
+  public static void test() {
+    System.out.println("Q-55 Jump Game");
+    System.out.println(canJump(new int[]{2,0,0})); // true
+    System.out.println(canJump(new int[]{2,3,1,1,4})); // true
+    System.out.println(canJump(new int[]{3,2,1,0,4})); // false
+  }
 }
 
 /** Q-56 Merge Intervals */
@@ -287,7 +571,7 @@ class SimplifyPath
         for (int i = 0; i < path.length(); ++i) {
             if (path.charAt(i) == '/') {
                 final String dir = dirStr.toString();
-                if (dir.equals("")) {
+                if (dir.equals("..")) {
                     if (!pathQueue.isEmpty())
                         pathQueue.removeLast();
                 } else if (!(dir.length() == 0 || dir.equals("."))) {
@@ -301,7 +585,7 @@ class SimplifyPath
         /* check last directory in path */
         if (dirStr.length() > 0) {
             final String lastDir = dirStr.toString();
-            if (lastDir.equals("")) {
+            if (lastDir.equals("..")) {
                 if (!pathQueue.isEmpty())
                     pathQueue.removeLast();
             } else if (!(lastDir.length() == 0 || lastDir.equals("."))) {
@@ -331,99 +615,55 @@ class SimplifyPath
     }
 }
 
-
-class PermutationUnique
-{
-    private static void gen_permutation(int[] num, Integer[] perm_num, int idx,
-                                        HashMap<Integer, Integer> num_counts,
-                                        ArrayList<ArrayList<Integer>> result)
-    {
-        if (idx == num.length) {
-            ArrayList<Integer> perm = new ArrayList<Integer>(Arrays.asList(perm_num));
-            result.add(perm);
-            return;
-        }
-
-    /* iterate each disintct value in the hashmap */
-        for (Map.Entry<Integer, Integer> entry : num_counts.entrySet()) {
-            Integer elem = entry.getKey();
-            Integer val = entry.getValue();
-            int cnt = val.intValue();
-            if (cnt > 0) {
-                perm_num[idx] = elem;
-                num_counts.put(elem, new Integer(cnt-1));
-                gen_permutation(num, perm_num, idx+1, num_counts, result);
-                num_counts.put(elem, val);
-            }
-        }
-    }
-
-    public static ArrayList<ArrayList<Integer>> permuteUnique(int[] num) {
-        HashMap<Integer, Integer> num_counts = new HashMap<Integer, Integer>(2*num.length);
-        Integer[] perm_num = new Integer[num.length];
-        ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
-
-    /* count the number of appearance of each number */
-        for (int i = 0; i < num.length; ++i) {
-            Integer elem = new Integer(num[i]);
-            int cnt = 0;
-            if (num_counts.containsKey(elem) == true)
-                cnt = num_counts.get(elem);
-            num_counts.put(elem, new Integer(cnt+1));
-        }
-
-        gen_permutation(num, perm_num, 0, num_counts, result);
-        return result;
-    }
-
-    public static void run() {
-        System.out.println("-------- Permutation Unique ---------");
-        int[] v0 = new int[] {2,-1,-1};
-        ArrayList<ArrayList<Integer>> result = permuteUnique(v0);
-        for (ArrayList<Integer> perm : result) {
-            System.out.printf("(");
-            for (Integer elem : perm)
-                System.out.printf("%d", elem.intValue());
-            System.out.printf(")");
-        }
-        System.out.printf("\n");
-    }
-}
-
 /** Q-75 Sort Colors */
 class SortColors {
-    private static void swap(int[] nums, int l, int r) {
-        int t = nums[l];
-        nums[l] = nums[r];
-        nums[r] = t;
-    }
+  private static void swap(int[] nums, int l, int r) {
+    int t = nums[l];
+    nums[l] = nums[r];
+    nums[r] = t;
+  }
 
-    public static void sortColors(int[] nums) {
-        int l = 0, r = nums.length-1;
-        while (l < r) {
-            if (nums[l] == 1 && nums[r] == 1) {
-                int i;
-                for (i = l; i <= r && nums[i] == 1; ++i);
-                if (i <= r)
-                    swap(nums, l, i);
-                else
-                    break;
-            }
-            while (nums[l] == 0 && l < r) ++l;
-            while (nums[r] == 2 && r > 0) --r;
-            if (l < r)
-                swap(nums, l, r);
+  public static void sortColors_Old(int[] nums) {
+    int l = 0, r = nums.length-1;
+    while (l < r) {
+        if (nums[l] == 1 && nums[r] == 1) {
+          int i;
+          for (i = l; i <= r && nums[i] == 1; ++i);
+          if (i <= r)
+              swap(nums, l, i);
+          else
+              break;
         }
-        System.out.println(Arrays.toString(nums));
+        while (nums[l] == 0 && l < r) ++l;
+        while (nums[r] == 2 && r > 0) --r;
+        if (l < r)
+          swap(nums, l, r);
     }
+    System.out.println(Arrays.toString(nums));
+  }
 
-    public static void test() {
-        System.out.println("Q-75 Sort Colors");
-        int[] t1 = {1,0,0,2,1,2,0,2};
-        SortColors.sortColors(t1);
-        int[] t2 = {2,2};
-        SortColors.sortColors(t2);
+  public static void sortColors(int[] nums) {
+    int l = 0, r = nums.length-1;
+    for (int i = 0; i <= r; ) {
+      if (nums[i] == 0) {
+        swap(nums, i++, l);
+        l++;
+      } else if (nums[i] == 2) {
+        swap(nums, i, r);
+        r--;
+      } else
+        i++;
     }
+    System.out.println(Arrays.toString(nums));
+  }
+
+  public static void test() {
+    System.out.println("Q-75 Sort Colors");
+    int[] t1 = {1,0,0,2,1,2,0,2};
+    SortColors.sortColors(t1);
+    int[] t2 = {2,0,1};
+    SortColors.sortColors(t2);
+  }
 }
 
 /**
@@ -517,7 +757,7 @@ class Combinations
             result.add(new ArrayList<Integer>(Arrays.asList(combo)));
             return;
         }
-    /* not enough integers to fill in combination */
+        /* not enough integers to fill in combination */
         if ((idx + k - combo_idx - 1) > n)
             return;
 
@@ -539,6 +779,11 @@ class Combinations
  *
  * Given a set of distinct integers, S, return all possible subsets. Note, Elements in a subset must be in
  * non-descending order; the solution set must not contain duplicate subsets.
+ *
+ * Q-90 Subsets II
+ *
+ * Given a collection of integers that might contain duplicates, nums, return all possible subsets (the power set).
+ * Note: The solution set must not contain duplicate subsets
  */
 class Subsets {
     private void gen_subsets(int[] S, int idx, boolean[] solution, ArrayList<ArrayList<Integer>> result) {
@@ -557,12 +802,58 @@ class Subsets {
         gen_subsets(S, idx+1, solution, result);
     }
 
-    public ArrayList<ArrayList<Integer>> subsets(int[] S) {
+    public ArrayList<ArrayList<Integer>> subsets_old(int[] S) {
         boolean[] solution = new boolean[S.length];
         ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>(S.length*2);
         Arrays.sort(S);
         gen_subsets(S, 0, solution, result);
         return result;
+    }
+
+    private void search(int[] nums, int level, List<Integer> sol, List<List<Integer>> result) {
+        if (level == nums.length) {
+            result.add(new ArrayList<>(sol));
+            return;
+        }
+
+        sol.add(nums[level]);
+        search(nums, level+1, sol, result);
+        sol.remove(sol.size()-1);
+        search(nums, level+1, sol, result);
+    }
+
+    public List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> result = new ArrayList<List<Integer>>();
+        List<Integer> sol = new ArrayList<>();
+        search(nums, 0, sol, result);
+        return result;
+    }
+
+    private static void searchWithDup(int[] nums, int level, List<Integer> sol, List<List<Integer>> result) {
+        result.add(new ArrayList<>(sol));
+
+        for (int i = level; i < nums.length; ++i) {
+            sol.add(nums[i]);
+            searchWithDup(nums, i+1, sol, result);
+            sol.remove(sol.size() - 1);
+            while (i < nums.length-1 && nums[i] == nums[i+1]) // skip dup
+                ++i;
+        }
+    }
+
+    // Subsets II
+    public static List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> result = new ArrayList<List<Integer>>();
+        List<Integer> sol = new ArrayList<>();
+        Arrays.sort(nums);
+        searchWithDup(nums, 0, sol, result);
+        System.out.println(result.toString());
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-90 Subsets II");
+        subsetsWithDup(new int[]{1,2,2,2});
     }
 }
 
@@ -603,20 +894,20 @@ class WordSearch {
     {
         if (idx == word.length())
             return true;
-    /* check matrix boundary, whether the cell was visited, and whether the
-       cell is known to be deadend */
+        /* check matrix boundary, whether the cell was visited, and whether the
+           cell is known to be deadend */
         if (row < 0 || row >= N || col < 0 || col >= M ||
                 visited[row][col] || board[row][col] != word.charAt(idx) ||
                 memo.contains(new SearchTuple(row, col, from_row, from_col, idx)))
             return false;
         visited[row][col] = true;
-    /* walk to neighboring cells recursively */
+        /* walk to neighboring cells recursively */
         if (search_word(board, N, M, row-1, col, row, col, word, idx+1, visited, memo) ||
                 search_word(board, N, M, row, col+1, row, col, word, idx+1, visited, memo) ||
                 search_word(board, N, M, row+1, col, row, col, word, idx+1, visited, memo) ||
                 search_word(board, N, M, row, col-1, row, col, word, idx+1, visited, memo))
             return true;
-    /* memorize search miss for the coordinate and search word index */
+        /* memorize search miss for the coordinate and search word index */
         memo.add(new SearchTuple(row, col, from_row, from_col, idx));
         visited[row][col] = false;
         return false;
@@ -626,13 +917,13 @@ class WordSearch {
         int N = board.length;
         int M = board[0].length;
 
-    /* visit map to remember cells that have been taken */
+        /* visit map to remember cells that have been taken */
         boolean[][] visited = new boolean[N][M];
         for (int i = 0; i < N; ++i)
             for (int j = 0; j < M; ++j)
                 visited[i][j] = false;
 
-    /* memoization to remember deadend cells i.e. search miss */
+        /* memoization to remember deadend cells i.e. search miss */
         HashSet<SearchTuple> memo = new HashSet<SearchTuple>();
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < M; ++j) {
@@ -661,36 +952,17 @@ class WordSearch {
 
 /** Q-80 Remove Duplicates from Sorted Array II */
 class RemoveDuplicatesFromSortedArray {
-    private static void copyInPlace(int[] nums, int write, int start, int count) {
-        if (count <= 0)
-            return;
-        for (int i = 0; i < count; ++i) {
-            nums[write+i] = nums[start+i];
-        }
-    }
-
     public static int removeDuplicates(int[] nums) {
-        int result = 0;
-        if (nums.length == 0)
-            return result;
-
-        int num = nums[nums.length-1], count = 1;
-        int copyStart = nums.length;
-        for (int i = nums.length-2; i >= 0; --i) {
-            if (num == nums[i]) {
-                count += 1;
-                continue;
-            }
-            copyInPlace(nums, i + (count > 1 ? 3 : 2), copyStart, result);
-            copyStart = i+1;
-            result += (count > 1 ? 2 : 1);
-            num = nums[i];
-            count = 1;
+        if (nums.length <= 2)
+            return nums.length;
+        int write = 2;
+        for (int i = 2; i < nums.length; ++i) {
+            if (nums[i] == nums[write-1] && nums[i] == nums[write-2])
+                ;
+            else
+                nums[write++] = nums[i];
         }
-        copyInPlace(nums, (count > 1 ? 2 : 1), copyStart, result);
-        result += (count > 1 ? 2 : 1);
-        System.out.println(Arrays.toString(nums));
-        return result;
+        return write;
     }
 
     public static void test() {
@@ -707,96 +979,43 @@ class RemoveDuplicatesFromSortedArray {
  * matrix.
  */
 class RestoreIpAddress {
-    private static void restore_ip(String s, int idx, int partIdx, int ipNumbers[],
-                                   List<String> result) {
-        if (partIdx > 4)
-            return;
-        if (partIdx == 4) {
+    private static void restore(String s, int idx, int k, String sol, List<String> result) {
+        if (k == 4) {
             if (idx == s.length()) {
-                StringBuilder ipStr = new StringBuilder();
-                for (int num : ipNumbers) {
-                    ipStr.append(String.valueOf(num)).append(".");
-                }
-                ipStr.setLength(ipStr.length()-1);
-                result.add(ipStr.toString());
+                result.add(sol);
+                return;
             }
+        }
+
+        if (idx >= s.length())
             return;
-        }
 
-    /* IP segment number starting with 0 is not allowed, except single '0',
-     * so stop after first 0 */
-        int number = 0;
-        boolean firstIsZero = false;
-        for (int i = 0; i < 3 && idx + i < s.length() && !firstIsZero; ++i) {
-            int digit = Character.digit(s.charAt(idx+i), 10);
-            number = number*10 + digit;
-            if (!firstIsZero && number == 0)
-                firstIsZero = true;
-            if (number > 255)
-                break;
-            ipNumbers[partIdx] = number;
-            restore_ip(s, idx+i+1, partIdx+1, ipNumbers, result);
+        int d = 0;
+        boolean first0 = false;
+        for (int i = 0; i < 3 && !first0 && idx + i < s.length(); ++i) {
+            d = d*10 + s.charAt(idx+i) - '0';
+            first0 = d == 0;
+            if (d > 255)
+                return;
+            restore(s, idx+i+1, k+1, sol + Integer.toString(d) + (k+1 < 4 ? "." : ""), result);
         }
     }
 
-    private static void restoreIpAddresses(String s) {
+    private static List<String> restoreIpAddresses(String s) {
         final List<String> result = new ArrayList<String>();
-        int ipNumbers[] = new int[4];
-        restore_ip(s, 0, 0, ipNumbers, result);
-        System.out.print(s + " -> ");
-        for (String ipstr : result)
-            System.out.print(ipstr + ", ");
-        System.out.print("\n");
+        if (s.length() < 4 || s.length() > 12)
+            return result;
+        restore(s, 0, 0, "", result);
+        System.out.println(result.toString());
+        return result;
     }
 
-    public static void run() {
+    public static void test() {
         System.out.println("----------- Restore IP Addresses --------------");
         restoreIpAddresses("25525511135");
         restoreIpAddresses("123562559");
-        restoreIpAddresses("0000");
-        restoreIpAddresses("010010");
-    }
-}
-
-/** Q-105 Construct Binary Tree from Preorder and Inorder Traversal */
-class ConstructTreeFromPreorderInorder {
-    private TreeNode build(int[] preorder, int preleft, int preright, int[] inorder, int inleft, int inright) {
-        if (preleft > preright || inleft > inright)
-            return null;
-        // find the inorder position index of the root node
-        int iidx;
-        for (iidx = inleft; iidx <= inright && preorder[preleft] != inorder[iidx]; ++iidx);
-        TreeNode root = new TreeNode(preorder[preleft]);
-        root.left = build(preorder, preleft+1, preleft + iidx - inleft, inorder, inleft, iidx-1);
-        root.right = build(preorder, preleft + iidx - inleft + 1, preright, inorder, iidx+1, inright);
-        return root;
-    }
-
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        if (preorder.length == 0)
-            return null;
-        return build(preorder, 0, preorder.length-1, inorder, 0, inorder.length-1);
-    }
-}
-
-/** Q-106 Construct Binary Tree from Postorder and Inorder Traversal */
-class ConstructTreeFromPostorderInorder {
-    private TreeNode build(int[] inorder, int inleft, int inright, int[] postorder, int postleft, int postright) {
-        if (postleft > postright || inleft > inright)
-            return null;
-        // find the inorder position index of the root node
-        int iidx;
-        for (iidx = inleft; iidx <= inright && postorder[postright] != inorder[iidx]; ++iidx);
-        TreeNode root = new TreeNode(postorder[postright]);
-        root.left = build(inorder, inleft, iidx-1, postorder, postleft, postright - (inright-iidx) - 1);
-        root.right = build(inorder, iidx+1, inright, postorder, postright - (inright-iidx), postright-1);
-        return root;
-    }
-
-    public TreeNode buildTree(int[] inorder, int[] postorder) {
-        if (inorder.length == 0)
-            return null;
-        return build(inorder, 0, inorder.length-1, postorder, 0, postorder.length-1);
+        restoreIpAddresses("0000"); // 0.0.0.0
+        restoreIpAddresses("010010"); // 0.10.0.10, 0.100.1.0
     }
 }
 
@@ -1415,9 +1634,17 @@ class FindRightInterval {
 public class LeetcodeOne {
     public static void main(String[] args) {
         LongestSubstringWithoutRepeatingChars.test();
+        FindFirstLastPosSortedArray.test();
+        ThreeSum.test();
+        LetterComboOfPhoneNumber.run();
+        CombinationSum.test();
+        Permutations.test();
+        Subsets.test();
         MergeIntervals.test();
+        JumpGame.test();
         SortColors.test();
         RemoveDuplicatesFromSortedArray.test();
+        RestoreIpAddress.test();
         GasStation.test();
         FindPeakElement.test();
         LargestNumber.test();

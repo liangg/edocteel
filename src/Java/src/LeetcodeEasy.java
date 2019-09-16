@@ -2,8 +2,6 @@
  * Leetcode Questions - easy level, Tree
  */
 
-import apple.laf.JRSUIUtils;
-
 import java.util.*;
 
 class TreeNode {
@@ -11,6 +9,13 @@ class TreeNode {
     TreeNode left;
     TreeNode right;
     TreeNode(int x) { val = x; }
+}
+
+class Node {
+    int val;
+    Node left;
+    Node right;
+    Node next;
 }
 
 class MorrisTraversal {
@@ -42,6 +47,143 @@ class MorrisTraversal {
     }
 }
 
+
+/** 94. Binary Tree Inorder Traversal */
+class BinaryTreeInorderTraversal {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode p = root;
+        while (p != null || !stack.empty()) {
+            for (; p != null; p = p.left)
+                stack.push(p);
+            p = stack.pop();
+            result.add(p.val);
+            p = p.right;
+        }
+        return result;
+    }
+}
+
+/** Q-98 Validate Binary Search Tree */
+class ValidateBinarySearchTree {
+    private boolean valid(TreeNode root, long max, long min) {
+        if (root == null)
+            return true;
+        if (root.val >= max || root.val <= min)
+            return false;
+        return valid(root.left, root.val, min) && valid(root.right, max, root.val);
+    }
+
+    public boolean isValidBST(TreeNode root) {
+        // must use Long to check root node with Integer.MAX_VALUE
+        return valid(root, Long.MAX_VALUE, Long.MIN_VALUE);
+    }
+}
+
+
+/** Q-102 Binary Tree Level Order Traversal */
+class BinaryTreeLevelOrderTraversal {
+    public static List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<List<Integer>>();
+        if (root == null)
+            return result;
+        Deque<TreeNode> queue = new ArrayDeque<>();
+        queue.add(root);
+        List<TreeNode> nextLevel = new ArrayList<>();
+        List<Integer> level = new ArrayList<>();
+        while (!queue.isEmpty() || !nextLevel.isEmpty()) {
+            if (queue.isEmpty()) {
+                result.add(new ArrayList<Integer>(level));
+                for (TreeNode n : nextLevel)
+                    queue.add(n);
+                nextLevel.clear();
+                level.clear();
+                continue;
+            }
+            TreeNode n = queue.poll();
+            level.add(n.val);
+            if (n.left != null)
+                nextLevel.add(n.left);
+            if (n.right != null)
+                nextLevel.add(n.right);
+        }
+        if (!level.isEmpty())
+            result.add(new ArrayList<Integer>(level));
+        return result;
+    }
+}
+
+/** Q-105 Construct Binary Tree from Preorder and Inorder Traversal */
+class ConstructTreeFromPreorderInorder {
+    private TreeNode build(int[] preorder, int preleft, int preright, int[] inorder, int inleft, int inright) {
+        if (preleft > preright || inleft > inright)
+            return null;
+        // find the inorder position index of the root node
+        int iidx;
+        for (iidx = inleft; iidx <= inright && preorder[preleft] != inorder[iidx]; ++iidx);
+        TreeNode root = new TreeNode(preorder[preleft]);
+        // partition preorder and inorder for left subtree and right subtree
+        root.left = build(preorder, preleft+1, preleft + iidx - inleft, inorder, inleft, iidx-1);
+        root.right = build(preorder, preleft + iidx - inleft + 1, preright, inorder, iidx+1, inright);
+        return root;
+    }
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        if (preorder.length == 0)
+            return null;
+        return build(preorder, 0, preorder.length-1, inorder, 0, inorder.length-1);
+    }
+}
+
+/** Q-106 Construct Binary Tree from Postorder and Inorder Traversal */
+class ConstructTreeFromPostorderInorder {
+    private TreeNode build(int[] inorder, int inleft, int inright, int[] postorder, int postleft, int postright) {
+        if (postleft > postright || inleft > inright)
+            return null;
+        // find the inorder position index of the root node
+        int iidx;
+        for (iidx = inleft; iidx <= inright && postorder[postright] != inorder[iidx]; ++iidx);
+        TreeNode root = new TreeNode(postorder[postright]);
+        root.left = build(inorder, inleft, iidx-1, postorder, postleft, postleft+iidx-inleft-1);
+        root.right = build(inorder, iidx+1, inright, postorder, postleft+iidx-inleft, postright-1);
+        return root;
+    }
+
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        if (inorder.length == 0)
+            return null;
+        return build(inorder, 0, inorder.length-1, postorder, 0, postorder.length-1);
+    }
+}
+
+/** Q-109 Convert Sorted List to Binary Search Tree */
+class ConvertSortedListToBinarySearchTree {
+    private TreeNode convert(ListNode head, ListNode end) {
+        if (head == end)
+            return null;
+        ListNode p1, p2;
+        for (p1 = head, p2 = head; p2 != end && p2.next != end; ) {
+            p1 = p1.next;
+            p2 = p2.next.next;
+        }
+        TreeNode r = new TreeNode(p1.val);
+        r.left = convert(head, p1);
+        r.right = convert(p1.next, end);
+        return r;
+    }
+
+    public TreeNode sortedListToBST(ListNode head) {
+        return convert(head, null);
+    }
+}
+
+/**
+ * Q-110 Balanced Binary Tree
+ *
+ * Given a binary tree, determine if it is height-balanced. I.e. the depth of the two subtrees
+ * of every node never differ by more than 1
+ */
 class BalancedBinaryTree
 {
     private boolean balanced(TreeNode root, int depth, int[] pair, int pidx) {
@@ -66,12 +208,32 @@ class BalancedBinaryTree
         return left_bal && right_bal && height_bal;
     }
 
-    public boolean isBalanced(TreeNode root) {
+    public boolean isBalanced_OLD(TreeNode root) {
         if (root == null)
             return true;
         int[] pair = new int[2];
         pair[0] = pair[1] = 1;
         return balanced(root, 1, pair, 0);
+    }
+
+    private int getDepth(TreeNode root, int depth) {
+        if (root == null) return depth;
+        int ld = getDepth(root.left, depth+1);
+        if (ld == -1)
+            return -1;
+        int rd = getDepth(root.right, depth+1);
+        if (rd == -1)
+            return -1;
+        if (Math.abs(ld-rd) > 1)
+            return -1;
+        return Math.max(ld, rd);
+    }
+
+    public boolean isBalanced(TreeNode root) {
+        if (root == null)
+            return true;
+        // get the max depth, unless -1 if not balanced
+        return getDepth(root, 0) != -1;
     }
 }
 
@@ -107,6 +269,76 @@ class BinaryTreePostorderTraversal
             }
         }
         return result;
+    }
+}
+
+/**
+ * Q-116 Populate Next Right Pointer in Perfect Binary Tree Node
+ *
+ * You are given a perfect binary tree where all leaves are on the same level, and every parent has two children.
+ *
+ * Q-117 Populate Next Right Pointer in Each Node II
+ *
+ * Populate each next pointer to point to its next right node. If there is no next right node, the next pointer should
+ * be set to NULL.
+ */
+class PopulateBinaryTreeNextRightPointer
+{
+    // Q-116, basically level order traversal
+    public Node connect(Node root) {
+        if (root == null)
+            return null;
+        Deque<Node> queue = new ArrayDeque<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            Deque<Node> next = new ArrayDeque<>();
+            for (Node prev = null; queue.size() > 0;) {
+                Node n = queue.poll();
+                if (prev != null)
+                    prev.next = n;
+                prev = n;
+
+                if (n.left != null) {
+                    next.add(n.left);
+                    next.add(n.right);
+                }
+            }
+            queue = next;
+        }
+        return root;
+    }
+
+    // Q-117 use constant space
+    public void connect2(Node root) {
+        Node nextLevelFirst = root;
+        while (nextLevelFirst != null) {
+            Node prev = null;
+            Node n = nextLevelFirst;
+            for (nextLevelFirst = null; n != null; n = n.next) {
+                if (n.left != null) {
+                    if (prev != null) {
+                        prev.next = n.left;
+                        prev = n.left;
+                    } else {
+                        prev = n.left;
+                    }
+                    if (nextLevelFirst == null) {
+                        nextLevelFirst = n.left;
+                    }
+                }
+                if (n.right != null) {
+                    if (prev != null) {
+                        prev.next = n.right;
+                        prev = n.right;
+                    } else {
+                        prev = n.right;
+                    }
+                    if (nextLevelFirst == null) {
+                        nextLevelFirst = n.right;
+                    }
+                }
+            } // end for loop
+        } // end while loop
     }
 }
 

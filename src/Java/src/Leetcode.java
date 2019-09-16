@@ -8,23 +8,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
-class TreeLinkNode {
-  TreeLinkNode left;
-  TreeLinkNode right;
-  TreeLinkNode next;
-  TreeLinkNode(TreeLinkNode left, TreeLinkNode right, TreeLinkNode next) {
-    this.left = left;
-    this.right = right;
-    this.next = next;
-  }
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode(int x) {
+        this.val = x;
+        this.next = null;
+    }
 }
 
-class ListNode {
-  int val;
-  ListNode next;
-  ListNode(int x) {
-    val = x;
-    next = null;
+/**
+ * Q-61 Rotate List
+ *
+ * Given a linked list, rotate the list to the right by k places, where k is non-negative.
+ */
+class RotateList {
+  public ListNode rotateRight(ListNode head, int k) {
+    return null;
   }
 }
 
@@ -95,42 +95,6 @@ class PartitionList
     return p1head != null ? p1head : p2head;
   }
 }
-
-class PopulateBinaryTreeNextRightPointer
-{
-  public void connect(TreeLinkNode root) {
-    TreeLinkNode nextLevelFirst = root;
-    while (nextLevelFirst != null) {
-      TreeLinkNode prev = null;
-      TreeLinkNode n = nextLevelFirst;
-      for (nextLevelFirst = null; n != null; n = n.next) {
-        if (n.left != null) {
-          if (prev != null) {
-            prev.next = n.left;
-            prev = n.left;
-          } else {
-            prev = n.left;
-          }
-          if (nextLevelFirst == null) {
-            nextLevelFirst = n.left;
-          }
-        }
-        if (n.right != null) {
-          if (prev != null) {
-            prev.next = n.right;
-            prev = n.right;
-          } else {
-            prev = n.right;
-          }
-          if (nextLevelFirst == null) {
-            nextLevelFirst = n.right;
-          }
-        }
-      } // end for loop
-    } // end while loop
-  }
-}
-
 
 /**
  * Q: Substring i.e. find needle in the haystack
@@ -1958,7 +1922,6 @@ public class Leetcode
   {
       System.out.println("Leetcode");
       SimplifyPath.run();
-      PermutationUnique.run();
       SubstrsWithConcatWords.run();
       FindSubstring.run();
       CoinChange.run();

@@ -44,6 +44,29 @@ class LongestPalindromeSubstring {
 }
 
 /**
+ * Q-62 Unique Paths
+ *
+ * A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram below). The robot can only
+ * move either down or right at any point in time. The robot is trying to reach the bottom-right corner of the grid
+ * (marked 'Finish' in the diagram below). How many possible unique paths are there?
+ */
+class UniquePaths {
+  public int uniquePaths(int m, int n) {
+    int dp[][] = new int[m][n];
+    dp[0][0] = 1;
+    for (int i = 0; i < m; ++i) {
+      for (int j = 0; j < n; ++j) {
+        if (i > 0)
+          dp[i][j] += dp[i-1][j];
+        if (j > 0)
+          dp[i][j] += dp[i][j-1];
+      }
+    }
+    return dp[m-1][n-1];
+  }
+}
+
+/**
  * Q-72 Edit Distance
  */
 class EditDistance
@@ -110,6 +133,20 @@ class DecodeWays {
     System.out.println("Q-91 Decode Ways");
     numDecodings("10");
   }
+}
+
+/** Q-120 Triangle */
+class TriangleMinSumPath {
+    public int minimumTotal(List<List<Integer>> triangle) {
+        List<Integer> memo = new ArrayList<>(triangle.get(triangle.size()-1));
+        for (int i = triangle.size()-2; i >= 0; --i) {
+            List<Integer> r = triangle.get(i);
+            for (int j = 0; j <= i; ++j) {
+                memo.set(j, Math.min(memo.get(j), memo.get(j+1)) + r.get(j));
+            }
+        }
+        return memo.get(0);
+    }
 }
 
 /**
