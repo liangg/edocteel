@@ -15,7 +15,7 @@ class LongestPalindromeSubstring {
         int N = s.length();
         boolean[][] dp = new boolean[N][N];
         for (int i = 0; i < N; ++i)
-        dp[i][i] = true;
+            dp[i][i] = true;
         int l = 0, r = 0;
         for (int i = 1; i < N; ++i) { // substring length
             for (int j = 0; j < N-i; ++j) { // substring left char
@@ -156,64 +156,50 @@ class TriangleMinSumPath {
  * Return all possible palindrome partitioning of s.
  */
 class PalindromePartition {
-  public static List<List<String>> partition(String s) {
-    int N = s.length();
-    if (N == 0) {
-      return new ArrayList<List<String>>();
-    }
-
-    // memoization M[i][j] is true if s[i, j] is palindrome
-    boolean M[][] = new boolean[N][N];
-    for (int l = 0; l < N; ++l) {
-      for (int i = 0; i < N; ++i) {
-        int right = i + l;
-        if (right < N) {
-          if (s.charAt(i) == s.charAt(right) && (right-i <= 1 || M[i+1][right-1])) {
-            M[i][right] = true;
-          }
+    private static void dfs(String s, int start, boolean dp[][], List<String> sol, List<List<String>> result) {
+        if (start >= s.length()) {
+            result.add(new ArrayList<>(sol));
+            return;
         }
-      }
-    }
 
-    ArrayList<ArrayList<ArrayList<String>>> suffix_pps = new ArrayList<ArrayList<ArrayList<String>>>();
-    // scan backward and construct palindrome partitions at each suffix
-    for (int i = N-1; i >= 0; --i) {
-      ArrayList<ArrayList<String>> pps = new ArrayList<ArrayList<String>>();
-      for (int j = i; j < N; ++j) {
-        if (M[i][j] == true) {
-          if (j+1 < N) {
-            ArrayList<ArrayList<String>> pps_j = suffix_pps.get((N-1)-(j+1)); // reverse positioned
-            for (ArrayList<String> al : pps_j) {
-              ArrayList<String> list = new ArrayList<String>();
-              list.add(s.substring(i,j+1));
-              list.addAll(al);
-              pps.add(list);
+        for (int i = start; i < s.length(); ++i) {
+            if (dp[start][i]) {
+                sol.add(s.substring(start, i+1));
+                dfs(s, i+1, dp, sol, result);
+                sol.remove(sol.size()-1);
             }
-          } else {
-            ArrayList<String> list = new ArrayList<String>();
-            list.add(s.substring(i,j+1));
-            pps.add(list);
+        }
+    }
+
+    public static List<List<String>> partition(String s) {
+        List<List<String>> result = new ArrayList<List<String>>();
+        int N = s.length();
+        if (N == 0) {
+          return result;
+        }
+
+        // memoization M[i][j] is true if s[i, j] is palindrome
+        boolean M[][] = new boolean[N][N];
+        for (int l = 0; l < N; ++l) {
+          for (int i = 0; i < N; ++i) {
+            int right = i + l;
+            if (right < N) {
+              if (s.charAt(i) == s.charAt(right) && (right-i <= 1 || M[i+1][right-1])) {
+                M[i][right] = true;
+              }
+            }
           }
         }
-      }
-      suffix_pps.add(pps);
+
+        List<String> sol = new ArrayList<>();
+        dfs(s, 0, M, sol, result);
+        System.out.println(result.toString());
+        return result;
     }
 
-    List<List<String>> result = new ArrayList<List<String>>();
-    result.addAll(suffix_pps.get(N-1));
-    for (List<String> al : result) {
-      for (String str : al) {
-        System.out.printf(str + ", ");
-      }
-      System.out.println();
-    }
-    return result;
-  }
-
-  public static void run() {
-    System.out.println("----------- Palindrome Partition ------------");
+  public static void test() {
+    System.out.println("Q-131 Palindrome Partition");
     partition("abbacddc");
-
   }
 }
 
@@ -515,6 +501,7 @@ class DeleteAndEarn {
 public class LeetcodeDP {
     public static void main(String[] args) {
         LongestPalindromeSubstring.test();
+        PalindromePartition.test(); // DFS for result
         DeleteOperationsForTwoStrings.test(); // LCS
         PalindromicSubstrings.test();
         MaximumLengthOfRepeatedSubarray.test();

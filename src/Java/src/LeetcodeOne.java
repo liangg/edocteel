@@ -802,7 +802,7 @@ class Subsets {
         gen_subsets(S, idx+1, solution, result);
     }
 
-    public ArrayList<ArrayList<Integer>> subsets_old(int[] S) {
+    public ArrayList<ArrayList<Integer>> subsets_OLD(int[] S) {
         boolean[] solution = new boolean[S.length];
         ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>(S.length*2);
         Arrays.sort(S);
@@ -822,6 +822,7 @@ class Subsets {
         search(nums, level+1, sol, result);
     }
 
+    // Subsets I
     public List<List<Integer>> subsets(int[] nums) {
         List<List<Integer>> result = new ArrayList<List<Integer>>();
         List<Integer> sol = new ArrayList<>();
@@ -1072,6 +1073,58 @@ class WordLadder {
 }
 
 /**
+ * Q-130 Surrounded Regions
+ *
+ * Given a 2D board containing 'X' and 'O' (the letter O), capture all regions surrounded by 'X'. A region is captured
+ * by flipping all 'O's into 'X's in that surrounded region.
+ */
+class SurroundedRegions {
+    private void dfs(char[][] board, int r, int c, boolean flip) {
+        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length || board[r][c] != (flip ? 'O' : 'Y'))
+            return;
+        board[r][c] = flip ? 'Y' : 'O';
+        dfs(board, r-1, c, flip);
+        dfs(board, r+1, c, flip);
+        dfs(board, r, c-1, flip);
+        dfs(board, r, c+1, flip);
+    }
+
+    public void solve(char[][] board) {
+        if (board.length <= 1 || board[0].length <= 1)
+            return;
+        for (int i = 0; i < board.length; ++i) {
+            if (board[i][0] == 'O')
+                dfs(board, i, 0, true);
+            if (board[i][board[0].length-1] == 'O')
+                dfs(board, i, board[0].length-1, true);
+        }
+        for (int i = 0; i < board[0].length; ++i) {
+            if (board[0][i] == 'O')
+                dfs(board, 0, i, true);
+            if (board[board.length-1][i] == 'O')
+                dfs(board, board.length-1, i, true);
+        }
+        for (int i = 0; i < board.length; ++i) {
+            for (int j = 0; j < board[0].length; ++j)
+                if (board[i][j] == 'O')
+                    board[i][j] = 'X';
+        }
+        for (int i = 0; i < board.length; ++i) {
+            if (board[i][0] == 'Y')
+                dfs(board, i, 0, false);
+            if (board[i][board[0].length-1] == 'Y')
+                dfs(board, i, board[0].length-1, false);
+        }
+        for (int i = 0; i < board[0].length; ++i) {
+            if (board[0][i] == 'Y')
+                dfs(board, 0, i, false);
+            if (board[board.length-1][i] == 'Y')
+                dfs(board, board.length-1, i, false);
+        }
+    }
+}
+
+/**
  * Q-134 Gas Station
  *
  * There are N gas stations along a circular route, where the amount of gas at station i is gas[i]. You have a car with
@@ -1099,6 +1152,27 @@ class GasStation {
         System.out.println("Q-134 Gas Station");
         System.out.println(canCompleteCircuit(new int[] {1,2,3,4,5}, new int[] {3,4,5,1,2}));
         System.out.println(canCompleteCircuit(new int[] {2,3,4}, new int[] {3,4,3}));
+    }
+}
+
+/**
+ * Q-137 Single Number II
+ *
+ * Given a non-empty array of integers, every element appears three times except for one, which appears exactly once.
+ * Find that single one. Your algorithm should have a linear runtime complexity. Could you implement it without using
+ * extra memory?
+ */
+class SingleNumber {
+    public int singleNumber(int[] nums) {
+        int result = 0;
+        for (int i = 0; i < 32; ++i) {
+            int s = 0;
+            for (int j = 0; j < nums.length; ++j) {
+                s += ((nums[j] >> i) & 1);
+            }
+            result |= ((s%3) << i);
+        }
+        return result;
     }
 }
 
