@@ -14,6 +14,49 @@ class ListNode(object):
         self.val = x
         self.next = None
 
+# Q-222: Count Complete Binary Tree Nodes
+class CountCompleteBinaryTreeNodes(object):
+    def countCompleteTreeNodes(self, root):
+        """
+        :type root: TreeNode
+        :rtype: int
+        """
+        if root is None:
+            return 0
+
+        left_depth = 0
+        n = root
+        while n is not None:
+            left_depth += 1
+            n = n.left
+
+        right_depth = 0
+        n = root
+        while n is not None:
+            right_depth += 1
+            n = n.right
+
+        # optimization - both heights are same so it is complete tree
+        if left_depth == right_depth:
+            return 2**left_depth - 1
+
+        return self.countCompleteTreeNodes(root.left) + self.countCompleteTreeNodes(root.right) + 1
+
+    @staticmethod
+    def test():
+        print "Count Complete Tree Nodes"
+        n0 = TreeNode(0)
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n3 = TreeNode(3)
+        n0.left = n1
+        n0.right = n2
+        n1.left = n3
+        cc = CountCompleteBinaryTreeNodes()
+        print cc.countCompleteTreeNodes(n0)
+
+CountCompleteBinaryTreeNodes.test()
+
 # Q-236: LCA in binary tree
 class BinaryTreeLCA(object):
     def findLCA(self, root, p, q):
@@ -303,81 +346,7 @@ class DiameterOfBinaryTree(object):
 
 DiameterOfBinaryTree.test()
 
-# Q: Count Complete Binary Tree Nodes
-class CountCompleteBinaryTreeNodes(object):
-    # it does not pass large testcase because it iterates all tree nodes
-    def countCompleteTreeNodes_nonoptimal(self, root):
-        """
-        :type root: TreeNode
-        :rtype: int
-        """
-        if root is None:
-            return 0
 
-        # find the depth of the tree
-        tree_depth = 0
-        n = root
-        while n is not None:
-            tree_depth += 1
-            n = n.left
-
-        # find the right most leaf node whose heap index is the count
-        count = 0
-        stack = [(root, 1, 0)]
-        while len(stack) > 0:
-            e = stack.pop()
-            d = e[1]
-            idx = e[2]
-            if d == tree_depth:
-                count = idx + 1
-                break
-            n = e[0]
-            if (n.left is not None):
-                stack.append((n.left, d+1, 2*idx+1))
-            if (n.right is not None):
-                stack.append((n.right, d+1, 2*idx+2))
-        return count
-
-    def countCompleteTreeNodes(self, root):
-        """
-        :type root: TreeNode
-        :rtype: int
-        """
-        if root is None:
-            return 0
-
-        left_depth = 0
-        n = root
-        while n is not None:
-            left_depth += 1
-            n = n.left
-
-        right_depth = 0
-        n = root
-        while n is not None:
-            right_depth += 1
-            n = n.right
-
-        # optimization - both heights are same so it is complete tree
-        if left_depth == right_depth:
-            return 2**left_depth - 1
-
-        return self.countCompleteTreeNodes(root.left) + self.countCompleteTreeNodes(root.right) + 1
-
-    @staticmethod
-    def test():
-        print "Count Complete Tree Nodes"
-        n0 = TreeNode(0)
-        n1 = TreeNode(1)
-        n2 = TreeNode(2)
-        n3 = TreeNode(3)
-        n0.left = n1
-        n0.right = n2
-        n1.left = n3
-        cc = CountCompleteBinaryTreeNodes()
-        print cc.countCompleteTreeNodes(n0)
-
-CountCompleteBinaryTreeNodes.test()
 
 # Q-521 Longest Uncommon Subsequence I & II
 #

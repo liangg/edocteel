@@ -1253,7 +1253,13 @@ class EvaluateReversePolishNotation {
     }
 }
 
-/** Q-162 Find Peak Element */
+/**
+ * Q-162 Find Peak Element
+ *
+ * A peak element is an element that is greater than its neighbors. Given an input array nums, where
+ * nums[i] != nums[i+1], find a peak element and return its index. The array may contain multiple peaks,
+ * in that case return the index to any one of the peaks is fine. You may imagine that nums[-1] = nums[n] = -inf.
+ */
 class FindPeakElement {
     public static int findPeakElement0(int[] num) {
         int l = 0, r = num.length-1;
@@ -1573,6 +1579,102 @@ class CourseSchedule {
 }
 
 /**
+ * 209. Minimum Size Subarray Sum
+ *
+ * Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray
+ * of which the sum >= s. If there isn't one, return 0 instead.
+ */
+class MinimumSizeSubarraySum {
+    public int minSubArrayLen(int s, int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        int result = nums.length+1;
+        for (int l = 0, r = 0, sum = nums[0]; r < nums.length;) {
+            if (sum >= s) {
+                if (r-l+1 < result)
+                    result = r-l+1;
+                sum -= nums[l];
+                l++;
+            } else {
+                r++;
+                if (r < nums.length)
+                    sum += nums[r];
+            }
+        }
+        return result != nums.length+1 ? result : 0;
+    }
+}
+
+/**
+ * Q-213 House Robber
+ */
+class HouseRobber2 {
+    private static int robIt(int[] nums, int start, int end) {
+        int best1 = nums[start], best2 = start+1 < nums.length ? nums[start+1] : 0;
+        for (int i = start+2; i < end; ++i) {
+            int s = nums[i] + best1;
+            best1 = Math.max(best1, best2);
+            best2 = s;
+        }
+        return Math.max(best1, best2);
+    }
+
+    // II, houses on a circle
+    public static int rob(int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        if (nums.length == 1)
+            return nums[0];
+        int best1 = robIt(nums, 0, nums.length-1), best2 = robIt(nums, 1, nums.length);
+        return Math.max(best1, best2);
+    }
+
+    public static void test() {
+        System.out.println("Q-213 House Robber");
+        System.out.println(rob(new int[]{2,3,2}));
+    }
+}
+
+/**
+ * Q-215 Kth Largest Number in a Array
+ */
+class KthLargestNumberInArray {
+    private static void swap(int[] nums, int i, int j) {
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+
+    private static int partition(int[] nums, int left, int right) {
+        int pivot = nums[left], pos = left;
+        swap(nums, left, right);
+        for (int i = left; i <= right; ++i) {
+            if (nums[i] > pivot) {
+                swap(nums, pos++, i);
+            }
+        }
+        swap(nums, pos, right);
+        return pos;
+    }
+
+    public static int findKthLargest(int[] nums, int k) {
+        int l = 0, r = nums.length-1;
+        while (true) {
+            int p = partition(nums, l, r);
+            if (p == k-1) return nums[p];
+            if (p > k-1) r = p-1;
+            else l = p+1;
+        }
+    }
+
+    public static void test() {
+        System.out.println("Q-215 Kth Largest Number in a Array");
+        System.out.println(findKthLargest(new int[]{3,2,1,5,6,4}, 2));
+        System.out.println(findKthLargest(new int[]{3,1,2,4}, 2));
+    }
+}
+
+/**
  * Q-220: Contains Duplicates III
  *
  * Given an array of integers, find out whether there are two distinct indices
@@ -1618,6 +1720,52 @@ class ContainsDuplicates {
         System.out.printf("%s\n", pairExists(nums1, 1, -1) ? "true" : "false");
         int[] nums2 = {-1,2147483647};
         System.out.printf("%s\n", pairExists(nums2, 1, 2147483647) ? "true" : "false");
+    }
+}
+
+/**
+ * Q-229 Majority Element 2
+ *
+ * Given an integer array of size n, find all elements that appear more than ⌊ n/3 ⌋ times.
+ */
+class MajorityElement2 {
+    public List<Integer> majorityElement(int[] nums) {
+        List<Integer> result = new ArrayList<>();
+        if (nums.length < 2) {
+            for (int n : nums)
+                result.add(n);
+            return result;
+        }
+        int[] cands = new int[2];
+        int[] counts = new int[2];
+        for (int i = 0; i < nums.length; ++i) {
+            if (counts[0] > 0 && cands[0] == nums[i]) {
+                counts[0]++;
+            } else if (counts[1] > 0 && cands[1] == nums[i]) {
+                counts[1]++;
+            } else if (counts[0] == 0) {
+                cands[0] = nums[i];
+                counts[0] = 1;
+            } else if (counts[1] == 0) {
+                cands[1] = nums[i];
+                counts[1] = 1;
+            } else {
+                counts[0]--;
+                counts[1]--;
+            }
+        }
+        counts[0] = counts[1] = 0;
+        for (int i = 0; i < nums.length; ++i) {
+            if (cands[0] == nums[i])
+                counts[0]++;
+            else if (cands[1] == nums[i])
+                counts[1]++;
+        }
+        if (counts[0] > nums.length/3)
+            result.add(cands[0]);
+        if (counts[1] > nums.length/3)
+            result.add(cands[1]);
+        return result;
     }
 }
 
@@ -1724,9 +1872,12 @@ public class LeetcodeOne {
         LargestNumber.test();
         CourseSchedule.test();
         RepeatedDNASequence.test();
+        HouseRobber2.test();
         ShuffleArray.test();
         LexicographicalNumbers.test();
         FindRightInterval.test();
+
+        KthLargestNumberInArray.test();
     }
 }
 

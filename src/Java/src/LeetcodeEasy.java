@@ -81,7 +81,6 @@ class ValidateBinarySearchTree {
     }
 }
 
-
 /** Q-102 Binary Tree Level Order Traversal */
 class BinaryTreeLevelOrderTraversal {
     public static List<List<Integer>> levelOrder(TreeNode root) {
@@ -386,6 +385,23 @@ class BinaryTreePreorderTraversal {
     }
 }
 
+/**
+ * Q-222 Count Complete Tree Node
+ */
+class CountCompleteTreeNode {
+    public static int countNodes(TreeNode root) {
+        if (root == null) return 0;
+        int ldepth = 0;
+        for (TreeNode n = root; n != null; n = n.left, ldepth++);
+        int rdepth = 0;
+        for (TreeNode n = root; n != null; n = n.right, rdepth++);
+        if (ldepth == rdepth)
+            return (int)Math.pow(2, ldepth)-1;
+        int lc = countNodes(root.left), rc = countNodes(root.right);
+        return  lc + rc + 1;
+    }
+}
+
 /** Q-230 Kth Smallest Elements in BST */
 class KthSmallestElements
 {
@@ -416,8 +432,6 @@ class KthSmallestElements
                 visited.add(node);
             }
         }
-
-        //TreeNode kth = nodeStack.peek();
         return last.val;
     }
 
@@ -453,7 +467,7 @@ class KthSmallestElements
  * into on the same night. Determine the maximum amount of money the thief can rob tonight
  * without alerting the police.
  */
-class HouseRobber {
+class HouseRobber3 {
     static class ResultPair {
         public int root_sum;
         public int other_best;
@@ -851,9 +865,9 @@ class BinarySearch {
 public class LeetcodeEasy {
 
     public static void main(String[] args) {
-        System.out.println("Leetcode Easy Level");
+        System.out.println("Leetcode Easy Level and Tree");
         KthSmallestElements.run();
-        HouseRobber.run();
+        HouseRobber3.run();
         MostFrequentSubtreeSum.test();
         FindDuplicateSubtree.test();
         LetterCasePermutation.test();

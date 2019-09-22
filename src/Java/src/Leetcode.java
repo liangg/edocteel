@@ -1,5 +1,5 @@
 /**
- * Leetcode questions (tree, list)
+ * Leetcode questions (list)
  */
 
 import java.lang.Math;
