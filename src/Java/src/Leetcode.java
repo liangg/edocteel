@@ -1927,6 +1927,8 @@ public class Leetcode
       CoinChange.run();
       ReconstructItinerary.run();
       KthSmallestInSortedMatrix.test();
+      ShuffleArray.test();
+      LexicographicalNumbers.test();
       LongestSubstingWithKRepeatingChars.test();
       ZeroOneMatrix.test();
       MinimumGeneticMutations.test();

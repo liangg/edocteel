@@ -974,6 +974,34 @@ class RemoveDuplicatesFromSortedArray {
 }
 
 /**
+ * Q-89 Gray Code
+ *
+ * The gray code is a binary numeral system where two successive values differ in only one bit. Given a non-negative
+ * integer n representing the total number of bits in the code, print the sequence of gray code. A gray code sequence
+ * must begin with 0.
+ */
+class GrayCode {
+    public static List<Integer> grayCode(int n) {
+        List<Integer> result = new ArrayList<>();
+        result.add(0);
+        for (int i = 0; i < n; ++i) {
+            int L = result.size();
+            for (int j = L-1; j >= 0; --j) {
+                result.add((1 << i) | result.get(j));
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-89 Gray Code");
+        System.out.println(grayCode(0));
+        System.out.println(grayCode(2));
+        System.out.println(grayCode(3));
+    }
+}
+
+/**
  * Q-93 Restore IP Address
  *
  * If we only cares for the number of possible IP addresses, it can be solved by iterative algorithm using memoization
@@ -1769,6 +1797,179 @@ class MajorityElement2 {
     }
 }
 
+/**
+ * 238. Product of Array Except Self
+ */
+class ProductOfArrayExceptSelf {
+    public int[] productExceptSelf(int[] nums) {
+        int[] result = new int[nums.length];
+        for (int i = 0, p = 1; i < nums.length; ++i) {
+            result[i] = p;
+            p *= nums[i];
+        }
+        for (int i = nums.length-1, p = 1; i >= 0; --i) {
+            result[i] *= p;
+            p *= nums[i];
+        }
+        return result;
+    }
+}
+
+/**
+ * Q-241 Different Ways of Add Parentheses
+ */
+class DifferentWaysOfAddParenthese {
+    public static List<Integer> diffWaysToCompute(String input) {
+        List<Integer> result = new ArrayList<>();
+        boolean isNumber = true;
+        for (int i = 0; i <input.length(); ++i) {
+            char c = input.charAt(i);
+            if (c == '+' || c == '-' || c == '*') {
+                isNumber = false;
+                List<Integer> lr = diffWaysToCompute(input.substring(0, i));
+                List<Integer> rr = diffWaysToCompute(input.substring(i+1));
+                for (Integer ln : lr) {
+                    for (Integer rn : rr) {
+                        if (c == '+')
+                            result.add(ln.intValue() + rn.intValue());
+                        else if (c == '-')
+                            result.add(ln.intValue() - rn.intValue());
+                        else
+                            result.add(ln.intValue() * rn.intValue());
+                    }
+                }
+            }
+        }
+        if (isNumber) {
+            result.add(Integer.parseInt(input));
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-241 Different Ways to Add Parentheses");
+        System.out.println(diffWaysToCompute("2-1-1"));
+        System.out.println(diffWaysToCompute("2*3-4*5"));
+    }
+}
+
+/**
+ * Q-255 Verify Preorder Sequence in Binary Search Tree
+ */
+class VerifyPreorderSequenceInBST {
+    public boolean verifyPreorder(int[] nums) {
+        int low = Integer.MIN_VALUE;
+        Stack<Integer> stack = new Stack<>();
+        for (int n : nums) {
+            if (n < low)
+                return false;
+            while (!stack.empty() && stack.peek() < n) {
+                low = stack.pop();
+            }
+            stack.push(n);
+        }
+        return true;
+    }
+}
+
+/**
+ * Q-260 Single Number 3
+ *
+ * Given an array of numbers nums, in which exactly two elements appear only once and all the other elements appear
+ * exactly twice. Find the two elements that appear only once.
+ */
+class SingleNumber3 {
+    public int[] singleNumber(int[] nums) {
+        int xor = 0;
+        for (int n : nums)
+            xor ^= n;
+        int rightmost = xor & -xor; // get the rightmost 1
+        int first = 0;
+        for (int n : nums)
+            if ((n & rightmost) != 0)
+                first ^= n;
+        int second = xor ^ first;
+        return new int[]{first, second};
+    }
+}
+
+/**
+ * Q-274 H-Index
+ *
+ * Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute
+ * the researcher's h-index. According to the definition of h-index on Wikipedia: "A scientist has index h if h of
+ * his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."
+ *
+ * H-Index 2:
+ *
+ * Given an array of citations sorted in ascending order (each citation is a non-negative integer) of a researcher,
+ * write a function to compute the researcher's h-index.
+ */
+class HIndex {
+    public static int hIndex(int[] citations) {
+        // wiki solution
+        Arrays.sort(citations);
+        for (int l = 0, r = citations.length-1; l < r; ++l, --r) {
+            int t = citations[l];
+            citations[l] = citations[r];
+            citations[r] = t;
+        }
+        // descending order of citations, break at the first index which fails the citation check
+        for (int i = 0; i < citations.length; ++i) {
+            if (i >= citations[i])
+                return i;
+        }
+        return citations.length;
+    }
+
+    public static int hIndex2(int[] citations) {
+        int l = 0, r = citations.length-1, N = citations.length;
+        // can't use (l < r)
+        while (l <= r) {
+            int m = l +(r-l)/2;
+            if (citations[m] >= N-m) r = m-1;
+            else l = m+1;
+        }
+        return N-l;
+    }
+
+    public static void test () {
+        System.out.println("Q-274 H Index");
+        System.out.println(hIndex(new int[]{3,0,6,1,5}));
+        System.out.println(hIndex2(new int[]{0, 1, 3, 5, 6}));
+        System.out.println(hIndex2(new int[]{0}));
+    }
+}
+
+/**
+ * Q-287 Find the Duplicate Number
+ *
+ * Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at
+ * least one duplicate number must exist. Assume that there is only one duplicate number, find the duplicate one.
+ */
+class FindDuplicateNumber {
+    public static int findDuplicate(int[] nums) {
+        // can't modify the array so can't sort
+        int l = 0, r = nums.length-1;
+        while (l < r) {
+            int m = l + (r-l)/2, cnt  = 0;
+            for (int i = 0; i < nums.length; ++i) {
+                if (nums[i] <= m)
+                    cnt++;
+            }
+            if (cnt <= m) l = m+1;
+            else r = m;
+        }
+        return r;
+    }
+
+    public static void test() {
+        System.out.println("Q-287 Find the Duplicate Number");
+        //System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
+        System.out.println(findDuplicate(new int[]{2,3,4,1,1}));
+    }
+}
+
 /** Q-290 Word Pattern */
 class WordPattern {
     public static boolean wordPattern(String pattern, String str) {
@@ -1873,11 +2074,13 @@ public class LeetcodeOne {
         CourseSchedule.test();
         RepeatedDNASequence.test();
         HouseRobber2.test();
-        ShuffleArray.test();
-        LexicographicalNumbers.test();
+        KthLargestNumberInArray.test();
+        DifferentWaysOfAddParenthese.test();
+        HIndex.test();
+        FindDuplicateNumber.test();
         FindRightInterval.test();
 
-        KthLargestNumberInArray.test();
+        GrayCode.test();
     }
 }
 
