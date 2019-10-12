@@ -1026,7 +1026,6 @@ class CountingBits(object):
 CountingBits.test()
 
 
-
 # Q-971 Reverse Only Letters
 class ReverseOnlyLetters(object):
     def is_letter(self, c):

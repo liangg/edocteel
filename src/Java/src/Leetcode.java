@@ -1,5 +1,5 @@
 /**
- * Leetcode questions (list)
+ * Leetcode questions 300 - *, (list)
  */
 
 import java.lang.Math;
@@ -252,7 +252,6 @@ class SubstrsWithConcatWords {
   }
 }
 
-
 /**
  * Q-316: Remove Duplicate Letters
  *
@@ -312,6 +311,31 @@ class RemoveDuplicateLetters {
         }
 
         return String.valueOf(result);
+    }
+}
+
+/**
+ * Q-324 Wiggle Sort 2
+ *
+ * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
+ */
+class WiggleSort {
+    public static void wiggleSort(int[] nums) {
+        int[] c = Arrays.copyOf(nums, nums.length);
+        Arrays.sort(c);
+        for (int i = 0, j = nums.length%2 == 0 ? nums.length/2-1 : nums.length/2, k = nums.length-1;
+             i < nums.length; ++i) {
+            if (i % 2 == 0)
+                nums[i] = c[j--];
+            else
+                nums[i] = c[k--];
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void test() {
+        System.out.println("Q-324 Wiggle Sort 2");
+        wiggleSort(new int[]{1,5,1,1,6,4});
     }
 }
 
@@ -443,6 +467,69 @@ class ReconstructItinerary {
     }
 }
 
+/**
+ * Q-334 Increasing Triplet Subsequence
+ */
+class IncreasingTripletSubsequence {
+    public static boolean increasingTriplet(int[] nums) {
+        if (nums.length < 3)
+            return false;
+        int m1 = nums[0], m2 = Integer.MAX_VALUE, count = 1;
+        for (int i = 1; i < nums.length; ++i) {
+            if (nums[i] > m2) {
+                return true;
+            } else if (nums[i] > m1) {
+                m2 = nums[i];
+                if (count < 2) {
+                    count++;
+                }
+            } else {
+                m1 = nums[i];
+            }
+        }
+        return false;
+    }
+
+    public static void test() {
+        System.out.println("Q-334 Increasing Triplet Subsequence");
+        System.out.println(increasingTriplet(new int[]{4,3,1,2,5}));
+    }
+}
+
+/**
+ * Q-362 Design Hit Counter
+ */
+class DesignHitCounter {
+    private int counter[] = new int[300]; // 5-min, second level counter
+    private int times[] = new int[300];
+
+    /**
+     * Record a hit.
+     * @param timestamp - The current timestamp (in seconds granularity).
+     */
+    public void hit(int timestamp) {
+        int idx = timestamp % 300;
+        if (times[idx] == timestamp)
+            counter[idx] += 1;
+        else {
+            times[idx] = timestamp;
+            counter[idx] = 1;
+        }
+    }
+
+    /**
+     * Return the number of hits in the past 5 minutes.
+     * @param timestamp - The current timestamp (in seconds granularity).
+     */
+    public int getHits(int timestamp) {
+        int result = 0;
+        for (int i = 0; i < 300; ++i) {
+            if (times[i] > timestamp-300)
+                result += counter[i];
+        }
+        return result;
+    }
+}
 
 /**
  * Q-378 K-th Smallest Element in Sorted Matrix
@@ -634,6 +721,24 @@ class LongestSubstingWithKRepeatingChars {
 }
 
 /**
+ * Q-397 Integer Replacement
+ */
+class IntegerReplacement {
+    private int replace(long ln) {
+        if (ln == 1) return 0;
+        if (ln % 2 == 0)
+            return 1 + replace(ln/2);
+        else
+            return 1 + Math.min(replace(ln-1), replace(ln+1));
+    }
+
+    public int integerReplacement(int n) {
+        long ln = (long) n;
+        return replace(ln);
+    }
+}
+
+/**
  * Q-398 Random Pick Index (Reservoir Sampling)
  *
  * Given an array of integers with possible duplicates, randomly output the index of a given target number. You can
@@ -722,6 +827,48 @@ class QueueReconstructionByHeight {
         System.out.println("Q-406 Queue Reconstruction By Height");
         int[][] p = new int[][]{{5,0},{7,0},{5,2},{6,1},{4,4},{7,1}};
         reconstructQueue(p);
+    }
+}
+
+/** Q-417 Pacific Atlantic Water Flow */
+class PacificAtlanticWaterFlow {
+    public List<List<Integer>> pacificAtlantic(int[][] matrix) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (matrix.length == 0 || matrix[0].length == 0)
+            return result;
+        int M = matrix.length, N = matrix[0].length;
+        boolean[][] pacific = new boolean[M][N];
+        boolean[][] atlantic = new boolean[M][N];
+        for (int i = 0; i < M; ++i) {
+            dfs(matrix, i, 0, Integer.MIN_VALUE, pacific);
+            dfs(matrix, i, N-1, Integer.MIN_VALUE, atlantic);
+        }
+        for (int j = 0; j < N; ++j) {
+            dfs(matrix, 0, j, Integer.MIN_VALUE, pacific);
+            dfs(matrix, M-1, j, Integer.MIN_VALUE, atlantic);
+        }
+
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (pacific[i][j] && atlantic[i][j]) {
+                    Integer[] c = {i,j};
+                    result.add(Arrays.asList(c));
+                }
+            }
+        }
+        return result;
+    }
+
+    private void dfs(int[][] matrix, int i, int j, int h, boolean[][] visited) {
+        if (i < 0 || j < 0 || i >= matrix.length || j >= matrix[0].length || visited[i][j])
+            return;
+        if (matrix[i][j] < h)
+            return;
+        visited[i][j] = true;
+        dfs(matrix, i-1, j, matrix[i][j], visited);
+        dfs(matrix, i, j-1, matrix[i][j], visited);
+        dfs(matrix, i+1, j, matrix[i][j], visited);
+        dfs(matrix, i, j+1, matrix[i][j], visited);
     }
 }
 
@@ -1918,42 +2065,45 @@ class ChampagneTower {
 
 public class Leetcode
 {
-  public static void main(String[] args)
-  {
-      System.out.println("Leetcode");
-      SimplifyPath.run();
-      SubstrsWithConcatWords.run();
-      FindSubstring.run();
-      CoinChange.run();
-      ReconstructItinerary.run();
-      KthSmallestInSortedMatrix.test();
-      ShuffleArray.test();
-      LexicographicalNumbers.test();
-      LongestSubstingWithKRepeatingChars.test();
-      ZeroOneMatrix.test();
-      MinimumGeneticMutations.test();
-      RandomPickIndex.test();
-      QueueReconstructionByHeight.test();
-      BattleshipsInBoard.test();
-      OneThreeTwoPattern.test();
-      UniqueSubstringsInWraparoundString.test(); //
-      LongestRepeatingCharacterReplacement.test();
-      MyCircularQueue.test(); // thread-unsafe
-      MyCircularDeque.test();
-      MaximumLengthOfPairChain.test(); // sort, special compare
-      ReplaceWords.test();
-      FindKClosestElements.test();
-      MagicDictionary.test(); // hashmap
-      MapSum.test(); // data structure
-      RedundantConnections.test(); // union find
-      PartitionKEqualSumSubsets.test(); // recursion
-      AccountsMerge.test(); // union find
-      DailyTemperature.test(); // stack
-      NetworkDelayTime.test(); // single-source multi-destination shortest path
-      ShortestCompletingWords.test();
-      GraphBipartite.test(); // BFS
-      NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
-      ChampagneTower.test(); // matrix + memoization
+    public static void main(String[] args)
+    {
+        System.out.println("Leetcode");
+        SimplifyPath.run();
+        SubstrsWithConcatWords.run();
+        FindSubstring.run();
+        CoinChange.run();
+        WiggleSort.test();
+        ReconstructItinerary.run();
+        IncreasingTripletSubsequence.test();
+        KthSmallestInSortedMatrix.test();
+        ShuffleArray.test();
+        LexicographicalNumbers.test();
+        LongestSubstingWithKRepeatingChars.test();
+        ZeroOneMatrix.test();
+        MinimumGeneticMutations.test();
+        RandomPickIndex.test();
+        QueueReconstructionByHeight.test();
+        BattleshipsInBoard.test();
+        OneThreeTwoPattern.test();
+        UniqueSubstringsInWraparoundString.test(); //
+        LongestRepeatingCharacterReplacement.test();
+        MyCircularQueue.test(); // thread-unsafe
+        MyCircularDeque.test();
+        MaximumLengthOfPairChain.test(); // sort, special compare
+        ReplaceWords.test();
+        FindKClosestElements.test();
+        MagicDictionary.test(); // hashmap
+        MapSum.test(); // data structure
+        RedundantConnections.test(); // union find
+        PartitionKEqualSumSubsets.test(); // recursion
+        AccountsMerge.test(); // union find
+        DailyTemperature.test(); // stack
+        NetworkDelayTime.test(); // single-source multi-destination shortest path
+        ShortestCompletingWords.test();
+        GraphBipartite.test(); // BFS
+        NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
+        ChampagneTower.test(); // matrix + memoization
 
-  }
+
+    }
 }

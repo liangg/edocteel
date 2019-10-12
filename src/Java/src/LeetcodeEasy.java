@@ -2,6 +2,8 @@
  * Leetcode Questions - easy level, Tree
  */
 
+import apple.laf.JRSUIUtils;
+
 import java.util.*;
 
 class TreeNode {
@@ -46,7 +48,6 @@ class MorrisTraversal {
         }
     }
 }
-
 
 /** 94. Binary Tree Inorder Traversal */
 class BinaryTreeInorderTraversal {
@@ -386,6 +387,43 @@ class BinaryTreePreorderTraversal {
 }
 
 /**
+ * Q-167 Two Sum 2
+ */
+class TwoSum2 {
+    public int[] twoSum(int[] numbers, int target) {
+        for (int l = 0, r = numbers.length-1; l < r; ) {
+            int s = numbers[l] + numbers[r];
+            if (s == target)
+                // return answer index is non-zero based
+                return new int[]{l+1, r+1};
+            else if (s > target)
+                r--;
+            else
+                l++;
+        }
+        return new int[]{};
+    }
+}
+
+
+/**
+ * Q-172 Factorial Trailing Zeroes
+ *
+ * Given an integer n, return the number of trailing zeroes in n!.
+ */
+class FactorialTrailingZeroes {
+    public int trailingZeroes(int n) {
+        int result = 0;
+        // count number of 10, i.e. number of 5
+        while (n > 0) {
+            result += n/5;
+            n /= 5;
+        }
+        return result;
+    }
+}
+
+/**
  * Q-222 Count Complete Tree Node
  */
 class CountCompleteTreeNode {
@@ -435,6 +473,25 @@ class KthSmallestElements
         return last.val;
     }
 
+    // in-order traversal
+    public static int kthSmallest2(TreeNode root, int k) {
+        if (root == null)
+            return 0;
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        int count = 0;
+        TreeNode p = root;
+        while (p != null || !stack.empty()) {
+            for (; p != null; p = p.left)
+                stack.push(p);
+            p = stack.pop();
+            if (count == k-1)
+                return p.val;
+            count++;
+            p = p.right;
+        }
+        return 0;
+    }
+
     public static void run() {
         System.out.println("Q-230 Kth Smallest Elements in BST");
         TreeNode n15 = new TreeNode(15);
@@ -452,11 +509,41 @@ class KthSmallestElements
         TreeNode n2 = new TreeNode(2);
         n5.left = n3;
         n3.left = n2;
-        System.out.printf("kth = %d\n", kthSmallest(n9, 3)); // 5
-        System.out.printf("kth = %d\n", kthSmallest(n9, 6)); // 14
+        System.out.printf("kth = %d\n", kthSmallest2(n9, 3)); // 5
+        System.out.printf("kth = %d\n", kthSmallest2(n9, 6)); // 14
     }
 }
 
+/**
+ * Q-333 Largest BST
+ *
+ * Given a binary tree, find the largest subtree which is a Binary Search Tree (BST), where largest means subtree with
+ * largest number of nodes in it.
+ */
+class LargestBST {
+    private static boolean valid(TreeNode root, long max, long min) {
+        if (root == null)
+            return true;
+        if (root.val >= max || root.val <= min)
+            return false;
+        return valid(root.left, root.val, min) && valid(root.right, max, root.val);
+    }
+
+    private static int count(TreeNode root) {
+        if (root == null)
+            return 0;
+        return count(root.left) + count(root.right) + 1;
+    }
+
+    public static int largestBSTSubtree(TreeNode root) {
+        if (root == null)
+            return 0;
+        if (valid(root, Long.MAX_VALUE, Long.MIN_VALUE))
+            return count(root);
+        return Math.max(largestBSTSubtree(root.left), largestBSTSubtree(root.right));
+    }
+
+}
 /**
  * Q-337: House Robber III
  *

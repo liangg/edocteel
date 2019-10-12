@@ -332,6 +332,51 @@ class BestTimeBuySellStock4 {
 }
 
 /**
+ * Q-309 Best Time to Buy Sell Stock with Cooldown
+ */
+class BestTimeBuySellWithCooldown {
+    public static int maxProfit(int[] prices) {
+        if (prices.length < 2)
+            return 0;
+        int[] buy = new int[prices.length]; // max profit if buy at i
+        int[] sell = new int[prices.length]; // max profit if sell at i
+        buy[0] = -prices[0];
+        buy[1] = Math.max(-prices[0], -prices[1]);
+        sell[1] = prices[1] > prices[0] ? prices[1]-prices[0] : 0;
+        for (int i = 2; i < prices.length; ++i) {
+            buy[i] = Math.max(sell[i-2]-prices[i], buy[i-1]);
+            sell[i] = Math.max(buy[i-1]+prices[i], sell[i-1]);
+        }
+        return sell[prices.length-1];
+    }
+
+    public static void test() {
+        System.out.println("Q-309 Best Time to Buy and Sell Stock with Cooldown");
+        System.out.println(maxProfit(new int[]{1,2,4}));
+        System.out.println(maxProfit(new int[]{1,2,3,0,2})); // 3
+    }
+}
+
+/**
+ * Q-413 Arithmetic Slices
+ */
+class ArithmeticSlices {
+    public int numberOfArithmeticSlices(int[] A) {
+        int result = 0;
+        if (A.length < 3)
+            return result;
+        int[] dp = new int[A.length];
+        for (int i = 2; i < A.length; ++i) {
+            if (A[i]-A[i-1] == A[i-1]-A[i-2]) {
+                dp[i] = dp[i-1] + 1;
+                result += dp[i];
+            }
+        }
+        return result;
+    }
+}
+
+/**
  * Q-583 Delete Operations for 2 Strings (variant of Longest Common Subsequence problem)
  *
  * Given two words word1 and word2, find the minimum number of steps required to make word1 and word2 the same, where
@@ -507,6 +552,7 @@ public class LeetcodeDP {
         MaximumLengthOfRepeatedSubarray.test();
         NumberOfLongestIncreasingSubsequence.test();
         DeleteAndEarn.test();
+        BestTimeBuySellWithCooldown.test();
     }
 }
 

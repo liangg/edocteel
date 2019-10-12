@@ -689,7 +689,6 @@ class MinimumWindowSubstring {
             if (tchars.containsKey(c)) {
                 int count = tchars.get(c);
                 tchars.put(c, count+1);
-
             } else {
                 tchars.put(c, 1);
             }
@@ -1970,6 +1969,43 @@ class FindDuplicateNumber {
     }
 }
 
+/**
+ * Q-289 Game of Life
+ */
+class GameOfLife {
+    // compute the next state (after one update) of the board given its current state
+    public static void gameOfLife(int[][] board) {
+        int M = board.length, N = board[0].length;
+        int[] rowd = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] cold = {-1, 0, 1, -1, 1, -1, 0, 1};
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                int cnt = 0;
+                for (int k = 0; k < 8; ++k) {
+                    int nr = i+rowd[k], nc = j+cold[k];
+                    // 0 -> -1 is re-generate, 1 -> 2 is die
+                    if (nr >= 0 && nr < M && nc >= 0 && nc < N && board[nr][nc] > 0)
+                        cnt++;
+                }
+                if (board[i][j] == 0 && cnt == 3) board[i][j] = -1;
+                if (board[i][j] == 1 && (cnt < 2 || cnt > 3)) board[i][j] = 2;
+            }
+        }
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (board[i][j] == -1) board[i][j] = 1;
+                else if (board[i][j] == 2) board[i][j] = 0;
+            }
+        }
+    }
+
+    public static void test() {
+        System.out.println("Q-289 Game of Life");
+        int[][] m = {{0,1,0},{0,0,1},{1,1,1},{0,0,0}};
+        gameOfLife(m);
+    }
+}
+
 /** Q-290 Word Pattern */
 class WordPattern {
     public static boolean wordPattern(String pattern, String str) {
@@ -2009,6 +2045,13 @@ class WordPattern {
                 return false;
         }
         return true;
+    }
+}
+
+/** Q-296 Best meeting point */
+class BestMeetingPoint {
+    public int bestMeet(int[][] grid) {
+        return 0;
     }
 }
 
@@ -2065,6 +2108,7 @@ public class LeetcodeOne {
         Subsets.test();
         MergeIntervals.test();
         JumpGame.test();
+        GrayCode.test();
         SortColors.test();
         RemoveDuplicatesFromSortedArray.test();
         RestoreIpAddress.test();
@@ -2079,8 +2123,8 @@ public class LeetcodeOne {
         HIndex.test();
         FindDuplicateNumber.test();
         FindRightInterval.test();
+        GameOfLife.test();
 
-        GrayCode.test();
     }
 }
 
