@@ -148,7 +148,6 @@ public class AnaDB {
     }
 
     // Step 4
-    /*
     public static Map<String, Integer> firstBySortOrder(LinkedHashMap<String, String> sortOrder,
                                                         List<Map<String, Integer>> records) {
         SortOrderComparator soComparator = new SortOrderComparator(sortOrder);
@@ -164,7 +163,7 @@ public class AnaDB {
         SortOrderComparator(LinkedHashMap<String, String> sortOrder) {
             this.sortOrder = sortOrder;
             for (Map.Entry<String, String> e : sortOrder.entrySet()) {
-                RecordComparactor recordComparactor = new RecordComparactor(e.getKey());
+                RecordComparactor recordComparactor = new RecordComparactor(e.getKey(), e.getValue());
                 comparactorMap.put(e.getKey(), recordComparactor);
             }
         }
@@ -179,7 +178,7 @@ public class AnaDB {
             }
             return 0;
         }
-    }*/
+    }
 
     public static <T> void assertEqual(T expected, T actual) {
         if (expected == null && actual == null || actual != null && actual.equals(expected)) {
