@@ -121,19 +121,21 @@ public class AnaDB {
 
     // Step 3
     public static Map<String, Integer> firstByKey(String key, String direction, List<Map<String, Integer>> records) {
-        RecordComparactor rcomparator = new RecordComparactor(key);
+        RecordComparactor rcomparator = new RecordComparactor(key, direction);
         List<Map<String, Integer>> copy = new ArrayList<Map<String, Integer>>(records);
         Collections.sort(copy, rcomparator);
         System.out.println(records);
         System.out.println(copy);
-        return direction.equals("asc") ? copy.get(0) : copy.get(records.size()-1);
+        return copy.get(0);
     }
 
     private static class RecordComparactor implements Comparator<Map<String, Integer>> {
         private String key;
+        private String direction;
 
-        RecordComparactor(String key) {
+        RecordComparactor(String key, String direction) {
             this.key = key;
+            this.direction = direction;
         }
 
         @Override
@@ -141,16 +143,43 @@ public class AnaDB {
             Integer v1 = r1.containsKey(key) ? r1.get(key) : 0;
             Integer v2 = r2.containsKey(key) ? r2.get(key) : 0;
             if (v1 == v2) return 0;
-            return v1 < v2 ? -1 : 1;
+            return direction.equals("asc") ? (v1 < v2 ? -1 : 1) : (v1 > v2 ? -1 : 1);
         }
     }
 
     // Step 4
+    /*
     public static Map<String, Integer> firstBySortOrder(LinkedHashMap<String, String> sortOrder,
                                                         List<Map<String, Integer>> records) {
-
+        SortOrderComparator soComparator = new SortOrderComparator(sortOrder);
+        List<Map<String, Integer>> copy = new ArrayList<Map<String, Integer>>(records);
+        Collections.sort(copy, soComparator);
         return null;
     }
+
+    private static class SortOrderComparator implements Comparator<Map<String, Integer>> {
+        LinkedHashMap<String, String> sortOrder;
+        Map<String, RecordComparactor> comparactorMap = new HashMap<>();
+
+        SortOrderComparator(LinkedHashMap<String, String> sortOrder) {
+            this.sortOrder = sortOrder;
+            for (Map.Entry<String, String> e : sortOrder.entrySet()) {
+                RecordComparactor recordComparactor = new RecordComparactor(e.getKey());
+                comparactorMap.put(e.getKey(), recordComparactor);
+            }
+        }
+
+        @Override
+        public int compare(Map<String, Integer> r1, Map<String, Integer> r2) {
+            for (Map.Entry<String, String> e : sortOrder.entrySet()) {
+                RecordComparactor recordComparactor = comparactorMap.get(e.getKey());
+                int result = recordComparactor.compare(r1, r2);
+                if (result != 0)
+                    return result;
+            }
+            return 0;
+        }
+    }*/
 
     public static <T> void assertEqual(T expected, T actual) {
         if (expected == null && actual == null || actual != null && actual.equals(expected)) {
