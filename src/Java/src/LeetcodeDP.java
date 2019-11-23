@@ -377,6 +377,63 @@ class ArithmeticSlices {
 }
 
 /**
+ * Q-474 Ones and Zeroes
+ *
+ * For now, suppose you are a dominator of m 0's and n 1's respectively. On the other hand, there is an array with
+ * strings consisting of only 0s and 1s. Now your task is to find the maximum number of strings that you can form
+ * with given m 0s and n 1s. Each 0 and 1 can be used at most once.
+ */
+class OnesAndZeroes {
+    public static int findMaxForm(String[] strs, int m, int n) {
+        // using i 0's and j 1's
+        int dp[][] = new int[m+1][n+1];
+        for (String s : strs) {
+            int count0 = 0, count1 = 0;
+            for (char c : s.toCharArray()) {
+                if (c == '0') count0++;
+                else count1++;
+            }
+            for (int i = m; i >= count0; --i) {
+                for (int j = n; j >= count1; --j) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i-count0][j-count1]+1);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+    public static void test() {
+        System.out.println("Q-474 Ones and Zeroes");
+        System.out.println(findMaxForm(new String[]{"00","01","10"}, 2, 2));
+    }
+}
+
+/**
+ * Q-518 Coin Change 2
+ */
+class CoinChange2 {
+    public static int change(int amount, int[] coins) {
+        if (amount == 0)
+            return 1;
+        int[] combos = new int[amount+1];
+        combos[0] = 1;
+        for (int i = 0; i < coins.length; ++i) {
+            for (int j = 1; j <= amount; ++j) {
+                if (j >= coins[i]) {
+                    combos[j] += combos[j-coins[i]];
+                }
+            }
+        }
+        return combos[amount];
+    }
+
+    public static void test() {
+        System.out.println("Q-518 Coin change 2");
+        System.out.println(change(5, new int[]{1,2,5}));
+    }
+}
+
+/**
  * Q-583 Delete Operations for 2 Strings (variant of Longest Common Subsequence problem)
  *
  * Given two words word1 and word2, find the minimum number of steps required to make word1 and word2 the same, where
@@ -547,12 +604,14 @@ public class LeetcodeDP {
     public static void main(String[] args) {
         LongestPalindromeSubstring.test();
         PalindromePartition.test(); // DFS for result
+        BestTimeBuySellWithCooldown.test();
+        OnesAndZeroes.test();
+        CoinChange2.test();
         DeleteOperationsForTwoStrings.test(); // LCS
         PalindromicSubstrings.test();
         MaximumLengthOfRepeatedSubarray.test();
         NumberOfLongestIncreasingSubsequence.test();
         DeleteAndEarn.test();
-        BestTimeBuySellWithCooldown.test();
     }
 }
 
