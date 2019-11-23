@@ -2,6 +2,8 @@
  * Leetcode Questions - easy level, Tree
  */
 
+import apple.laf.JRSUIUtils;
+
 import java.util.*;
 
 class TreeNode {
@@ -47,7 +49,6 @@ class MorrisTraversal {
     }
 }
 
-
 /** 94. Binary Tree Inorder Traversal */
 class BinaryTreeInorderTraversal {
     public List<Integer> inorderTraversal(TreeNode root) {
@@ -80,7 +81,6 @@ class ValidateBinarySearchTree {
         return valid(root, Long.MAX_VALUE, Long.MIN_VALUE);
     }
 }
-
 
 /** Q-102 Binary Tree Level Order Traversal */
 class BinaryTreeLevelOrderTraversal {
@@ -386,6 +386,60 @@ class BinaryTreePreorderTraversal {
     }
 }
 
+/**
+ * Q-167 Two Sum 2
+ */
+class TwoSum2 {
+    public int[] twoSum(int[] numbers, int target) {
+        for (int l = 0, r = numbers.length-1; l < r; ) {
+            int s = numbers[l] + numbers[r];
+            if (s == target)
+                // return answer index is non-zero based
+                return new int[]{l+1, r+1};
+            else if (s > target)
+                r--;
+            else
+                l++;
+        }
+        return new int[]{};
+    }
+}
+
+
+/**
+ * Q-172 Factorial Trailing Zeroes
+ *
+ * Given an integer n, return the number of trailing zeroes in n!.
+ */
+class FactorialTrailingZeroes {
+    public int trailingZeroes(int n) {
+        int result = 0;
+        // count number of 10, i.e. number of 5
+        while (n > 0) {
+            result += n/5;
+            n /= 5;
+        }
+        return result;
+    }
+}
+
+/**
+ * Q-222 Count Complete Tree Node
+ */
+class CountCompleteTreeNode {
+    public static int countNodes(TreeNode root) {
+        if (root == null) return 0;
+        int ldepth = 0;
+        for (TreeNode n = root; n != null; n = n.left, ldepth++);
+        int rdepth = 0;
+        for (TreeNode n = root; n != null; n = n.right, rdepth++);
+        if (ldepth == rdepth)
+            return (int)Math.pow(2, ldepth)-1;
+        int lc = countNodes(root.left), rc = countNodes(root.right);
+        return  lc + rc + 1;
+    }
+}
+
 /** Q-230 Kth Smallest Elements in BST */
 class KthSmallestElements
 {
@@ -416,9 +470,26 @@ class KthSmallestElements
                 visited.add(node);
             }
         }
-
-        //TreeNode kth = nodeStack.peek();
         return last.val;
+    }
+
+    // in-order traversal
+    public static int kthSmallest2(TreeNode root, int k) {
+        if (root == null)
+            return 0;
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        int count = 0;
+        TreeNode p = root;
+        while (p != null || !stack.empty()) {
+            for (; p != null; p = p.left)
+                stack.push(p);
+            p = stack.pop();
+            if (count == k-1)
+                return p.val;
+            count++;
+            p = p.right;
+        }
+        return 0;
     }
 
     public static void run() {
@@ -438,11 +509,41 @@ class KthSmallestElements
         TreeNode n2 = new TreeNode(2);
         n5.left = n3;
         n3.left = n2;
-        System.out.printf("kth = %d\n", kthSmallest(n9, 3)); // 5
-        System.out.printf("kth = %d\n", kthSmallest(n9, 6)); // 14
+        System.out.printf("kth = %d\n", kthSmallest2(n9, 3)); // 5
+        System.out.printf("kth = %d\n", kthSmallest2(n9, 6)); // 14
     }
 }
 
+/**
+ * Q-333 Largest BST
+ *
+ * Given a binary tree, find the largest subtree which is a Binary Search Tree (BST), where largest means subtree with
+ * largest number of nodes in it.
+ */
+class LargestBST {
+    private static boolean valid(TreeNode root, long max, long min) {
+        if (root == null)
+            return true;
+        if (root.val >= max || root.val <= min)
+            return false;
+        return valid(root.left, root.val, min) && valid(root.right, max, root.val);
+    }
+
+    private static int count(TreeNode root) {
+        if (root == null)
+            return 0;
+        return count(root.left) + count(root.right) + 1;
+    }
+
+    public static int largestBSTSubtree(TreeNode root) {
+        if (root == null)
+            return 0;
+        if (valid(root, Long.MAX_VALUE, Long.MIN_VALUE))
+            return count(root);
+        return Math.max(largestBSTSubtree(root.left), largestBSTSubtree(root.right));
+    }
+
+}
 /**
  * Q-337: House Robber III
  *
@@ -453,7 +554,7 @@ class KthSmallestElements
  * into on the same night. Determine the maximum amount of money the thief can rob tonight
  * without alerting the police.
  */
-class HouseRobber {
+class HouseRobber3 {
     static class ResultPair {
         public int root_sum;
         public int other_best;
@@ -498,6 +599,23 @@ class HouseRobber {
     }
 }
 
+/** Q-441 Arranging Coins */
+class ArrangeCoins {
+    public static int arrangeCoins(int n) {
+        int result = 0;
+        while (n >= result)
+            n -= result++;
+        return result-1;
+    }
+
+    public static void test() {
+        System.out.println(arrangeCoins(1));
+        System.out.println(arrangeCoins(5));
+        System.out.println(arrangeCoins(6));
+        System.out.println(arrangeCoins(8));
+    }
+}
+
 /** Q-450 Delete Node in BST */
 class DeleteNodeInBST {
     public static TreeNode deleteNode(TreeNode root, int key) {
@@ -522,6 +640,94 @@ class DeleteNodeInBST {
             root.right = deleteNode(root.right, key);
         }
         return root;
+    }
+}
+
+/** Q-448 Find All Numbers Disappeared in an Array */
+class FindAllNumbersDisappearedInArray {
+    public static List<Integer> findDisappearedNumbers(int[] nums) {
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < nums.length; ++i) {
+            if (nums[i] == i+1) continue;
+            int v = nums[i];
+            while (nums[v-1] != v) {
+                int t = nums[v-1];
+                nums[v-1] = v;
+                nums[i] = t;
+                v = nums[i];
+            }
+        }
+        for (int i = 0; i < nums.length; ++i)
+            if (nums[i] != i+1)
+                result.add(i+1);
+        System.out.println(Arrays.toString(nums));
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-448 Find All Numbers Disappeared in an Array");
+        System.out.println(findDisappearedNumbers(new int[]{3,1,3,5,4}));
+        System.out.println(findDisappearedNumbers(new int[]{4,3,2,7,8,2,3,1})); // [5,6]
+    }
+}
+
+/** Q-459 Repeated Substring Pattern */
+class RepeatedSubstringPattern {
+    public static boolean repeatedSubstringPattern(String s) {
+        for (int i = s.length()/2; i > 0; --i) {
+            if (s.length() % i != 0)
+                continue;
+            String first = s.substring(0, i);
+            boolean found = true;
+            for (int j = i; j < s.length(); j += i) {
+                String str = s.substring(j, j+i);
+                if (!str.equals(first)) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found)
+                return found;
+        }
+        return false;
+    }
+
+    public static void test() {
+        System.out.println("Q-459 Repeated Substring Pattern");
+        System.out.println(repeatedSubstringPattern("abcabcabc"));
+    }
+}
+
+/**
+ * Q-463 Island Perimeter
+ */
+class IslandPerimeter {
+    public int islandPerimeter(int[][] grid) {
+        return 0;
+    }
+}
+
+/**
+ * Q-476 Number Complement
+ *
+ * Given a positive integer, output its complement number. The complement strategy is to flip the bits of its binary
+ * representation.
+ */
+class NumberComplement {
+    public static int findComplement(int num) {
+        int mask = 0;
+        for (int i = 31; i >= 0; --i) {
+            if (mask != 0)
+                mask |= (1 <<i);
+            else if (((1 << i) & num) != 0)
+                mask |= (1 <<i);
+        }
+        return num ^ mask;
+    }
+
+    public static void test() {
+        System.out.println("Q-475 Number Complement");
+        System.out.println(findComplement(5));
     }
 }
 
@@ -569,56 +775,33 @@ class FindModeInBinarySearchTree {
  * highest frequency in any order.
  */
 class MostFrequentSubtreeSum {
-    static class ValueEntry {
-        public int freq;
-        public int sum;
-
-        ValueEntry(int f, int v) { this.freq = f; this.sum = v; }
-    }
-
-    private static int treeSum(TreeNode root, Map<Integer, Integer> valMap, Set<ValueEntry> valSet) {
-        if (root == null)
-            return 0;
-        int left = treeSum(root.left, valMap, valSet);
-        int right = treeSum(root.right, valMap, valSet);
-        int s = left + right + root.val;
-        int v = 1;
-        if (valMap.containsKey(s)) {
-            v = valMap.get(s) + 1;
+    private static int dfs(TreeNode root, ArrayList<Integer> result, int[] maxCount, Map<Integer, Integer> sumCount) {
+        if (root == null) return 0;
+        int left = dfs(root.left, result, maxCount, sumCount);
+        int right = dfs(root.right, result, maxCount, sumCount);
+        int sum = root.val + left + right;
+        int cnt = 1;
+        if (sumCount.containsKey(sum)) {
+            cnt = sumCount.get(sum) + 1;
         }
-        valMap.put(s, v);
-        ValueEntry oldEntry = new ValueEntry(v-1, s);
-        valSet.remove(oldEntry);
-        valSet.add(new ValueEntry(v, s));
-        return s;
+        if (cnt > maxCount[0]) {
+            result.clear();
+            result.add(sum);
+            maxCount[0] = cnt;
+        } else if (cnt == maxCount[0]) {
+            result.add(sum);
+        }
+        sumCount.put(sum, cnt);
+        return sum;
     }
 
-    /* use a balanced binary search tree to track frequent subtree sum values */
     public static int[] findFrequentTreeSum(TreeNode root) {
-        Map<Integer, Integer> valMap = new HashMap<Integer, Integer>();
-        TreeSet<ValueEntry> valSet = new TreeSet<ValueEntry>(new Comparator<ValueEntry>() {
-            @Override
-            public int compare(ValueEntry v1, ValueEntry v2) {
-                if (v1.sum == v2.sum && v1.freq == v2.freq)
-                    return 0;
-                return v1.freq >= v2.freq ? 1 : -1;
-            }
-        });
-        treeSum(root, valMap, valSet);
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        int valFreq = 0;
-        Iterator<ValueEntry> iterator = valSet.descendingIterator();
-        while (iterator.hasNext()) {
-            ValueEntry ve = iterator.next();
-            if (result.size() == 0) {
-                valFreq = ve.freq;
-            }
-            if (ve.freq < valFreq)
-                break;
-            result.add(ve.sum);
-        }
-        int i = 0;
+        ArrayList<Integer> result = new ArrayList<>();
+        int[] maxCount = new int[1];
+        Map<Integer, Integer> sumCount = new HashMap<>();
+        dfs(root, result, maxCount, sumCount);
         int[] res = new int[result.size()];
+        int i = 0;
         for (Integer v : result)
             res[i++] = v;
         return res;
@@ -676,6 +859,96 @@ class FindLargestValueInEachTreeRow {
     }
 }
 
+/**
+ * Q-557 Reverse Words in a String
+ */
+class ReverseWordsInString {
+    public static String reverseWords(String s) {
+        char[] schars = s.toCharArray();
+        for (int l = 0, r = 0; r < s.length();) {
+            if (Character.isWhitespace(schars[l])) {
+                l++;
+                r++;
+                continue;
+            }
+            while (r < s.length() && !Character.isWhitespace(schars[r]))
+                r++;
+            for (int ll = l, rr = r-1; ll < rr; ++ll, --rr) {
+                char t = schars[rr];
+                schars[rr] = schars[ll];
+                schars[ll] = t;
+            }
+            l = r;
+        }
+        return new String(schars);
+    }
+
+    public static void test() {
+        System.out.println("Q-557 Reverse Words in a String");
+        System.out.println(reverseWords(" Let's  rock this town "));
+        System.out.println(reverseWords(" Let's  rock this town"));
+    }
+}
+
+/** Q-563 Binary Tree Tilt */
+class BinaryTreeTilt {
+    private static void tilt(TreeNode node, int[] pair) {
+        if (node == null) {
+            pair[0] = pair[1] = 0;
+            return;
+        }
+        tilt(node.left, pair);
+        int leftSum = pair[0];
+        int leftTilt = pair[1];
+        tilt(node.right, pair);
+        int rightSum = pair[0];
+        int rightTilt = pair[1];
+        pair[0] = node.val + leftSum + rightSum;
+        pair[1] = leftTilt + pair[1] + Math.abs(leftSum - rightSum);
+    }
+
+    public static int findTilt(TreeNode root) {
+        int[] pair = new int[2];
+        tilt(root, pair);
+        return pair[1];
+    }
+}
+
+/** Q-566 Reshape the Matrix */
+class ReshapeMatrix {
+    public int[][] matrixReshape(int[][] nums, int r, int c) {
+        if (nums.length * nums[0].length != r*c)
+            return nums;
+        int origc = nums[0].length;
+        int[][] result = new int[r][c];
+        for (int i = 0; i < r; ++i) {
+            for (int j = 0; j < c; ++j) {
+                int k = i*c + j;
+                result[i][j] = nums[k/origc][k%origc];
+            }
+        }
+        return result;
+    }
+}
+
+/** Q-581 Shortest Unsorted Continuous Subarray */
+class ShortestUnsortedContinuousSubarray {
+    public static int findUnsortedSubarray(int[] nums) {
+        int[] sorted = nums.clone();
+        Arrays.sort(sorted);
+        int l = 0, r = nums.length-1;
+        for (; l < nums.length && nums[l] == sorted[l]; ++l);
+        for (; r >= l && nums[r] == sorted[r]; --r);
+        return r - l + 1;
+    }
+
+    public static void test() {
+        System.out.println("Q-581 Shortest Unsorted Continuous Subarray");
+        System.out.println(findUnsortedSubarray(new int[]{2,6,4,8,10,9,15})); // 5
+        System.out.println(findUnsortedSubarray(new int[]{1,2,3,4})); // 0
+    }
+}
+
 /** Q-652 Find Duplicate Subtree */
 class FindDuplicateSubtree {
     private static String find(TreeNode root, HashMap<String, Integer> subtreeMap, ArrayList<TreeNode> result) {
@@ -719,6 +992,24 @@ class FindDuplicateSubtree {
     }
 }
 
+/** Q-653 Two Sum IV - Input is a BST */
+class TwoSumInBST {
+    private boolean helper(TreeNode root, int k, HashSet<Integer> memo) {
+        if (root == null)
+            return false;
+        int v = k - root.val;
+        if (memo.contains(v))
+            return true;
+        memo.add(root.val);
+        return helper(root.left, k, memo) || helper(root.right, k, memo);
+    }
+
+    public boolean findTarget(TreeNode root, int k) {
+        HashSet<Integer> memo = new HashSet<>();
+        return helper(root, k, memo);
+    }
+}
+
 /** Q-654 Maximum Binary Tree */
 class MaximumBinaryTree {
     private TreeNode construct(int[] nums, int l, int r) {
@@ -738,6 +1029,41 @@ class MaximumBinaryTree {
         if (nums.length == 0)
             return null;
         return construct(nums, 0, nums.length-1);
+    }
+}
+
+/** Q-662 Maximum Width of Binary Tree */
+class MaximumWidthOfBinaryTree {
+    private static class NodeIndex {
+        public TreeNode node;
+        public int index;
+
+        public NodeIndex(TreeNode n, int i) {
+            node = n;
+            index = i;
+        }
+    }
+
+    public int widthOfBinaryTree(TreeNode root) {
+        if (root == null)
+            return 0;
+        int result = 1;
+        Queue<NodeIndex> queue = new ArrayDeque<>();
+        queue.add(new NodeIndex(root, 0));
+        while (!queue.isEmpty()) {
+            int left = queue.peek().index, right = 0, counts = queue.size();
+            for (int i  = 0; i < counts; ++i) {
+                NodeIndex ni = queue.remove();
+                right = ni.index;
+                if (ni.node.left != null)
+                    queue.add(new NodeIndex(ni.node.left, 2*ni.index+1));
+                if (ni.node.right != null)
+                    queue.add(new NodeIndex(ni.node.right, 2*ni.index+2));
+            }
+            if (right-left+1 > result)
+                result = right-left+1;
+        }
+        return result;
     }
 }
 
@@ -786,6 +1112,79 @@ class SecondMinimumNodeInBinaryTree {
     }
 }
 
+/**
+ * Q-687 Longest Univalue Path
+ *
+ * Given a binary tree, find the length of the longest path where each node in the path has the same value.
+ */
+class LongestUnivaluePath {
+    private void helper(TreeNode root, int[] pair) {
+        if (root == null) {
+            pair[0] = pair[1] = 0;
+            return;
+        }
+        helper(root.left, pair);
+        int left0 = pair[0];
+        int left1 = pair[1];
+        helper(root.right, pair);
+        int right0 = pair[0];
+        int right1 = pair[1];
+        int left = (root.left != null && root.val == root.left.val) ? left0+1 : 0;
+        int right = (root.right != null && root.val == root.right.val) ? right0+1 : 0;
+        pair[0] = left > right ? left : right;
+        pair[1] = left1 > right1 ? left1 : right1;
+        if (left+right > pair[1])
+            pair[1] = left+right;
+    }
+
+    public int longestUnivaluePath(TreeNode root) {
+        // pair[0] is max path ends with the node, pair[1] is the max path in its sub-tree
+        int[] pair = new int[2];
+        helper(root, pair);
+        return pair[1];
+    }
+}
+
+
+/** Q-693 Binary Number with Alternating Bits */
+class BinaryNumberWithAlternatingBits {
+    public boolean hasAlternatingBits(int n) {
+        int b = n & 1, n1 = n;
+        while ((n1 & 1) == b) {
+            b = b ^ 1;
+            n1 = n1 >> 1;
+        }
+        return n1 == 0;
+    }
+}
+
+/** Q-696 Count Binary Substrings */
+class CountBinarySubstrings {
+    public static int countBinarySubstrings(String s) {
+        int result = 0;
+        if (s.length() == 0)
+            return result;
+        char[] sc = s.toCharArray();
+        int[] counts = new int[2];
+        counts[sc[0]-'0'] = 1;
+        for (int i = 1; i < s.length(); ++i) {
+            int n = sc[i] - '0';
+            if (sc[i] == sc[i-1])
+                counts[n]++;
+            else
+                counts[n] = 1;
+            if (counts[n] <= counts[(n+1)%2])
+                result++;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-696 Count Binary Substrings");
+        System.out.println(countBinarySubstrings("00110011")); // 6
+    }
+}
+
 /** Q-784 Letter Case Permutation */
 class LetterCasePermutation {
     public static void helper(char[] str, int index, HashSet<String> result) {
@@ -827,6 +1226,27 @@ class LetterCasePermutation {
     }
 }
 
+/**
+ * Q-852 Peak Index in a Mountain Array
+ */
+class PeakIndexInMountainArray {
+    public static int peakIndexInMountainArray(int[] A) {
+        int l = 0, r = A.length-1;
+        while (l < r) { // A.length >= 3
+            int m = l + (r-l)/2;
+            if (A[m] < A[m+1])
+                l = m+1;
+            else
+                r = m;
+        }
+        return l;
+    }
+
+    public static void test() {
+        System.out.println(peakIndexInMountainArray(new int[]{0,1,3,4,5,6,3,2}));
+    }
+}
+
 class BinarySearch {
     public static int search(int[] nums, int target) {
         if (nums.length == 0) return -1;
@@ -851,12 +1271,20 @@ class BinarySearch {
 public class LeetcodeEasy {
 
     public static void main(String[] args) {
-        System.out.println("Leetcode Easy Level");
+        System.out.println("Leetcode Easy Level and Tree");
         KthSmallestElements.run();
-        HouseRobber.run();
+        HouseRobber3.run();
+        ArrangeCoins.test();
+        FindAllNumbersDisappearedInArray.test();
+        RepeatedSubstringPattern.test();
+        NumberComplement.test();
         MostFrequentSubtreeSum.test();
+        ReverseWordsInString.test();
         FindDuplicateSubtree.test();
         LetterCasePermutation.test();
+        PeakIndexInMountainArray.test();
+        ShortestUnsortedContinuousSubarray.test();
+        CountBinarySubstrings.test();
     }
 
 }

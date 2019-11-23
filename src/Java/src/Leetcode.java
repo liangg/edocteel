@@ -1,5 +1,5 @@
 /**
- * Leetcode questions (tree, list)
+ * Leetcode questions 300 - *, (list)
  */
 
 import java.lang.Math;
@@ -252,7 +252,6 @@ class SubstrsWithConcatWords {
   }
 }
 
-
 /**
  * Q-316: Remove Duplicate Letters
  *
@@ -312,6 +311,31 @@ class RemoveDuplicateLetters {
         }
 
         return String.valueOf(result);
+    }
+}
+
+/**
+ * Q-324 Wiggle Sort 2
+ *
+ * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
+ */
+class WiggleSort {
+    public static void wiggleSort(int[] nums) {
+        int[] c = Arrays.copyOf(nums, nums.length);
+        Arrays.sort(c);
+        for (int i = 0, j = nums.length%2 == 0 ? nums.length/2-1 : nums.length/2, k = nums.length-1;
+             i < nums.length; ++i) {
+            if (i % 2 == 0)
+                nums[i] = c[j--];
+            else
+                nums[i] = c[k--];
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void test() {
+        System.out.println("Q-324 Wiggle Sort 2");
+        wiggleSort(new int[]{1,5,1,1,6,4});
     }
 }
 
@@ -443,6 +467,69 @@ class ReconstructItinerary {
     }
 }
 
+/**
+ * Q-334 Increasing Triplet Subsequence
+ */
+class IncreasingTripletSubsequence {
+    public static boolean increasingTriplet(int[] nums) {
+        if (nums.length < 3)
+            return false;
+        int m1 = nums[0], m2 = Integer.MAX_VALUE, count = 1;
+        for (int i = 1; i < nums.length; ++i) {
+            if (nums[i] > m2) {
+                return true;
+            } else if (nums[i] > m1) {
+                m2 = nums[i];
+                if (count < 2) {
+                    count++;
+                }
+            } else {
+                m1 = nums[i];
+            }
+        }
+        return false;
+    }
+
+    public static void test() {
+        System.out.println("Q-334 Increasing Triplet Subsequence");
+        System.out.println(increasingTriplet(new int[]{4,3,1,2,5}));
+    }
+}
+
+/**
+ * Q-362 Design Hit Counter
+ */
+class DesignHitCounter {
+    private int counter[] = new int[300]; // 5-min, second level counter
+    private int times[] = new int[300];
+
+    /**
+     * Record a hit.
+     * @param timestamp - The current timestamp (in seconds granularity).
+     */
+    public void hit(int timestamp) {
+        int idx = timestamp % 300;
+        if (times[idx] == timestamp)
+            counter[idx] += 1;
+        else {
+            times[idx] = timestamp;
+            counter[idx] = 1;
+        }
+    }
+
+    /**
+     * Return the number of hits in the past 5 minutes.
+     * @param timestamp - The current timestamp (in seconds granularity).
+     */
+    public int getHits(int timestamp) {
+        int result = 0;
+        for (int i = 0; i < 300; ++i) {
+            if (times[i] > timestamp-300)
+                result += counter[i];
+        }
+        return result;
+    }
+}
 
 /**
  * Q-378 K-th Smallest Element in Sorted Matrix
@@ -634,6 +721,24 @@ class LongestSubstingWithKRepeatingChars {
 }
 
 /**
+ * Q-397 Integer Replacement
+ */
+class IntegerReplacement {
+    private int replace(long ln) {
+        if (ln == 1) return 0;
+        if (ln % 2 == 0)
+            return 1 + replace(ln/2);
+        else
+            return 1 + Math.min(replace(ln-1), replace(ln+1));
+    }
+
+    public int integerReplacement(int n) {
+        long ln = (long) n;
+        return replace(ln);
+    }
+}
+
+/**
  * Q-398 Random Pick Index (Reservoir Sampling)
  *
  * Given an array of integers with possible duplicates, randomly output the index of a given target number. You can
@@ -725,6 +830,48 @@ class QueueReconstructionByHeight {
     }
 }
 
+/** Q-417 Pacific Atlantic Water Flow */
+class PacificAtlanticWaterFlow {
+    public List<List<Integer>> pacificAtlantic(int[][] matrix) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (matrix.length == 0 || matrix[0].length == 0)
+            return result;
+        int M = matrix.length, N = matrix[0].length;
+        boolean[][] pacific = new boolean[M][N];
+        boolean[][] atlantic = new boolean[M][N];
+        for (int i = 0; i < M; ++i) {
+            dfs(matrix, i, 0, Integer.MIN_VALUE, pacific);
+            dfs(matrix, i, N-1, Integer.MIN_VALUE, atlantic);
+        }
+        for (int j = 0; j < N; ++j) {
+            dfs(matrix, 0, j, Integer.MIN_VALUE, pacific);
+            dfs(matrix, M-1, j, Integer.MIN_VALUE, atlantic);
+        }
+
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (pacific[i][j] && atlantic[i][j]) {
+                    Integer[] c = {i,j};
+                    result.add(Arrays.asList(c));
+                }
+            }
+        }
+        return result;
+    }
+
+    private void dfs(int[][] matrix, int i, int j, int h, boolean[][] visited) {
+        if (i < 0 || j < 0 || i >= matrix.length || j >= matrix[0].length || visited[i][j])
+            return;
+        if (matrix[i][j] < h)
+            return;
+        visited[i][j] = true;
+        dfs(matrix, i-1, j, matrix[i][j], visited);
+        dfs(matrix, i, j-1, matrix[i][j], visited);
+        dfs(matrix, i+1, j, matrix[i][j], visited);
+        dfs(matrix, i, j+1, matrix[i][j], visited);
+    }
+}
+
 /** Q-419 Battleships in a Board */
 class BattleshipsInBoard {
     public static int countBattleships(char[][] board) {
@@ -804,7 +951,7 @@ class MinimumGeneticMutations {
         }
     }
 
-    public static int minMutation(String start, String end, String[] bank) {
+    public static int minMutation_One(String start, String end, String[] bank) {
         char[] geneChars = new char[]{'A', 'C', 'G', 'T'};
         Set<String> dict = new HashSet<String>();
         dict.addAll(Arrays.asList(bank));
@@ -845,6 +992,43 @@ class MinimumGeneticMutations {
         return -1;
     }
 
+    public static int minMutation(String start, String end, String[] bank) {
+        char[] geneChars = new char[]{'A', 'C', 'G', 'T'};
+        Set<String> dict = new HashSet<String>();
+        dict.addAll(Arrays.asList(bank));
+        Set<String> visited = new HashSet<String>();
+        Deque<String> queue = new ArrayDeque<>();
+
+        int distance = 0;
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            // BFS by level
+            int N = queue.size();
+            for (int i = 0; i < N; ++i) {
+                String g = queue.pop();
+                if (g.equals(end))
+                    return distance;
+                char[] gchs = g.toCharArray();
+                for (int j = 0; j < g.length(); ++j) {
+                    char oldc = gchs[j];
+                    for (char c : geneChars) {
+                        if (oldc == c) continue;
+                        gchs[j] = c;
+                        String gstr = new String(gchs);
+                        if (dict.contains(gstr) && !visited.contains(gstr)) {
+                            visited.add(gstr);
+                            queue.add(gstr);
+                        }
+                        gchs[j] = oldc;
+                    }
+                }
+            }
+            distance += 1;
+        }
+        return -1;
+    }
+
+
     public static void test() {
         System.out.println("Q-433 Minimum Genetic Mutations");
         System.out.println(minMutation("AACCGGTT", "AAACGGTA", new String[]{"AACCGGTA","AACCGCTA","AAACGGTA"})); // 2
@@ -854,6 +1038,54 @@ class MinimumGeneticMutations {
     }
 }
 
+/**
+ * Q-438 Find All Anagrams in a String
+ */
+class FindAllAnagramsInString {
+    public static List<Integer> findAnagrams(String s, String p) {
+        List<Integer> result = new ArrayList<>();
+        if (s.length() == 0 || s.length() < p.length())
+            return result;
+        int[] pcount = new int[26];
+        int[] wcount = new int[26]; // slide window
+        int pcode = 0, window = 0;
+        for (int i = 0; i < p.length(); ++i) {
+            int pval = p.charAt(i) - 'a';
+            int sval = s.charAt(i) - 'a';
+            pcount[pval] += 1;
+            pcode += pval;
+            wcount[sval] += 1;
+            window += sval;
+        }
+
+        window -= s.charAt(p.length()-1) - 'a';
+        wcount[s.charAt(p.length()-1) - 'a'] -= 1;
+        for (int i = p.length()-1; i < s.length(); ++i) {
+            window += s.charAt(i) - 'a';
+            wcount[s.charAt(i) - 'a'] += 1;
+            if (window == pcode) {
+                boolean match = true;
+                for (int j = 0; j < 26; ++j) { // constant
+                    if (pcount[j] != wcount[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                    result.add(i-p.length()+1);
+            }
+            window -= s.charAt(i-p.length()+1) - 'a';
+            wcount[s.charAt(i-p.length()+1) - 'a'] -= 1;
+        }
+        System.out.println(result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-438 Find All Anagrams in a String");
+        findAnagrams("cbaebabacd", "abc");
+    }
+}
 
 /**
  * Q-452 Minimum Arrows To Burst Balloons
@@ -986,6 +1218,97 @@ class UniqueSubstringsInWraparoundString {
     }
 }
 
+/** Q-477 Total Hamming Distance */
+class TotalHammingDistance {
+    public int totalHammingDistance(int[] nums) {
+        int result = 0;
+        for (int i = 0; i < 32; ++i) {
+            int ones = 0, mask = 1 << i;
+            for (int n : nums) {
+                if ((n & mask) != 0)
+                    ones++;
+            }
+            result += ones * (nums.length-ones);
+        }
+        return result;
+    }
+}
+
+/**
+ * Q-494 Target Sum
+ *
+ * You are given a list of non-negative integers, a1, a2, ..., an, and a target, S. Now you have 2 symbols + and -.
+ * For each integer, you should choose one from + and - as its new symbol. Find out how many ways to assign symbols
+ * to make sum of integers equal to target S.
+ */
+class TargetSum {
+    private static void helper(int[] nums, int pos, int target, int[] result) {
+        if (pos == nums.length) {
+            if (target == 0)
+                result[0]++;
+            return;
+        }
+        helper(nums, pos+1, target+nums[pos], result);
+        helper(nums, pos+1, target-nums[pos], result);
+    }
+
+    public static int findTargetSumWays(int[] nums, int S) {
+        int[] result = new int[1];
+        helper(nums, 0, S, result);
+        return result[0];
+    }
+}
+
+/**
+ * Q-495 Teemo Attacking
+ *
+ * In LOL world, there is a hero called Teemo and his attacking can make his enemy Ashe be in poisoned condition.
+ * Now, given the Teemo's attacking ascending time series towards Ashe and the poisoning time duration per Teemo's
+ * attacking, you need to output the total time that Ashe is in poisoned condition.
+ */
+class TeemoAttacking {
+    public int findPoisonedDuration(int[] timeSeries, int duration) {
+        int result = 0;
+        if (timeSeries.length == 0)
+            return result;
+        int start = timeSeries[0], end = timeSeries[0] + duration;
+        for (int i = 1; i < timeSeries.length; ++i) {
+            if (timeSeries[i] > end) {
+                result += (end-start);
+                start = timeSeries[i];
+                end = start + duration;
+            } else {
+                end += (duration - (end-timeSeries[i]));
+            }
+        }
+        result += (end-start);
+        return result;
+    }
+
+}
+
+/**
+ * Q-525 Continguous Array
+ *
+ * Given a binary array, find the maximum length of a contiguous subarray with equal number of 0 and 1.
+ */
+class ContinguousArray {
+    public int findMaxLength(int[] nums) {
+        Map<Integer, Integer> firstSumPos = new HashMap<>();
+        firstSumPos.put(0, -1);
+        int sum = 0, result = 0;
+        for (int i = 0; i < nums.length; ++i) {
+            sum += nums[i] == 1 ? 1 : -1;
+            if (firstSumPos.containsKey(sum)) {
+                result = Math.max(result, i - firstSumPos.get(sum));
+            } else {
+                firstSumPos.put(sum, i);
+            }
+        }
+        return result;
+    }
+}
+
 /** Q-539 Minimum Time Difference */
 class MinimumTimeDifference {
     private static int numberify(String s) {
@@ -1105,6 +1428,36 @@ class FriendCircles {
             }
         }
         return circles;
+    }
+}
+
+/**
+ * Q-567 Permutation in String,
+ *
+ * Given two strings s1 and s2, write a function to return true if s2 contains the permutation of s1. In other words,
+ * one of the first string's permutations is the substring of the second string.
+ */
+class PermutationInString {
+    public static boolean checkInclusion(String s1, String s2) {
+        if (s1.length() > s2.length()) return false;
+        int[] s1c = new int[256];
+        int[] s2c = new int[256];
+        for (int i = 0; i < s1.length(); ++i) {
+            s1c[s1.charAt(i)] += 1;
+            s2c[s2.charAt(i)] += 1;
+        }
+        if (Arrays.equals(s1c, s2c)) return true;
+        for (int i = s1.length(); i < s2.length(); ++i) {
+            s2c[s2.charAt(i)] += 1;
+            s2c[s2.charAt(i-s1.length())] -= 1;
+            if (Arrays.equals(s1c, s2c)) return true;
+        }
+        return false;
+    }
+
+    public static void test() {
+        System.out.println("Q-567 Permutation in String");
+        System.out.println(checkInclusion("ab", "eidbaooo"));
     }
 }
 
@@ -1346,6 +1699,22 @@ class ReplaceWords {
 }
 
 /**
+ * Q-650 2 Keys Keyboard
+ */
+class TwoKeysKeyboard {
+    public int minSteps(int n) {
+        int nsteps = 0, ns = n;
+        for (int i = 2; i <= ns; ++i) {
+            while (ns % i == 0) {
+                nsteps += i;
+                ns /= i;
+            }
+        }
+        return nsteps;
+    }
+}
+
+/**
  * Q-658 Find K Closest Elements (2 pointers)
  */
 class FindKClosestElements {
@@ -1372,6 +1741,13 @@ class FindKClosestElements {
         System.out.println("Q-658 Find K Closest Elements");
         findClosestElements(new int[]{1,2,3,4,5}, 4, 3); // (1,2,3,4)
         findClosestElements(new int[]{1,2,3,5,6,8,9,12}, 4, 4); // (2,3,5,6)
+    }
+}
+
+/** Q-659 Split Array into Consecutive Subsequences */
+class SplitArrayIntoConsecutiveSubsequences {
+    public boolean isPossible(int[] nums) {
+        return false;
     }
 }
 
@@ -1918,40 +2294,45 @@ class ChampagneTower {
 
 public class Leetcode
 {
-  public static void main(String[] args)
-  {
-      System.out.println("Leetcode");
-      SimplifyPath.run();
-      SubstrsWithConcatWords.run();
-      FindSubstring.run();
-      CoinChange.run();
-      ReconstructItinerary.run();
-      KthSmallestInSortedMatrix.test();
-      LongestSubstingWithKRepeatingChars.test();
-      ZeroOneMatrix.test();
-      MinimumGeneticMutations.test();
-      RandomPickIndex.test();
-      QueueReconstructionByHeight.test();
-      BattleshipsInBoard.test();
-      OneThreeTwoPattern.test();
-      UniqueSubstringsInWraparoundString.test(); //
-      LongestRepeatingCharacterReplacement.test();
-      MyCircularQueue.test(); // thread-unsafe
-      MyCircularDeque.test();
-      MaximumLengthOfPairChain.test(); // sort, special compare
-      ReplaceWords.test();
-      FindKClosestElements.test();
-      MagicDictionary.test(); // hashmap
-      MapSum.test(); // data structure
-      RedundantConnections.test(); // union find
-      PartitionKEqualSumSubsets.test(); // recursion
-      AccountsMerge.test(); // union find
-      DailyTemperature.test(); // stack
-      NetworkDelayTime.test(); // single-source multi-destination shortest path
-      ShortestCompletingWords.test();
-      GraphBipartite.test(); // BFS
-      NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
-      ChampagneTower.test(); // matrix + memoization
-
-  }
+    public static void main(String[] args)
+    {
+        System.out.println("Leetcode");
+        SimplifyPath.run();
+        SubstrsWithConcatWords.run();
+        FindSubstring.run();
+        CoinChange.run();
+        WiggleSort.test();
+        ReconstructItinerary.run();
+        IncreasingTripletSubsequence.test();
+        KthSmallestInSortedMatrix.test();
+        ShuffleArray.test();
+        LexicographicalNumbers.test();
+        LongestSubstingWithKRepeatingChars.test();
+        ZeroOneMatrix.test();
+        MinimumGeneticMutations.test();
+        RandomPickIndex.test();
+        QueueReconstructionByHeight.test();
+        BattleshipsInBoard.test();
+        OneThreeTwoPattern.test();
+        UniqueSubstringsInWraparoundString.test(); //
+        LongestRepeatingCharacterReplacement.test();
+        FindAllAnagramsInString.test(); // sliding window
+        PermutationInString.test(); // sliding window char count
+        MyCircularQueue.test(); // thread-unsafe
+        MyCircularDeque.test();
+        MaximumLengthOfPairChain.test(); // sort, special compare
+        ReplaceWords.test();
+        FindKClosestElements.test();
+        MagicDictionary.test(); // hashmap
+        MapSum.test(); // data structure
+        RedundantConnections.test(); // union find
+        PartitionKEqualSumSubsets.test(); // recursion
+        AccountsMerge.test(); // union find
+        DailyTemperature.test(); // stack
+        NetworkDelayTime.test(); // single-source multi-destination shortest path
+        ShortestCompletingWords.test();
+        GraphBipartite.test(); // BFS
+        NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
+        ChampagneTower.test(); // matrix + memoization
+    }
 }

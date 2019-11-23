@@ -689,7 +689,6 @@ class MinimumWindowSubstring {
             if (tchars.containsKey(c)) {
                 int count = tchars.get(c);
                 tchars.put(c, count+1);
-
             } else {
                 tchars.put(c, 1);
             }
@@ -802,7 +801,7 @@ class Subsets {
         gen_subsets(S, idx+1, solution, result);
     }
 
-    public ArrayList<ArrayList<Integer>> subsets_old(int[] S) {
+    public ArrayList<ArrayList<Integer>> subsets_OLD(int[] S) {
         boolean[] solution = new boolean[S.length];
         ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>(S.length*2);
         Arrays.sort(S);
@@ -822,6 +821,7 @@ class Subsets {
         search(nums, level+1, sol, result);
     }
 
+    // Subsets I
     public List<List<Integer>> subsets(int[] nums) {
         List<List<Integer>> result = new ArrayList<List<Integer>>();
         List<Integer> sol = new ArrayList<>();
@@ -973,6 +973,34 @@ class RemoveDuplicatesFromSortedArray {
 }
 
 /**
+ * Q-89 Gray Code
+ *
+ * The gray code is a binary numeral system where two successive values differ in only one bit. Given a non-negative
+ * integer n representing the total number of bits in the code, print the sequence of gray code. A gray code sequence
+ * must begin with 0.
+ */
+class GrayCode {
+    public static List<Integer> grayCode(int n) {
+        List<Integer> result = new ArrayList<>();
+        result.add(0);
+        for (int i = 0; i < n; ++i) {
+            int L = result.size();
+            for (int j = L-1; j >= 0; --j) {
+                result.add((1 << i) | result.get(j));
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-89 Gray Code");
+        System.out.println(grayCode(0));
+        System.out.println(grayCode(2));
+        System.out.println(grayCode(3));
+    }
+}
+
+/**
  * Q-93 Restore IP Address
  *
  * If we only cares for the number of possible IP addresses, it can be solved by iterative algorithm using memoization
@@ -1072,6 +1100,58 @@ class WordLadder {
 }
 
 /**
+ * Q-130 Surrounded Regions
+ *
+ * Given a 2D board containing 'X' and 'O' (the letter O), capture all regions surrounded by 'X'. A region is captured
+ * by flipping all 'O's into 'X's in that surrounded region.
+ */
+class SurroundedRegions {
+    private void dfs(char[][] board, int r, int c, boolean flip) {
+        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length || board[r][c] != (flip ? 'O' : 'Y'))
+            return;
+        board[r][c] = flip ? 'Y' : 'O';
+        dfs(board, r-1, c, flip);
+        dfs(board, r+1, c, flip);
+        dfs(board, r, c-1, flip);
+        dfs(board, r, c+1, flip);
+    }
+
+    public void solve(char[][] board) {
+        if (board.length <= 1 || board[0].length <= 1)
+            return;
+        for (int i = 0; i < board.length; ++i) {
+            if (board[i][0] == 'O')
+                dfs(board, i, 0, true);
+            if (board[i][board[0].length-1] == 'O')
+                dfs(board, i, board[0].length-1, true);
+        }
+        for (int i = 0; i < board[0].length; ++i) {
+            if (board[0][i] == 'O')
+                dfs(board, 0, i, true);
+            if (board[board.length-1][i] == 'O')
+                dfs(board, board.length-1, i, true);
+        }
+        for (int i = 0; i < board.length; ++i) {
+            for (int j = 0; j < board[0].length; ++j)
+                if (board[i][j] == 'O')
+                    board[i][j] = 'X';
+        }
+        for (int i = 0; i < board.length; ++i) {
+            if (board[i][0] == 'Y')
+                dfs(board, i, 0, false);
+            if (board[i][board[0].length-1] == 'Y')
+                dfs(board, i, board[0].length-1, false);
+        }
+        for (int i = 0; i < board[0].length; ++i) {
+            if (board[0][i] == 'Y')
+                dfs(board, 0, i, false);
+            if (board[board.length-1][i] == 'Y')
+                dfs(board, board.length-1, i, false);
+        }
+    }
+}
+
+/**
  * Q-134 Gas Station
  *
  * There are N gas stations along a circular route, where the amount of gas at station i is gas[i]. You have a car with
@@ -1099,6 +1179,27 @@ class GasStation {
         System.out.println("Q-134 Gas Station");
         System.out.println(canCompleteCircuit(new int[] {1,2,3,4,5}, new int[] {3,4,5,1,2}));
         System.out.println(canCompleteCircuit(new int[] {2,3,4}, new int[] {3,4,3}));
+    }
+}
+
+/**
+ * Q-137 Single Number II
+ *
+ * Given a non-empty array of integers, every element appears three times except for one, which appears exactly once.
+ * Find that single one. Your algorithm should have a linear runtime complexity. Could you implement it without using
+ * extra memory?
+ */
+class SingleNumber {
+    public int singleNumber(int[] nums) {
+        int result = 0;
+        for (int i = 0; i < 32; ++i) {
+            int s = 0;
+            for (int j = 0; j < nums.length; ++j) {
+                s += ((nums[j] >> i) & 1);
+            }
+            result |= ((s%3) << i);
+        }
+        return result;
     }
 }
 
@@ -1179,7 +1280,13 @@ class EvaluateReversePolishNotation {
     }
 }
 
-/** Q-162 Find Peak Element */
+/**
+ * Q-162 Find Peak Element
+ *
+ * A peak element is an element that is greater than its neighbors. Given an input array nums, where
+ * nums[i] != nums[i+1], find a peak element and return its index. The array may contain multiple peaks,
+ * in that case return the index to any one of the peaks is fine. You may imagine that nums[-1] = nums[n] = -inf.
+ */
 class FindPeakElement {
     public static int findPeakElement0(int[] num) {
         int l = 0, r = num.length-1;
@@ -1499,6 +1606,102 @@ class CourseSchedule {
 }
 
 /**
+ * 209. Minimum Size Subarray Sum
+ *
+ * Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray
+ * of which the sum >= s. If there isn't one, return 0 instead.
+ */
+class MinimumSizeSubarraySum {
+    public int minSubArrayLen(int s, int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        int result = nums.length+1;
+        for (int l = 0, r = 0, sum = nums[0]; r < nums.length;) {
+            if (sum >= s) {
+                if (r-l+1 < result)
+                    result = r-l+1;
+                sum -= nums[l];
+                l++;
+            } else {
+                r++;
+                if (r < nums.length)
+                    sum += nums[r];
+            }
+        }
+        return result != nums.length+1 ? result : 0;
+    }
+}
+
+/**
+ * Q-213 House Robber
+ */
+class HouseRobber2 {
+    private static int robIt(int[] nums, int start, int end) {
+        int best1 = nums[start], best2 = start+1 < nums.length ? nums[start+1] : 0;
+        for (int i = start+2; i < end; ++i) {
+            int s = nums[i] + best1;
+            best1 = Math.max(best1, best2);
+            best2 = s;
+        }
+        return Math.max(best1, best2);
+    }
+
+    // II, houses on a circle
+    public static int rob(int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        if (nums.length == 1)
+            return nums[0];
+        int best1 = robIt(nums, 0, nums.length-1), best2 = robIt(nums, 1, nums.length);
+        return Math.max(best1, best2);
+    }
+
+    public static void test() {
+        System.out.println("Q-213 House Robber");
+        System.out.println(rob(new int[]{2,3,2}));
+    }
+}
+
+/**
+ * Q-215 Kth Largest Number in a Array
+ */
+class KthLargestNumberInArray {
+    private static void swap(int[] nums, int i, int j) {
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+
+    private static int partition(int[] nums, int left, int right) {
+        int pivot = nums[left], pos = left;
+        swap(nums, left, right);
+        for (int i = left; i <= right; ++i) {
+            if (nums[i] > pivot) {
+                swap(nums, pos++, i);
+            }
+        }
+        swap(nums, pos, right);
+        return pos;
+    }
+
+    public static int findKthLargest(int[] nums, int k) {
+        int l = 0, r = nums.length-1;
+        while (true) {
+            int p = partition(nums, l, r);
+            if (p == k-1) return nums[p];
+            if (p > k-1) r = p-1;
+            else l = p+1;
+        }
+    }
+
+    public static void test() {
+        System.out.println("Q-215 Kth Largest Number in a Array");
+        System.out.println(findKthLargest(new int[]{3,2,1,5,6,4}, 2));
+        System.out.println(findKthLargest(new int[]{3,1,2,4}, 2));
+    }
+}
+
+/**
  * Q-220: Contains Duplicates III
  *
  * Given an array of integers, find out whether there are two distinct indices
@@ -1547,6 +1750,262 @@ class ContainsDuplicates {
     }
 }
 
+/**
+ * Q-229 Majority Element 2
+ *
+ * Given an integer array of size n, find all elements that appear more than ⌊ n/3 ⌋ times.
+ */
+class MajorityElement2 {
+    public List<Integer> majorityElement(int[] nums) {
+        List<Integer> result = new ArrayList<>();
+        if (nums.length < 2) {
+            for (int n : nums)
+                result.add(n);
+            return result;
+        }
+        int[] cands = new int[2];
+        int[] counts = new int[2];
+        for (int i = 0; i < nums.length; ++i) {
+            if (counts[0] > 0 && cands[0] == nums[i]) {
+                counts[0]++;
+            } else if (counts[1] > 0 && cands[1] == nums[i]) {
+                counts[1]++;
+            } else if (counts[0] == 0) {
+                cands[0] = nums[i];
+                counts[0] = 1;
+            } else if (counts[1] == 0) {
+                cands[1] = nums[i];
+                counts[1] = 1;
+            } else {
+                counts[0]--;
+                counts[1]--;
+            }
+        }
+        counts[0] = counts[1] = 0;
+        for (int i = 0; i < nums.length; ++i) {
+            if (cands[0] == nums[i])
+                counts[0]++;
+            else if (cands[1] == nums[i])
+                counts[1]++;
+        }
+        if (counts[0] > nums.length/3)
+            result.add(cands[0]);
+        if (counts[1] > nums.length/3)
+            result.add(cands[1]);
+        return result;
+    }
+}
+
+/**
+ * 238. Product of Array Except Self
+ */
+class ProductOfArrayExceptSelf {
+    public int[] productExceptSelf(int[] nums) {
+        int[] result = new int[nums.length];
+        for (int i = 0, p = 1; i < nums.length; ++i) {
+            result[i] = p;
+            p *= nums[i];
+        }
+        for (int i = nums.length-1, p = 1; i >= 0; --i) {
+            result[i] *= p;
+            p *= nums[i];
+        }
+        return result;
+    }
+}
+
+/**
+ * Q-241 Different Ways of Add Parentheses
+ */
+class DifferentWaysOfAddParenthese {
+    public static List<Integer> diffWaysToCompute(String input) {
+        List<Integer> result = new ArrayList<>();
+        boolean isNumber = true;
+        for (int i = 0; i <input.length(); ++i) {
+            char c = input.charAt(i);
+            if (c == '+' || c == '-' || c == '*') {
+                isNumber = false;
+                List<Integer> lr = diffWaysToCompute(input.substring(0, i));
+                List<Integer> rr = diffWaysToCompute(input.substring(i+1));
+                for (Integer ln : lr) {
+                    for (Integer rn : rr) {
+                        if (c == '+')
+                            result.add(ln.intValue() + rn.intValue());
+                        else if (c == '-')
+                            result.add(ln.intValue() - rn.intValue());
+                        else
+                            result.add(ln.intValue() * rn.intValue());
+                    }
+                }
+            }
+        }
+        if (isNumber) {
+            result.add(Integer.parseInt(input));
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-241 Different Ways to Add Parentheses");
+        System.out.println(diffWaysToCompute("2-1-1"));
+        System.out.println(diffWaysToCompute("2*3-4*5"));
+    }
+}
+
+/**
+ * Q-255 Verify Preorder Sequence in Binary Search Tree
+ */
+class VerifyPreorderSequenceInBST {
+    public boolean verifyPreorder(int[] nums) {
+        int low = Integer.MIN_VALUE;
+        Stack<Integer> stack = new Stack<>();
+        for (int n : nums) {
+            if (n < low)
+                return false;
+            while (!stack.empty() && stack.peek() < n) {
+                low = stack.pop();
+            }
+            stack.push(n);
+        }
+        return true;
+    }
+}
+
+/**
+ * Q-260 Single Number 3
+ *
+ * Given an array of numbers nums, in which exactly two elements appear only once and all the other elements appear
+ * exactly twice. Find the two elements that appear only once.
+ */
+class SingleNumber3 {
+    public int[] singleNumber(int[] nums) {
+        int xor = 0;
+        for (int n : nums)
+            xor ^= n;
+        int rightmost = xor & -xor; // get the rightmost 1
+        int first = 0;
+        for (int n : nums)
+            if ((n & rightmost) != 0)
+                first ^= n;
+        int second = xor ^ first;
+        return new int[]{first, second};
+    }
+}
+
+/**
+ * Q-274 H-Index
+ *
+ * Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute
+ * the researcher's h-index. According to the definition of h-index on Wikipedia: "A scientist has index h if h of
+ * his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."
+ *
+ * H-Index 2:
+ *
+ * Given an array of citations sorted in ascending order (each citation is a non-negative integer) of a researcher,
+ * write a function to compute the researcher's h-index.
+ */
+class HIndex {
+    public static int hIndex(int[] citations) {
+        // wiki solution
+        Arrays.sort(citations);
+        for (int l = 0, r = citations.length-1; l < r; ++l, --r) {
+            int t = citations[l];
+            citations[l] = citations[r];
+            citations[r] = t;
+        }
+        // descending order of citations, break at the first index which fails the citation check
+        for (int i = 0; i < citations.length; ++i) {
+            if (i >= citations[i])
+                return i;
+        }
+        return citations.length;
+    }
+
+    public static int hIndex2(int[] citations) {
+        int l = 0, r = citations.length-1, N = citations.length;
+        // can't use (l < r)
+        while (l <= r) {
+            int m = l +(r-l)/2;
+            if (citations[m] >= N-m) r = m-1;
+            else l = m+1;
+        }
+        return N-l;
+    }
+
+    public static void test () {
+        System.out.println("Q-274 H Index");
+        System.out.println(hIndex(new int[]{3,0,6,1,5}));
+        System.out.println(hIndex2(new int[]{0, 1, 3, 5, 6}));
+        System.out.println(hIndex2(new int[]{0}));
+    }
+}
+
+/**
+ * Q-287 Find the Duplicate Number
+ *
+ * Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at
+ * least one duplicate number must exist. Assume that there is only one duplicate number, find the duplicate one.
+ */
+class FindDuplicateNumber {
+    public static int findDuplicate(int[] nums) {
+        // can't modify the array so can't sort
+        int l = 0, r = nums.length-1;
+        while (l < r) {
+            int m = l + (r-l)/2, cnt  = 0;
+            for (int i = 0; i < nums.length; ++i) {
+                if (nums[i] <= m)
+                    cnt++;
+            }
+            if (cnt <= m) l = m+1;
+            else r = m;
+        }
+        return r;
+    }
+
+    public static void test() {
+        System.out.println("Q-287 Find the Duplicate Number");
+        //System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
+        System.out.println(findDuplicate(new int[]{2,3,4,1,1}));
+    }
+}
+
+/**
+ * Q-289 Game of Life
+ */
+class GameOfLife {
+    // compute the next state (after one update) of the board given its current state
+    public static void gameOfLife(int[][] board) {
+        int M = board.length, N = board[0].length;
+        int[] rowd = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] cold = {-1, 0, 1, -1, 1, -1, 0, 1};
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                int cnt = 0;
+                for (int k = 0; k < 8; ++k) {
+                    int nr = i+rowd[k], nc = j+cold[k];
+                    // 0 -> -1 is re-generate, 1 -> 2 is die
+                    if (nr >= 0 && nr < M && nc >= 0 && nc < N && board[nr][nc] > 0)
+                        cnt++;
+                }
+                if (board[i][j] == 0 && cnt == 3) board[i][j] = -1;
+                if (board[i][j] == 1 && (cnt < 2 || cnt > 3)) board[i][j] = 2;
+            }
+        }
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (board[i][j] == -1) board[i][j] = 1;
+                else if (board[i][j] == 2) board[i][j] = 0;
+            }
+        }
+    }
+
+    public static void test() {
+        System.out.println("Q-289 Game of Life");
+        int[][] m = {{0,1,0},{0,0,1},{1,1,1},{0,0,0}};
+        gameOfLife(m);
+    }
+}
+
 /** Q-290 Word Pattern */
 class WordPattern {
     public static boolean wordPattern(String pattern, String str) {
@@ -1586,6 +2045,13 @@ class WordPattern {
                 return false;
         }
         return true;
+    }
+}
+
+/** Q-296 Best meeting point */
+class BestMeetingPoint {
+    public int bestMeet(int[][] grid) {
+        return 0;
     }
 }
 
@@ -1642,6 +2108,7 @@ public class LeetcodeOne {
         Subsets.test();
         MergeIntervals.test();
         JumpGame.test();
+        GrayCode.test();
         SortColors.test();
         RemoveDuplicatesFromSortedArray.test();
         RestoreIpAddress.test();
@@ -1650,9 +2117,14 @@ public class LeetcodeOne {
         LargestNumber.test();
         CourseSchedule.test();
         RepeatedDNASequence.test();
-        ShuffleArray.test();
-        LexicographicalNumbers.test();
+        HouseRobber2.test();
+        KthLargestNumberInArray.test();
+        DifferentWaysOfAddParenthese.test();
+        HIndex.test();
+        FindDuplicateNumber.test();
         FindRightInterval.test();
+        GameOfLife.test();
+
     }
 }
 

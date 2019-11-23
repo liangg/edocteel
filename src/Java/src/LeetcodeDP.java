@@ -15,7 +15,7 @@ class LongestPalindromeSubstring {
         int N = s.length();
         boolean[][] dp = new boolean[N][N];
         for (int i = 0; i < N; ++i)
-        dp[i][i] = true;
+            dp[i][i] = true;
         int l = 0, r = 0;
         for (int i = 1; i < N; ++i) { // substring length
             for (int j = 0; j < N-i; ++j) { // substring left char
@@ -156,64 +156,50 @@ class TriangleMinSumPath {
  * Return all possible palindrome partitioning of s.
  */
 class PalindromePartition {
-  public static List<List<String>> partition(String s) {
-    int N = s.length();
-    if (N == 0) {
-      return new ArrayList<List<String>>();
-    }
-
-    // memoization M[i][j] is true if s[i, j] is palindrome
-    boolean M[][] = new boolean[N][N];
-    for (int l = 0; l < N; ++l) {
-      for (int i = 0; i < N; ++i) {
-        int right = i + l;
-        if (right < N) {
-          if (s.charAt(i) == s.charAt(right) && (right-i <= 1 || M[i+1][right-1])) {
-            M[i][right] = true;
-          }
+    private static void dfs(String s, int start, boolean dp[][], List<String> sol, List<List<String>> result) {
+        if (start >= s.length()) {
+            result.add(new ArrayList<>(sol));
+            return;
         }
-      }
-    }
 
-    ArrayList<ArrayList<ArrayList<String>>> suffix_pps = new ArrayList<ArrayList<ArrayList<String>>>();
-    // scan backward and construct palindrome partitions at each suffix
-    for (int i = N-1; i >= 0; --i) {
-      ArrayList<ArrayList<String>> pps = new ArrayList<ArrayList<String>>();
-      for (int j = i; j < N; ++j) {
-        if (M[i][j] == true) {
-          if (j+1 < N) {
-            ArrayList<ArrayList<String>> pps_j = suffix_pps.get((N-1)-(j+1)); // reverse positioned
-            for (ArrayList<String> al : pps_j) {
-              ArrayList<String> list = new ArrayList<String>();
-              list.add(s.substring(i,j+1));
-              list.addAll(al);
-              pps.add(list);
+        for (int i = start; i < s.length(); ++i) {
+            if (dp[start][i]) {
+                sol.add(s.substring(start, i+1));
+                dfs(s, i+1, dp, sol, result);
+                sol.remove(sol.size()-1);
             }
-          } else {
-            ArrayList<String> list = new ArrayList<String>();
-            list.add(s.substring(i,j+1));
-            pps.add(list);
+        }
+    }
+
+    public static List<List<String>> partition(String s) {
+        List<List<String>> result = new ArrayList<List<String>>();
+        int N = s.length();
+        if (N == 0) {
+          return result;
+        }
+
+        // memoization M[i][j] is true if s[i, j] is palindrome
+        boolean M[][] = new boolean[N][N];
+        for (int l = 0; l < N; ++l) {
+          for (int i = 0; i < N; ++i) {
+            int right = i + l;
+            if (right < N) {
+              if (s.charAt(i) == s.charAt(right) && (right-i <= 1 || M[i+1][right-1])) {
+                M[i][right] = true;
+              }
+            }
           }
         }
-      }
-      suffix_pps.add(pps);
+
+        List<String> sol = new ArrayList<>();
+        dfs(s, 0, M, sol, result);
+        System.out.println(result.toString());
+        return result;
     }
 
-    List<List<String>> result = new ArrayList<List<String>>();
-    result.addAll(suffix_pps.get(N-1));
-    for (List<String> al : result) {
-      for (String str : al) {
-        System.out.printf(str + ", ");
-      }
-      System.out.println();
-    }
-    return result;
-  }
-
-  public static void run() {
-    System.out.println("----------- Palindrome Partition ------------");
+  public static void test() {
+    System.out.println("Q-131 Palindrome Partition");
     partition("abbacddc");
-
   }
 }
 
@@ -342,6 +328,108 @@ class BestTimeBuySellStock4 {
         System.out.println("Q-188 Best Time to Buy and Sell Stock IV");
         // [2,4,1], k = 2 // = 2
         // [3,2,6,5,0,3], k = 2 // = 7
+    }
+}
+
+/**
+ * Q-309 Best Time to Buy Sell Stock with Cooldown
+ */
+class BestTimeBuySellWithCooldown {
+    public static int maxProfit(int[] prices) {
+        if (prices.length < 2)
+            return 0;
+        int[] buy = new int[prices.length]; // max profit if buy at i
+        int[] sell = new int[prices.length]; // max profit if sell at i
+        buy[0] = -prices[0];
+        buy[1] = Math.max(-prices[0], -prices[1]);
+        sell[1] = prices[1] > prices[0] ? prices[1]-prices[0] : 0;
+        for (int i = 2; i < prices.length; ++i) {
+            buy[i] = Math.max(sell[i-2]-prices[i], buy[i-1]);
+            sell[i] = Math.max(buy[i-1]+prices[i], sell[i-1]);
+        }
+        return sell[prices.length-1];
+    }
+
+    public static void test() {
+        System.out.println("Q-309 Best Time to Buy and Sell Stock with Cooldown");
+        System.out.println(maxProfit(new int[]{1,2,4}));
+        System.out.println(maxProfit(new int[]{1,2,3,0,2})); // 3
+    }
+}
+
+/**
+ * Q-413 Arithmetic Slices
+ */
+class ArithmeticSlices {
+    public int numberOfArithmeticSlices(int[] A) {
+        int result = 0;
+        if (A.length < 3)
+            return result;
+        int[] dp = new int[A.length];
+        for (int i = 2; i < A.length; ++i) {
+            if (A[i]-A[i-1] == A[i-1]-A[i-2]) {
+                dp[i] = dp[i-1] + 1;
+                result += dp[i];
+            }
+        }
+        return result;
+    }
+}
+
+/**
+ * Q-474 Ones and Zeroes
+ *
+ * For now, suppose you are a dominator of m 0's and n 1's respectively. On the other hand, there is an array with
+ * strings consisting of only 0s and 1s. Now your task is to find the maximum number of strings that you can form
+ * with given m 0s and n 1s. Each 0 and 1 can be used at most once.
+ */
+class OnesAndZeroes {
+    public static int findMaxForm(String[] strs, int m, int n) {
+        // using i 0's and j 1's
+        int dp[][] = new int[m+1][n+1];
+        for (String s : strs) {
+            int count0 = 0, count1 = 0;
+            for (char c : s.toCharArray()) {
+                if (c == '0') count0++;
+                else count1++;
+            }
+            for (int i = m; i >= count0; --i) {
+                for (int j = n; j >= count1; --j) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i-count0][j-count1]+1);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+    public static void test() {
+        System.out.println("Q-474 Ones and Zeroes");
+        System.out.println(findMaxForm(new String[]{"00","01","10"}, 2, 2));
+    }
+}
+
+/**
+ * Q-518 Coin Change 2
+ */
+class CoinChange2 {
+    public static int change(int amount, int[] coins) {
+        if (amount == 0)
+            return 1;
+        int[] combos = new int[amount+1];
+        combos[0] = 1;
+        for (int i = 0; i < coins.length; ++i) {
+            for (int j = 1; j <= amount; ++j) {
+                if (j >= coins[i]) {
+                    combos[j] += combos[j-coins[i]];
+                }
+            }
+        }
+        return combos[amount];
+    }
+
+    public static void test() {
+        System.out.println("Q-518 Coin change 2");
+        System.out.println(change(5, new int[]{1,2,5}));
     }
 }
 
@@ -515,6 +603,10 @@ class DeleteAndEarn {
 public class LeetcodeDP {
     public static void main(String[] args) {
         LongestPalindromeSubstring.test();
+        PalindromePartition.test(); // DFS for result
+        BestTimeBuySellWithCooldown.test();
+        OnesAndZeroes.test();
+        CoinChange2.test();
         DeleteOperationsForTwoStrings.test(); // LCS
         PalindromicSubstrings.test();
         MaximumLengthOfRepeatedSubarray.test();
