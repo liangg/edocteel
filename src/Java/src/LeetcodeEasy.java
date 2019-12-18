@@ -387,6 +387,54 @@ class BinaryTreePreorderTraversal {
 }
 
 /**
+ * Q-161 One Edit Distance
+ */
+class OneEditDistance {
+    public static boolean isOneEditDistance0(String s, String t) {
+        if (s.length() > t.length()) { // make sure s smaller than t
+            String tmp = t;
+            t = s;
+            s = tmp;
+        }
+        if (t.length() - s.length() > 1) return false;
+        if (s.length() == t.length()) {
+            int mismatch = 0;
+            for (int i = 0; i < s.length(); ++i) {
+                if (s.charAt(i) != t.charAt(i))
+                    mismatch++;
+            }
+            if (mismatch != 1)
+                return false;
+        } else {
+            for (int i = 0; i < s.length(); ++i) {
+                if (s.charAt(i) != t.charAt(i))
+                    return s.substring(i).equals(t.substring(i+1));
+            }
+        }
+        return true;
+    }
+
+    public static boolean isOneEditDistance(String s, String t) {
+        for (int i = 0; i < Math.min(s.length(), t.length()); ++i) {
+            if (s.charAt(i) != t.charAt(i)) {
+                if (s.length() == t.length()) return s.substring(i+1).equals(t.substring(i+1));
+                else if (s.length() > t.length()) return s.substring(i+1).equals(t.substring(i));
+                else return s.substring(i).equals(t.substring(i+1));
+            }
+        }
+        return Math.abs(s.length()-t.length()) == 1;
+    }
+
+    public static void test() {
+        System.out.println("Q-161 One Edit Distance");
+        System.out.println(isOneEditDistance("acb", "ab")); // true
+        System.out.println(isOneEditDistance("love", "lv")); // false
+        System.out.println(isOneEditDistance("meet", "meat")); // true
+        System.out.println(isOneEditDistance("meet", "meet")); // false
+    }
+}
+
+/**
  * Q-167 Two Sum 2
  */
 class TwoSum2 {
@@ -596,6 +644,28 @@ class HouseRobber3 {
         TreeNode n9 = new TreeNode(1);
         n2.right = n9;
         System.out.printf("rob house %d\n", rob(n0));
+    }
+}
+
+/**
+ * Q-359 Logger Rate Limiter
+ *
+ * Design a logger system that receive stream of messages along with its timestamps, each message should be printed
+ * if and only if it is not printed in the last 10 seconds. Given a message and a timestamp (in seconds granularity),
+ * return true if the message should be printed in the given timestamp, otherwise returns false.
+ */
+class LoggerRateLimiter {
+    private Map<String, Integer> messageStore = new HashMap<>();
+
+    public boolean shouldPrintMessage(int timestamp, String message) {
+        int MSG_RETENTION = 10;
+        if (messageStore.containsKey(message)) {
+            if (messageStore.get(message) + MSG_RETENTION > timestamp)
+                return false;
+        } else {
+            messageStore.put(message, timestamp);
+        }
+        return true;
     }
 }
 
@@ -856,6 +926,30 @@ class FindLargestValueInEachTreeRow {
         }
         result.add(currLvl);
         return result;
+    }
+}
+
+/** Q-543 Diameter of Binary Tree */
+class DiameterOfBinaryTree {
+    private int path(TreeNode root, int[] state) {
+        if (root.left == null && root.right == null)
+            return 0;
+        int lp = 0;
+        if (root.left != null)
+            lp = 1 + path(root.left, state);
+        int rp = 0;
+        if (root.right != null)
+            rp = 1 + path(root.right, state);
+        if (lp + rp > state[0])
+            state[0] = lp + rp;
+        return lp > rp ? lp : rp;
+    }
+
+    public int diameterOfBinaryTree(TreeNode root) {
+        int[] state = new int[1];
+        if (root != null)
+            path(root, state);
+        return state[0];
     }
 }
 
@@ -1272,6 +1366,7 @@ public class LeetcodeEasy {
 
     public static void main(String[] args) {
         System.out.println("Leetcode Easy Level and Tree");
+        OneEditDistance.test();
         KthSmallestElements.run();
         HouseRobber3.run();
         ArrangeCoins.test();

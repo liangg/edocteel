@@ -540,6 +540,46 @@ class NumberOfLongestIncreasingSubsequence {
     }
 }
 
+/** Q-688. Knight Probability in Chessboard */
+class KnightProbabilityInChessboard {
+    private static int[][] MOVES = new int[][]{{0,-1}, {-1,-1}, {-1,0}, {-1,1}, {0,1}, {1,1}, {1,0}, {1,-1}};
+
+    public static double knightProbability(int N, int K, int r, int c) {
+        return 0.0;
+    }
+}
+
+/**
+ * Q-712 Minimum ASCII Delete Sum for Two Strings (variant of 583, Longest Common Subsequence)
+ *
+ * Given two strings s1, s2, find the lowest ASCII sum of deleted characters to make two strings equal.
+ */
+class MinimumASCIIDeleteSumForTwoStrings {
+    public static int minimumDeleteSum(String s1, String s2) {
+        // dp[i][j] minimum ascii delete sum for s1[0..i][s2[0..j]
+        int[][] dp = new int[s1.length()+1][s2.length()+1];
+        for (int i = 1; i <= s2.length(); ++i)
+            dp[0][i] = dp[0][i-1] + s2.charAt(i-1);
+        for (int i = 1; i <= s1.length(); ++i) {
+            dp[i][0] = dp[i-1][0] + s1.charAt(i-1);
+            for (int j = 1; j <= s2.length(); ++j) {
+                if (s1.charAt(i-1) == s2.charAt(j-1))
+                    dp[i][j] = dp[i-1][j-1];
+                else
+                    dp[i][j] = dp[i-1][j]+s1.charAt(i-1) < dp[i][j-1]+s2.charAt(j-1) ?
+                        dp[i-1][j]+s1.charAt(i-1) : dp[i][j-1]+s2.charAt(j-1);
+            }
+        }
+        return dp[s1.length()][s2.length()];
+    }
+
+    public static void test() {
+        System.out.println("Q-712 Minimum ASCII Delete Sum for Two Strings");
+        System.out.println(minimumDeleteSum("sea", "eat")); // 231
+        System.out.println(minimumDeleteSum("delete", "leet")); // 403
+    }
+}
+
 /**
  * Q-718 Maximum Length of Repeated Subarray
  *
@@ -609,8 +649,9 @@ public class LeetcodeDP {
         CoinChange2.test();
         DeleteOperationsForTwoStrings.test(); // LCS
         PalindromicSubstrings.test();
-        MaximumLengthOfRepeatedSubarray.test();
         NumberOfLongestIncreasingSubsequence.test();
+        MinimumASCIIDeleteSumForTwoStrings.test(); // LCS
+        MaximumLengthOfRepeatedSubarray.test();
         DeleteAndEarn.test();
     }
 }

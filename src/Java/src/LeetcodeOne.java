@@ -1591,7 +1591,43 @@ class CourseSchedule {
      * should take to finish all courses.
      */
     public int[] findOrder(int numCourses, int[][] prerequisites) {
-        return null;
+        if (numCourses <= 0)
+            return new int[0];
+
+        List<List<Integer>> graphs = new ArrayList<List<Integer>>(numCourses);
+        for (int i = 0; i < numCourses; ++i)
+            graphs.add(new ArrayList<Integer>());
+
+        int[] indegree = new int[numCourses];
+        for (int[] e : prerequisites) {
+            indegree[e[0]]++;
+            graphs.get(e[1]).add(e[0]);
+        }
+
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < numCourses; ++i) {
+            if (indegree[i] == 0)
+                queue.add(i);
+        }
+
+        ArrayList<Integer> topo = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            Integer s = queue.poll();
+            for (Integer d : graphs.get(s)) {
+                indegree[d]--;
+                if (indegree[d] == 0)
+                    queue.add(d);
+            }
+            topo.add(s);
+        }
+
+        if (topo.size() < numCourses)
+            return new int[0];
+        int[] result = new int[numCourses];
+        int idx = 0;
+        for (Integer c : topo)
+            result[idx++] = c;
+        return result;
     }
 
     public static void test() {
@@ -2048,10 +2084,35 @@ class WordPattern {
     }
 }
 
-/** Q-296 Best meeting point */
+/**
+ * Q-296 Best meeting point
+ *
+ * A group of two or more people wants to meet and minimize the total travel distance. You are given a 2D grid of
+ * values 0 or 1, where each 1 marks the home of someone in the group. The distance is calculated using Manhattan
+ * Distance, where distance(p1, p2) = |p2.x - p1.x| + |p2.y - p1.y|.
+ */
 class BestMeetingPoint {
+    private int minTotalDistance(List<Integer> coordinates) {
+        Collections.sort(coordinates);
+        int total = 0;
+        for (int l = 0, r = coordinates.size()-1; l < r; l++, r--) {
+            total += r-l;
+        }
+        return total;
+    }
+
     public int bestMeet(int[][] grid) {
-        return 0;
+        ArrayList<Integer> rows = new ArrayList<>();
+        ArrayList<Integer> cols = new ArrayList<>();
+        for (int i = 0; i < grid.length; ++i) {
+            for (int j = 0; j < grid[0].length; ++j) {
+                if (grid[i][j] == 1) {
+                    rows.add(i);
+                    cols.add(j);
+                }
+            }
+        }
+        return minTotalDistance(rows) + minTotalDistance(cols);
     }
 }
 
