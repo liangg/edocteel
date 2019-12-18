@@ -300,7 +300,7 @@ class AddTwoNumbers(object):
         atn = AddTwoNumbers()
         atn.addTwoNumbers(l1, l5)
 
-# Q Diameter of Binary Tree
+# Q-543 Diameter of Binary Tree
 class DiameterOfBinaryTree(object):
     def depth(self, root):
         if root.left is None and root.right is None:

@@ -1462,6 +1462,49 @@ class PermutationInString {
 }
 
 /**
+ * Q-621 Task Scheduler
+ *
+ * Given a char array representing tasks CPU need to do. It contains capital letters A to Z where different letters
+ * represent different tasks. Tasks could be done without original order. Each task could be done in one interval.
+ * For each interval, CPU could finish one task or just be idle. However, there is a non-negative cooling interval
+ * n that means between two same tasks, there must be at least n intervals that CPU are doing different tasks or
+ * just be idle. You need to return the least number of intervals the CPU will take to finish all the given tasks.
+ */
+class TaskScheduler {
+    public static int leastInterval(char[] tasks, int n) {
+        int[] tcounts = new int[26];
+        for (char t : tasks)
+            tcounts[t-'A'] += 1;
+        PriorityQueue<Integer> ordered = new PriorityQueue<Integer>(26, Collections.reverseOrder());
+        for (int i = 0; i < 26; ++i) {
+            if (tcounts[i] > 0)
+                ordered.add(tcounts[i]);
+        }
+        int result = 0, blockSize = n+1;
+        while (!ordered.isEmpty()) {
+            int bidx = 0;
+            int[] block = new int[blockSize];
+            block[bidx++] = ordered.poll();
+            while (!ordered.isEmpty()) {
+                if (bidx >= blockSize) break;
+                block[bidx++] = ordered.poll();
+            }
+            for (int i = 0; i < bidx; ++i) {
+                if (block[i] - 1 > 0)
+                    ordered.add(block[i] - 1);
+            }
+            result += ordered.isEmpty() ? bidx : blockSize;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-621 Task Scheduler");
+        System.out.println(leastInterval(new char[]{'A','A','A','B','B','B'}, 2)); // 8
+    }
+}
+
+/**
  * Q-622 Design Circular Queue (thread unsafe, use count to simplify code)
  */
 class MyCircularQueue {
@@ -1867,6 +1910,32 @@ class MapSum {
     }
 }
 
+/** Q-678 Valid Parenthesis String */
+class ValidParenthesisString {
+    public static boolean checkValidString(String s) {
+        char[] sc = s.toCharArray();
+        int nleft = 0;
+        for (int i = 0; i < sc.length; ++i) {
+            if (sc[i] == '(' || sc[i] == '*')
+                nleft++;
+            else
+                nleft--;
+            if (nleft < 0)
+                return false;
+        }
+        int nright = 0;
+        for (int i = sc.length-1; i >= 0; --i) {
+            if (sc[i] == ')' || sc[i] == '*')
+                nright++;
+            else
+                nright--;
+            if (nright < 0)
+                return false;
+        }
+        return true;
+    }
+}
+
 /**
  * Q-684 Redundant Connections (Union Find)
  */
@@ -1898,6 +1967,37 @@ class RedundantConnections {
         int[][] e1 = {{1,2}, {2,3}, {3,4}, {1,4}, {1,5}}; // (1,4)
         int[][] e2 = {{3,4},{1,2},{2,4},{3,5},{2,5}}; // (2,5)
         System.out.println(Arrays.toString(findRedundantConnection(e2)));
+    }
+}
+
+/** Q-695 Max Area of Island */
+class MaxAreaOfIsland {
+    private int MOVES[][] = new int[][]{{0,-1},{-1,0},{0,1},{1,0}};
+
+    private void dfs(int[][] grid, int r, int c, int[] result) {
+        if (r < 0 || r >= grid.length || c < 0 || c >= grid[0].length)
+            return;
+        if (grid[r][c] == 1) {
+            result[1] += 1;
+            if (result[1] > result[0])
+                result[0] = result[1];
+            grid[r][c] = -1; // marked as visited
+            for (int i = 0; i < 4; ++i)
+                dfs(grid, r+MOVES[i][0], c+MOVES[i][1], result);
+        }
+    }
+
+    public int maxAreaOfIsland(int[][] grid) {
+        int[] result = new int[2]; // [0] is result, [1] is accumulated area
+        for (int i = 0; i < grid.length; ++i) {
+            for (int j = 0; j < grid[0].length; ++j) {
+                if (grid[i][j] == 1) {
+                    result[1] = 0;
+                    dfs(grid, i, j, result);
+                }
+            }
+        }
+        return result[0];
     }
 }
 
@@ -2025,6 +2125,55 @@ class AccountsMerge {
         }};
         accountsMerge(accounts2);
         accountsMerge(accounts3);
+    }
+}
+
+/** Q-725 Split Linked List in Parts */
+class SplitLinkedListInParts {
+    public ListNode[] splitListToParts(ListNode root, int k) {
+        ListNode[] result = new ListNode[k];
+        int total = 0;
+        for (ListNode n = root; n != null; ++total, n = n.next);
+        int d = total/k, m = total%k;
+        ListNode p = root;
+        for (int i = 0; i < k; ++i) {
+            ListNode phead = d > 0 ? p : null, ptail = null;
+            for (int j = 0; j < d; ++j, ptail = p, p = p.next);
+            if (m > 0 && i < m) {
+                if (phead == null) phead = p;
+                ptail = p;
+                p = p.next;
+            }
+            if (ptail != null) ptail.next = null;
+            result[i] = phead;
+        }
+        return result;
+    }
+}
+
+/** Q-729 My Calendar */
+class MyCalendar {
+    private static class Event {
+        int start;
+        int end;
+
+        Event(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+
+    private List<Event> events = new ArrayList<>();
+
+    public MyCalendar() {}
+
+    public boolean book(int start, int end) {
+        for (Event e : events) {
+            if (!(e.start >= end || e.end <= start))
+                return false;
+        }
+        events.add(new Event(start, end));
+        return true;
     }
 }
 
@@ -2206,6 +2355,56 @@ class GraphBipartite {
     }
 }
 
+/** Q-787 Cheapest Flights Within K Stops */
+class CheapestFlightsWithinKStops {
+    public static int findCheapestPrice(int n, int[][] flights, int src, int dst, int K) {
+        Map<Integer, ArrayList<Integer>> flightMap = new HashMap<>();
+        for (int[] f : flights) {
+            ArrayList<Integer> dp;
+            if (flightMap.containsKey(f[0]))
+                dp = flightMap.get(f[0]);
+            else
+                dp = new ArrayList<Integer>();
+            dp.add(f[1]);
+            dp.add(f[2]);
+            flightMap.put(f[0],dp);
+        }
+        // priority queue is [city, stops, price]
+        PriorityQueue<Integer[]> queue = new PriorityQueue<Integer[]>(n, new Comparator<Integer[]>() {
+            @Override
+            public int compare(Integer[] f1, Integer[] f2) {
+                if (f1[2] == f2[2])
+                    return 0;
+                else if (f1[2] < f2[2])
+                    return -1;
+                return 1;
+            }
+        });
+        // stop starts at -1
+        queue.add(new Integer[]{src, -1, 0});
+        while (!queue.isEmpty()) {
+            Integer[] s = queue.poll();
+            if (s[0] == dst && s[1] <= K)
+                return s[2];
+            // flight map value is [destination, price, ...]
+            ArrayList<Integer> sdp = flightMap.get(s[0]);
+            if (sdp == null) continue;
+            for (int i = 0; i < sdp.size(); i += 2) {
+                if (s[1]+1 <= K)
+                    queue.add(new Integer[]{sdp.get(i), s[1] + 1, s[2] + sdp.get(i + 1)});
+            }
+        }
+        return -1;
+    }
+
+    public static void test() {
+        System.out.println("Q-787 Cheapest Flights Within K Stops");
+        System.out.println(findCheapestPrice(3, new int[][]{{0,1,100},{1,2,100},{0,2,500}}, 0, 2, 1)); // 200
+        System.out.println(findCheapestPrice(3, new int[][]{{0,1,100},{1,2,100},{0,2,500}}, 0, 2, 0)); // 500
+        System.out.println(findCheapestPrice(5, new int[][]{{0,1,100},{0,2,500},{1,2,100},{1,3,500},{2,3,300},{2,4,100},{3,4,200}}, 0, 4, 4)); // 3--
+    }
+}
+
 /**
  * Q-792 Number of Matching Subsequences (2 pointers + hashmap)
  *
@@ -2318,6 +2517,7 @@ public class Leetcode
         LongestRepeatingCharacterReplacement.test();
         FindAllAnagramsInString.test(); // sliding window
         PermutationInString.test(); // sliding window char count
+        TaskScheduler.test(); // priority queue
         MyCircularQueue.test(); // thread-unsafe
         MyCircularDeque.test();
         MaximumLengthOfPairChain.test(); // sort, special compare
@@ -2334,5 +2534,6 @@ public class Leetcode
         GraphBipartite.test(); // BFS
         NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
         ChampagneTower.test(); // matrix + memoization
+        CheapestFlightsWithinKStops.test(); // shortest path
     }
 }
