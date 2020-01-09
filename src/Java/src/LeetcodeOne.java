@@ -2160,6 +2160,7 @@ class FindRightInterval {
 
 public class LeetcodeOne {
     public static void main(String[] args) {
+        SimplifyPath.run();
         LongestSubstringWithoutRepeatingChars.test();
         FindFirstLastPosSortedArray.test();
         ThreeSum.test();

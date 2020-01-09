@@ -1970,6 +1970,57 @@ class RedundantConnections {
     }
 }
 
+/** Q-692 Top K Frequent Words */
+class TopKFrequentWords {
+    static class Pair {
+        String word;
+        int count;
+        Pair(String word, int count) {
+            this.word = word;
+            this.count = count;
+        }
+    }
+
+    public static List<String> topKFrequent(String[] words, int k) {
+        Map<String, Integer> countMap = new HashMap<>();
+        PriorityQueue<Pair> maxHeap = new PriorityQueue<>(k, new Comparator<Pair>() {
+            @Override
+            public int compare(Pair o1, Pair o2) {
+                // max heap use ascending order
+                if (o1.count < o2.count)
+                    return 1;
+                if (o1.count == o2.count && o1.word.compareTo(o2.word) > 0)
+                    return 1;
+                if (o1.word.equals(o2.word) && o1.count == o2.count)
+                    return 0;
+                return -1;
+            }
+        });
+        for (String w : words) {
+            int c = 1;
+            if (countMap.containsKey(w))
+                c = countMap.get(w) + 1;
+            countMap.put(w, c);
+        }
+        for (Map.Entry<String, Integer> e : countMap.entrySet()) {
+            maxHeap.add(new Pair(e.getKey(), e.getValue()));
+        }
+        int cnt = 0;
+        List<String> result = new ArrayList<>();
+        while (!maxHeap.isEmpty() && cnt++ < k) {
+            result.add(maxHeap.poll().word);
+        }
+        //Collections.reverse(result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-692 Top K Frequent Words");
+        System.out.println(topKFrequent(new String[]{"the", "day", "is", "sunny", "the", "the", "the", "sunny", "is", "is"}, 4));
+        System.out.println(topKFrequent(new String[]{"l", "iove", "leetcode", "l", "iove", "coding"}, 2));
+    }
+}
+
 /** Q-695 Max Area of Island */
 class MaxAreaOfIsland {
     private int MOVES[][] = new int[][]{{0,-1},{-1,0},{0,1},{1,0}};
@@ -2496,7 +2547,6 @@ public class Leetcode
     public static void main(String[] args)
     {
         System.out.println("Leetcode");
-        SimplifyPath.run();
         SubstrsWithConcatWords.run();
         FindSubstring.run();
         CoinChange.run();
@@ -2526,6 +2576,7 @@ public class Leetcode
         MagicDictionary.test(); // hashmap
         MapSum.test(); // data structure
         RedundantConnections.test(); // union find
+        TopKFrequentWords.test(); // priority queue + map
         PartitionKEqualSumSubsets.test(); // recursion
         AccountsMerge.test(); // union find
         DailyTemperature.test(); // stack
