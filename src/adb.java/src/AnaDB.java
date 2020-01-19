@@ -158,20 +158,20 @@ public class AnaDB {
 
     private static class SortOrderComparator implements Comparator<Map<String, Integer>> {
         LinkedHashMap<String, String> sortOrder;
-        Map<String, RecordComparactor> comparactorMap = new HashMap<>();
+        Map<String, RecordComparactor> comparatorMap = new HashMap<>();
 
         SortOrderComparator(LinkedHashMap<String, String> sortOrder) {
             this.sortOrder = sortOrder;
             for (Map.Entry<String, String> e : sortOrder.entrySet()) {
                 RecordComparactor recordComparactor = new RecordComparactor(e.getKey(), e.getValue());
-                comparactorMap.put(e.getKey(), recordComparactor);
+                comparatorMap.put(e.getKey(), recordComparactor);
             }
         }
 
         @Override
         public int compare(Map<String, Integer> r1, Map<String, Integer> r2) {
             for (Map.Entry<String, String> e : sortOrder.entrySet()) {
-                RecordComparactor recordComparactor = comparactorMap.get(e.getKey());
+                RecordComparactor recordComparactor = comparatorMap.get(e.getKey());
                 int result = recordComparactor.compare(r1, r2);
                 if (result != 0)
                     return result;

@@ -1,5 +1,5 @@
 /**
- * Leetcode questions 300 - *, (list)
+ * Leetcode questions 351 - *, (list)
  */
 
 import java.lang.Math;
@@ -252,249 +252,6 @@ class SubstrsWithConcatWords {
   }
 }
 
-/**
- * Q-316: Remove Duplicate Letters
- *
- * Given a string which contains only lowercase letters, remove duplicate letters so that every letter
- * appear once and only once. You must make sure your result is the smallest in lexicographical order
- * among all possible results.
- */
-class RemoveDuplicateLetters {
-    public static String removeDuplicateLetters(String s) {
-        int nchars = 0;
-        Map<Character, List<Integer>> positions = new HashMap<Character, List<Integer>>();
-        // remember positions of each individual letter
-        for (int i = 0; i < s.length(); ++i) {
-            char c = s.charAt(i);
-            List<Integer> p = positions.get(c);
-            if (p == null) {
-                nchars++;
-                p = new ArrayList<Integer>();
-                positions.put(c, p);
-            }
-            p.add(c - 'a');
-        }
-
-        Set<Character> taken = new HashSet<Character>();
-        char result[] = new char[nchars];
-        for (int i = 0; i < nchars; ++i) {
-            char ch = 0;
-            int ch_pos = -1;
-            for (Iterator it = positions.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Character, List<Integer>> entry = (Map.Entry) it.next();
-                if (taken.contains(entry.getKey()))
-                    continue;
-
-                char ech = entry.getKey();
-                List<Integer> epos = entry.getValue();
-                if (ch_pos == -1) {
-                    ch = ech;
-                    ch_pos = epos.remove(0);
-                } else {
-                    if (epos.size() == 1) {
-                        if (positions.get(ch).isEmpty() && epos.get(0) < ch_pos) {
-                            // restore the position of previous chosen char
-                            positions.get(ch).add(ch_pos);
-                            ch = ech;
-                            ch_pos = epos.remove(0);
-                        }
-                    } else {
-                        for (int p = epos.get(0); !epos.isEmpty() && p < ch_pos; p = epos.get(0)) {
-                            epos.remove(0);
-                        }
-                    }
-                }
-            }
-
-            taken.add(ch);
-            result[i] = ch;
-        }
-
-        return String.valueOf(result);
-    }
-}
-
-/**
- * Q-324 Wiggle Sort 2
- *
- * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
- */
-class WiggleSort {
-    public static void wiggleSort(int[] nums) {
-        int[] c = Arrays.copyOf(nums, nums.length);
-        Arrays.sort(c);
-        for (int i = 0, j = nums.length%2 == 0 ? nums.length/2-1 : nums.length/2, k = nums.length-1;
-             i < nums.length; ++i) {
-            if (i % 2 == 0)
-                nums[i] = c[j--];
-            else
-                nums[i] = c[k--];
-        }
-        System.out.println(Arrays.toString(nums));
-    }
-
-    public static void test() {
-        System.out.println("Q-324 Wiggle Sort 2");
-        wiggleSort(new int[]{1,5,1,1,6,4});
-    }
-}
-
-/**
- * Q-332: Reconstruct Itinerary
- *
- * Given a list of airline tickets represented by pairs of departure and arrival
- * airports [from, to], reconstruct the itinerary in order. All of the tickets
- * belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.
- */
-class ReconstructItinerary {
-    private static boolean flyNext(List<String> trip, Map<String, ArrayList<String>> flights,
-                            final int numCities) {
-        if (trip.size() == numCities)
-            return true;
-
-        String curr = trip.get(trip.size()-1);
-        if (!flights.containsKey(curr) || flights.get(curr).size() == 0)
-            return false;
-
-        ArrayList<String> orig = flights.get(curr);
-        ArrayList<String> triedDests = new ArrayList<String>();
-        ArrayList<String> destinations = new ArrayList<String>(orig);
-        while (destinations.size() > 0) {
-            String next = destinations.remove(0);
-            trip.add(next);
-            ArrayList<String> newDests = new ArrayList<String>(triedDests);
-            newDests.addAll(destinations);
-            flights.put(curr, newDests);
-            if (flyNext(trip, flights, numCities))
-                return true;
-
-            trip.remove(trip.size() - 1);
-            triedDests.add(next);
-        }
-
-        flights.put(curr, orig);
-        return false;
-    }
-
-    private static List<String> findItinerary(String[][] tickets) {
-        int numCities = tickets.length + 1;
-        Map<String, ArrayList<String>> flightsMap = new HashMap<String, ArrayList<String>>();
-        for (String[] t : tickets) {
-            if (!flightsMap.containsKey(t[0])) {
-                flightsMap.put(t[0], new ArrayList<String>());
-            }
-            flightsMap.get(t[0]).add(t[1]);
-        }
-
-        // sort destinations of the same source city
-        for (Iterator it = flightsMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, ArrayList<String>> entry = (Map.Entry) it.next();
-            Collections.sort(entry.getValue());
-        }
-
-        // assume there is at lease one valid trip
-        List<String> trip = new ArrayList<String>();
-        trip.add("JFK");
-        flyNext(trip, flightsMap, numCities);
-
-        for (String c : trip)
-            System.out.print(c + " ");
-        System.out.println();
-        return trip;
-    }
-
-    private static void dfs(String from, Map<String, ArrayList<String>> flights, List<String> result) {
-        // I first used SortedSet in flights, thinking it would provide sorting; however, remove() would remove all
-        // duplicate city strings
-        while (flights.get(from) != null && flights.get(from).size() > 0) {
-            String to = flights.get(from).get(0);
-            flights.get(from).remove(0);
-            dfs(to, flights, result);
-        }
-        result.add(from);
-    }
-
-    // Implementation #2 use recursive DFS
-    private static List<String> recreateItinerary(String[][] tickets) {
-        ArrayList<String> result = new ArrayList<String>();
-        if (tickets.length == 0)
-            return result;
-        // build adjacency sorted list
-        Map<String, ArrayList<String>> flights = new HashMap<String, ArrayList<String>>();
-        for (String[] t : tickets) {
-            if (!flights.containsKey(t[0]))
-                flights.put(t[0], new ArrayList<String>());
-            flights.get(t[0]).add(t[1]);
-        }
-        // sort destinations,
-        for (Map.Entry<String, ArrayList<String>> e : flights.entrySet()) {
-            Collections.sort(e.getValue());
-        }
-
-        // do DFS from the start JFK
-        dfs("JFK", flights, result);
-        Collections.reverse(result);
-        System.out.println(Arrays.toString(result.toArray()));
-        return result;
-    }
-
-    public static void run() {
-        System.out.println("------------ Reconstruct Itinerary ------------");
-        String[][] tickets = {{"JFK","SFO"},{"JFK","ATL"},{"SFO","ATL"},{"ATL","JFK"},{"ATL","SFO"}};
-        recreateItinerary(tickets);
-
-        String[][] tickets1 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"}};
-        recreateItinerary(tickets1);
-
-        String[][] tickets2 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"},{"ATL","JML"},
-                {"JML","ATL"}};
-        recreateItinerary(tickets2);
-
-        String[][] tickets4 = {{"EZE","AXA"},{"TIA","ANU"},{"ANU","JFK"},{"JFK","ANU"},{"ANU","EZE"},{"TIA","ANU"},
-                {"AXA","TIA"},{"TIA","JFK"},{"ANU","TIA"},{"JFK","TIA"}};
-        recreateItinerary(tickets4); // ["JFK","ANU","EZE","AXA","TIA","ANU","JFK","TIA","ANU","TIA","JFK"]
-
-        String[][] tickets3 = {{"CBR","JFK"},{"TIA","EZE"},{"AUA","TIA"},{"JFK","EZE"},
-                {"BNE","CBR"},{"JFK","CBR"},{"CBR","AUA"},{"EZE","HBA"},{"AXA","ANU"},{"BNE","EZE"},
-                {"AXA","EZE"},{"AUA","ADL"},{"OOL","JFK"},{"BNE","AXA"},{"OOL","EZE"},{"EZE","ADL"},
-                {"TIA","BNE"},{"EZE","TIA"},{"JFK","AUA"},{"AUA","EZE"},{"ANU","ADL"},{"TIA","BNE"},
-                {"EZE","OOL"},{"ANU","BNE"},{"EZE","ANU"},{"ANU","AUA"},{"BNE","ANU"},{"CNS","JFK"},
-                {"TIA","ADL"},{"ADL","AXA"},{"JFK","OOL"},{"AUA","ADL"},{"ADL","TIA"},{"ADL","ANU"},
-                {"ADL","JFK"},{"BNE","EZE"},{"ANU","BNE"},{"JFK","BNE"},{"EZE", "AUA"}, {"EZE","AXA"},
-                {"AUA","TIA"},{"ADL","CNS"},{"AXA","AUA"}};
-        findItinerary(tickets3);
-        recreateItinerary(tickets3);
-    }
-}
-
-/**
- * Q-334 Increasing Triplet Subsequence
- */
-class IncreasingTripletSubsequence {
-    public static boolean increasingTriplet(int[] nums) {
-        if (nums.length < 3)
-            return false;
-        int m1 = nums[0], m2 = Integer.MAX_VALUE, count = 1;
-        for (int i = 1; i < nums.length; ++i) {
-            if (nums[i] > m2) {
-                return true;
-            } else if (nums[i] > m1) {
-                m2 = nums[i];
-                if (count < 2) {
-                    count++;
-                }
-            } else {
-                m1 = nums[i];
-            }
-        }
-        return false;
-    }
-
-    public static void test() {
-        System.out.println("Q-334 Increasing Triplet Subsequence");
-        System.out.println(increasingTriplet(new int[]{4,3,1,2,5}));
-    }
-}
 
 /**
  * Q-362 Design Hit Counter
@@ -2179,6 +1936,56 @@ class AccountsMerge {
     }
 }
 
+/** Q-722 Remove Comments */
+class RemoveComments {
+    public static List<String> removeComments(String[] source) {
+        List<String> result = new ArrayList<>();
+        boolean starComment = false;
+        StringBuilder newLine = new StringBuilder(""); // code line with multi-line comments will be concatenated
+        for (String line : source) {
+            for (int i = 0; i < line.length(); i++) {
+                if (i < line.length()-1) {
+                    String s2 = line.substring(i, i + 2);
+                    if (s2.equals("//") && !starComment) {
+                        // skip everything after //, incl. "/*" "*/"
+                        break;
+                    } else if (s2.equals("/*")) {
+                        if (!starComment) {
+                            starComment = true;
+                            i += 1;
+                        }
+                    } else if (s2.equals("*/") && starComment) { // test #4
+                        if (starComment) {
+                            starComment = false;
+                            i += 1;
+                        }
+                    } else if (!starComment)
+                        newLine.append(line.charAt(i));
+                } else if (!starComment){
+                    newLine.append(line.charAt(i));
+                }
+            }
+            if (!starComment && newLine.length() > 0) {
+                result.add(newLine.toString());
+                newLine.setLength(0);
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-722 Remove Comments");
+        String[] f1 = new String[] {"/*Test program */", "int main()", "{ ", "  // variable declaration ", "int a, b, c;", "/* This is a test", "   multiline  ", "   comment for ", "   testing */", "a = b + c;", "}"};
+        System.out.println(removeComments(f1));
+        String[] f2 = new String[] {"// Test program */", "int main()", "{ ", "  // variable declaration ", "int a, b, c;", "/* This is a test //", "   multiline  ", "//   comment for ", "   testing */", "a = b + c;", "}"};
+        System.out.println(removeComments(f2));
+        String[] f3 = new String[] {"a/*comment", "line", "more_comment*/b"};
+        System.out.println(removeComments(f3));
+        String[] f4 = new String[] {"void func(int k) {", "// this function does nothing /*", "   k = k*2/4;", "   k = k/2;*/", "}"};
+        System.out.println(removeComments(f4));
+    }
+}
+
 /** Q-725 Split Linked List in Parts */
 class SplitLinkedListInParts {
     public ListNode[] splitListToParts(ListNode root, int k) {
@@ -2550,9 +2357,6 @@ public class Leetcode
         SubstrsWithConcatWords.run();
         FindSubstring.run();
         CoinChange.run();
-        WiggleSort.test();
-        ReconstructItinerary.run();
-        IncreasingTripletSubsequence.test();
         KthSmallestInSortedMatrix.test();
         ShuffleArray.test();
         LexicographicalNumbers.test();
@@ -2579,6 +2383,7 @@ public class Leetcode
         TopKFrequentWords.test(); // priority queue + map
         PartitionKEqualSumSubsets.test(); // recursion
         AccountsMerge.test(); // union find
+        RemoveComments.test();
         DailyTemperature.test(); // stack
         NetworkDelayTime.test(); // single-source multi-destination shortest path
         ShortestCompletingWords.test();
@@ -2586,5 +2391,6 @@ public class Leetcode
         NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
         ChampagneTower.test(); // matrix + memoization
         CheapestFlightsWithinKStops.test(); // shortest path
+
     }
 }
