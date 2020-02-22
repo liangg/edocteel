@@ -1,5 +1,5 @@
 /**
- * Leetcode questions 351 - *, (list)
+ * Leetcode questions 351 - 799, (list)
  */
 
 import java.lang.Math;
@@ -14,6 +14,26 @@ class ListNode {
     ListNode(int x) {
         this.val = x;
         this.next = null;
+    }
+}
+
+class QuadTreeNode {
+    public boolean val;
+    public boolean isLeaf;
+    public QuadTreeNode topLeft;
+    public QuadTreeNode topRight;
+    public QuadTreeNode bottomLeft;
+    public QuadTreeNode bottomRight;
+
+    public QuadTreeNode() {}
+
+    public QuadTreeNode(boolean _val,boolean _isLeaf, QuadTreeNode _topLeft, QuadTreeNode _topRight, QuadTreeNode _bottomLeft, QuadTreeNode _bottomRight) {
+        val = _val;
+        isLeaf = _isLeaf;
+        topLeft = _topLeft;
+        topRight = _topRight;
+        bottomLeft = _bottomLeft;
+        bottomRight = _bottomRight;
     }
 }
 
@@ -688,6 +708,37 @@ class LongestRepeatingCharacterReplacement {
     }
 }
 
+/** Q-427 Construct Quad Tree */
+class ConstructQuadTree {
+    private static QuadTreeNode build(int[][] grid, int r, int c, int size) {
+        if (size == 1)
+            return new QuadTreeNode(grid[r][c] == 1, true, null, null, null, null);
+        for (int i = r; i < r+size; ++i) {
+            for (int j = c; j < c+size; ++j) {
+                if (grid[i][j] != grid[r][c]) {
+                    int half = size/2;
+                    QuadTreeNode topLeft = build(grid, r, c, half);
+                    QuadTreeNode topRight = build(grid, r, c+half, half);
+                    QuadTreeNode bottomLeft = build(grid, r+half, c, half);
+                    QuadTreeNode bottomRight = build(grid, r+half, c+half, half);
+                    return new QuadTreeNode(false, false, topLeft, topRight, bottomLeft, bottomRight);
+                }
+            }
+        }
+        return new QuadTreeNode(grid[r][c] == 1, true, null, null, null, null);
+    }
+
+    public static QuadTreeNode construct(int[][] grid) {
+        return build(grid, 0, 0, grid.length);
+    }
+
+    public static void test() {
+        System.out.println("Q-427 Construct Quad Tree");
+        int[][] grid = {{1, 1, 0, 0, 0, 0, 0, 0}, {1, 1, 0, 0, 0, 0, 0, 0}, {1, 1, 0, 0, 0, 0, 1, 1}, {1, 1, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {1, 1, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 0, 0}};
+        construct(grid);
+    }
+}
+
 /**
  * Q-433 Minimum Genetic Mutations
  *
@@ -1042,6 +1093,29 @@ class TeemoAttacking {
         return result;
     }
 
+}
+
+/**
+ * Q-523 Continuous Subarray Sum
+ *
+ * Given a list of non-negative numbers and a target integer k, write a function to check if the array has a
+ * continuous subarray of size at least 2 that sums up to a multiple of k, that is, sums up to n*k where n is
+ * also an integer.
+ */
+class ContinuousSubarraySum {
+    public boolean checkSubarraySum(int[] nums, int k) {
+        Map<Integer, Integer> modPos = new HashMap<>();
+        modPos.put(0,-1);
+        for (int i = 0, sum = 0; i < nums.length; ++i) {
+            sum += nums[i];
+            int m = k == 0 ? sum : sum % k;
+            if (!modPos.containsKey(m))
+                modPos.put(m, i);
+            else if (i - modPos.get(m) > 1)
+                return true;
+        }
+        return false;
+    }
 }
 
 /**
@@ -2163,6 +2237,42 @@ class ShortestCompletingWords {
 }
 
 /**
+ * Q-759 Employee Free Time
+ */
+class EmployeeFreeTime {
+    public List<Interval> employeeFreeTime(List<List<Interval>> schedule) {
+        List<Interval> intervals = new ArrayList<>();
+        for (List<Interval> sch : schedule) {
+            intervals.addAll(sch);
+        }
+        Collections.sort(intervals, new Comparator<Interval>() {
+            @Override
+            public int compare(Interval o1, Interval o2) {
+                if (o1.start == o2.start && o1.end == o2.end)
+                    return 0;
+                if (o1.start < o2.start || (o1.start == o2.start && o1.end < o2.end))
+                    return -1;
+                return 1;
+            }
+        });
+
+        List<Interval> result = new ArrayList<>();
+        int mergedStart = intervals.get(0).start, mergedEnd = intervals.get(0).end;
+        for (int i = 1; i < intervals.size(); ++i) {
+            Interval curr = intervals.get(i);
+            if (curr.start <= mergedEnd) {
+                mergedEnd = Math.max(mergedEnd, curr.end);
+            } else {
+                result.add(new Interval(mergedEnd, curr.start));
+                mergedStart = curr.start;
+                mergedEnd = curr.end;
+            }
+        }
+        return result;
+    }
+}
+
+/**
  * Q-785 Is Graph Bipartite (2-coloring Graph, BFS)
  */
 class GraphBipartite {
@@ -2369,6 +2479,7 @@ public class Leetcode
         OneThreeTwoPattern.test();
         UniqueSubstringsInWraparoundString.test(); //
         LongestRepeatingCharacterReplacement.test();
+        ConstructQuadTree.test();
         FindAllAnagramsInString.test(); // sliding window
         PermutationInString.test(); // sliding window char count
         TaskScheduler.test(); // priority queue
@@ -2391,6 +2502,5 @@ public class Leetcode
         NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
         ChampagneTower.test(); // matrix + memoization
         CheapestFlightsWithinKStops.test(); // shortest path
-
     }
 }

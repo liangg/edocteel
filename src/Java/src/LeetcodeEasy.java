@@ -47,6 +47,20 @@ class MorrisTraversal {
     }
 }
 
+/** Q-1 Two Sum */
+class TwoSum {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> posMap = new HashMap<>();
+        for (int l = 0; l < nums.length; ++l) {
+            int d = target - nums[l];
+            if (posMap.containsKey(d))
+                return new int[]{posMap.get(d), l};
+            posMap.put(nums[l], l);
+        }
+        return new int[0];
+    }
+}
+
 /** 94. Binary Tree Inorder Traversal */
 class BinaryTreeInorderTraversal {
     public List<Integer> inorderTraversal(TreeNode root) {
@@ -340,6 +354,13 @@ class PopulateBinaryTreeNextRightPointer
     }
 }
 
+/**
+ * Q-124 Binary Tree Maximum Path Sum
+ *
+ * Given a non-empty binary tree, find the maximum path sum. For this problem, a path is defined as any sequence of
+ * nodes from some starting node to any node in the tree along the parent-child connections. The path must contain
+ * at least one node and does not need to go through the root.
+ */
 class BinaryTreeMaxPathSum
 {
     private int pathSum(TreeNode root, int maxsum[]) {
@@ -361,6 +382,35 @@ class BinaryTreeMaxPathSum
         int maxsum[] = new int[] {Integer.MIN_VALUE};
         pathSum(root, maxsum);
         return maxsum[0];
+    }
+}
+
+/** Q-173 Binary Search Tree Iterator */
+class BSTIterator {
+    private Stack<TreeNode> stack = new Stack<>();
+
+    public BSTIterator(TreeNode root) {
+        TreeNode n = root;
+        while (n != null) {
+            stack.push(n);
+            n = n.left;
+        }
+    }
+
+    /** @return the next smallest number */
+    public int next() {
+        TreeNode n = stack.pop();
+        TreeNode next = n.right;
+        while (next != null) {
+            stack.push(next);
+            next = next.left;
+        }
+        return n.val;
+    }
+
+    /** @return whether we have a next smallest number */
+    public boolean hasNext() {
+        return !stack.empty();
     }
 }
 
@@ -388,31 +438,9 @@ class BinaryTreePreorderTraversal {
  * Q-161 One Edit Distance
  */
 class OneEditDistance {
-    public static boolean isOneEditDistance0(String s, String t) {
-        if (s.length() > t.length()) { // make sure s smaller than t
-            String tmp = t;
-            t = s;
-            s = tmp;
-        }
-        if (t.length() - s.length() > 1) return false;
-        if (s.length() == t.length()) {
-            int mismatch = 0;
-            for (int i = 0; i < s.length(); ++i) {
-                if (s.charAt(i) != t.charAt(i))
-                    mismatch++;
-            }
-            if (mismatch != 1)
-                return false;
-        } else {
-            for (int i = 0; i < s.length(); ++i) {
-                if (s.charAt(i) != t.charAt(i))
-                    return s.substring(i).equals(t.substring(i+1));
-            }
-        }
-        return true;
-    }
-
     public static boolean isOneEditDistance(String s, String t) {
+        if (Math.abs(s.length() - t.length()) > 1)
+            return false;
         for (int i = 0; i < Math.min(s.length(), t.length()); ++i) {
             if (s.charAt(i) != t.charAt(i)) {
                 if (s.length() == t.length()) return s.substring(i+1).equals(t.substring(i+1));
@@ -464,6 +492,30 @@ class FactorialTrailingZeroes {
         while (n > 0) {
             result += n/5;
             n /= 5;
+        }
+        return result;
+    }
+}
+
+/** Q-199 Binary Tree Right Side View */
+class BinaryTreeRightSideView {
+    public List<Integer> rightSideView(TreeNode root) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        if (root == null)
+            return result;
+        ArrayDeque<TreeNode> queue = new ArrayDeque<TreeNode>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            result.add(queue.peek().val);
+            // traverse the "nlvl" nodes on the same level
+            int nlvl = queue.size();
+            for (int i = 0; i < nlvl; ++i) {
+                TreeNode n = queue.poll();
+                if (n.right != null)
+                    queue.add(n.right);
+                if (n.left != null)
+                    queue.add(n.left);
+            }
         }
         return result;
     }
@@ -693,6 +745,39 @@ class HouseRobber3 {
 }
 
 /**
+ * Q-339 Nested List Weight Sum
+ *
+ * Given a nested list of integers, return the sum of all integers in the list weighted by their depth. Each element
+ * is either an integer, or a list -- whose elements may also be integers or other lists.
+ */
+class NestedListWeightSum {
+    interface NestedInteger {
+        // @return true if this NestedInteger holds a single integer, rather than a nested list.
+        public boolean isInteger();
+
+        // @return the single integer that this NestedInteger holds, if it holds a single integer
+        // Return null if this NestedInteger holds a nested list
+        public Integer getInteger();
+
+        // Return null if this NestedInteger holds a single integer
+        public List<NestedInteger> getList();
+    }
+
+    private int helper(List<NestedInteger> nestedList, int depth) {
+        int sum = 0;
+        for (NestedInteger ni : nestedList) {
+            if (ni.isInteger()) sum += depth*ni.getInteger();
+            else sum += helper(ni.getList(), depth+1);
+        }
+        return sum;
+    }
+
+    public int depthSum(List<NestedInteger> nestedList) {
+        return helper(nestedList, 1);
+    }
+}
+
+/**
  * Q-359 Logger Rate Limiter
  *
  * Design a logger system that receive stream of messages along with its timestamps, each message should be printed
@@ -707,9 +792,8 @@ class LoggerRateLimiter {
         if (messageStore.containsKey(message)) {
             if (messageStore.get(message) + MSG_RETENTION > timestamp)
                 return false;
-        } else {
-            messageStore.put(message, timestamp);
         }
+        messageStore.put(message, timestamp);
         return true;
     }
 }
@@ -1830,6 +1914,39 @@ class PeakIndexInMountainArray {
     }
 }
 
+/** Q-953 Verifying an Alien Dictionary */
+class VerifyingAnAlienDictionary {
+    public static boolean isAlienSorted(String[] words, String order) {
+        Map<Character, Integer> charOrder = new HashMap<>();
+        for (int i = 0; i < order.length(); ++i)
+            charOrder.put(order.charAt(i), i);
+        for (int i = 0; i < words.length-1; ++i) {
+            String w1 = words[i], w2 = words[i+1];
+            boolean commonPrefix = true;
+            for (int j = 0; j < w1.length() && j < w2.length(); ++j) {
+                if (w1.charAt(j) != w2.charAt(j)) {
+                    commonPrefix = false;
+                    if (charOrder.get(w1.charAt(j)) > charOrder.get(w2.charAt(j)))
+                        return false;
+                    break;
+                }
+            }
+            // "app" < "apple"
+            if (commonPrefix && w2.length() < w1.length())
+                return false;
+        }
+        return true;
+    }
+
+    public static void test() {
+        System.out.println("Q-953 Verifying an Alien Dictionary");
+        System.out.println(isAlienSorted(new String[]{"hello","leetcode"}, "hlabcdefgijkmnopqrstuvwxyz")); // true
+        System.out.println(isAlienSorted(new String[]{"word","world","row"}, "worldabcefghijkmnpqstuvxyz")); // false
+        System.out.println(isAlienSorted(new String[]{"apple","app"}, "abcdefghijklmnopqrstuvwxyz")); // false
+        System.out.println(isAlienSorted(new String[]{"kuvp","q"}, "ngxlkthsjuoqcpavbfdermiywz")); // true
+    }
+}
+
 class BinarySearch {
     public static int search(int[] nums, int target) {
         if (nums.length == 0) return -1;
@@ -1876,6 +1993,8 @@ public class LeetcodeEasy {
         FindSmallestLetterGreaterThanTarget.test();
 
         SerializeAndDeserializeBST.test();
+
+        VerifyingAnAlienDictionary.test();
     }
 
 }
