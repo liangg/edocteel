@@ -740,6 +740,44 @@ class ConstructQuadTree {
 }
 
 /**
+ * Q-430 Flatten a Multilevel Doubly Linked List
+ */
+class FlattenMultilevelDoublyLinkedList {
+    static class Node {
+        public int val;
+        public Node prev;
+        public Node next;
+        public Node child;
+    };
+
+    public Node flatten(Node head) {
+        if (head != null) {
+            helper(head);
+            head.prev = null;
+        }
+        return head;
+    }
+
+    private Node helper(Node head) {
+        Node last = null;
+        for (Node n = head; n != null; last = n, n = n.next) {
+            if (n.child != null) {
+                Node nested = helper(n.child);
+                Node nestedLast = nested.prev;
+                nestedLast.next = n.next; // insert nested list
+                if (n.next != null) n.next.prev = nestedLast;
+                nested.prev = n;
+                n.next = nested;
+                n.child = null;
+                n = nestedLast;
+            }
+        }
+        head.prev = last;
+        return head;
+    }
+}
+
+/**
  * Q-433 Minimum Genetic Mutations
  *
  * A gene string can be represented by an 8-character long string, with choices from "A", "C", "G", "T". Suppose we need

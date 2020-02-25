@@ -1280,9 +1280,15 @@ class SingleNumber {
 }
 
 /**
- * Q-139: Word Break
+ * Q-139 Word Break
+ *
+ * Q-140 Word Break II
+ *
+ * Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, add spaces in s to
+ * construct a sentence where each word is a valid dictionary word. Return all such possible sentences.
  */
 class WordBreak {
+    // Q-139
     public static boolean wordBreak(String s, Set<String> dict) {
         // hasWord[i] remembers the length of longest word ends at [i]
         int hasWord[] = new int[s.length()];
@@ -1307,6 +1313,42 @@ class WordBreak {
         return hasWord[s.length()-1] != 0;
     }
 
+    // Q-140
+    public static List<String> wordBreak2(String s, List<String> wordDict) {
+        Map<String, Set<String>> memo = new HashMap<>();
+        Set<String> dict = new HashSet<>();
+        for (String w : wordDict)
+            dict.add(w);
+        List<String> result = new ArrayList<>(helper(s, dict, memo));
+        System.out.println(result);
+        return result;
+    }
+
+    private static Set<String> helper(String s, Set<String> dict, Map<String, Set<String>> memo) {
+        if (s.length() == 0) {
+            Set<String> r = new HashSet<>();
+            r.add("");
+            return r;
+        }
+        if (memo.containsKey(s))
+            return memo.get(s);
+        Set<String> result = new HashSet<>();
+        for (int i = 0; i < s.length(); ++i) {
+            String prefix = s.substring(0, i+1);
+            if (dict.contains(prefix)) {
+                String suffix = s.substring(i+1);
+                Set<String> suffixes = helper(suffix, dict, memo);
+                for (String ss : suffixes) {
+                    String s2 = ss.isEmpty() ? prefix : prefix + " " + ss;
+                    if (!result.contains(s2))
+                        result.add(s2);
+                }
+            }
+        }
+        memo.put(s, result);
+        return result;
+    }
+
     public static void run() {
         System.out.println("--------- Word Break -----------");
         Set<String> dict = new TreeSet<String>();
@@ -1324,6 +1366,9 @@ class WordBreak {
         wordBreak("lovereading", dict);
         wordBreak("eareading", dict);
         wordBreak("ab", dict);
+
+        String[] dict2 = {"cat", "cats", "and", "sand", "dog"};
+        wordBreak2("catsanddog", Arrays.asList(dict2));
     }
 }
 
@@ -3012,6 +3057,7 @@ public class LeetcodeOne {
         RemoveDuplicatesFromSortedArray.test();
         RestoreIpAddress.test();
         GasStation.test();
+        WordBreak.run();
         FindPeakElement.test();
         LargestNumber.test();
         HappyNumber.test();
