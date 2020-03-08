@@ -8,34 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode(int x) {
-        this.val = x;
-        this.next = null;
-    }
-}
-
-class QuadTreeNode {
-    public boolean val;
-    public boolean isLeaf;
-    public QuadTreeNode topLeft;
-    public QuadTreeNode topRight;
-    public QuadTreeNode bottomLeft;
-    public QuadTreeNode bottomRight;
-
-    public QuadTreeNode() {}
-
-    public QuadTreeNode(boolean _val,boolean _isLeaf, QuadTreeNode _topLeft, QuadTreeNode _topRight, QuadTreeNode _bottomLeft, QuadTreeNode _bottomRight) {
-        val = _val;
-        isLeaf = _isLeaf;
-        topLeft = _topLeft;
-        topRight = _topRight;
-        bottomLeft = _bottomLeft;
-        bottomRight = _bottomRight;
-    }
-}
 
 /**
  * Q-61 Rotate List
@@ -1178,6 +1150,47 @@ class ContinguousArray {
     }
 }
 
+/**
+ * Q-536 Construct Binary Tree from String
+ */
+class ConstructBinaryTreeFromString {
+    public static TreeNode str2tree(String s) {
+        if (s.isEmpty()) return null;
+        Stack<TreeNode> stack = new Stack<>();
+        for (int i = 0, start = 0; i < s.length(); ++i) {
+            if (s.charAt(i) == '(') {
+                if (s.charAt(i-1) == ')') { // the second '(' in (3)(1)
+                    start = i+1;
+                    continue;
+                }
+                int val = Integer.valueOf(s.substring(start, i));
+                TreeNode n = new TreeNode(val);
+                stack.push(n);
+                start = i+1;
+            } else if (s.charAt(i) == ')') {
+                TreeNode n;
+                if (s.charAt(i-1) == ')')
+                    n = stack.pop();
+                else { // the last ')' in 2(3)(1)
+                    n = new TreeNode(Integer.valueOf(s.substring(start, i)));
+                    start = i+1;
+                }
+                TreeNode par = stack.peek();
+                if (par.left == null) par.left = n;
+                else par.right = n;
+            }
+        }
+        TreeNode root = stack.empty() ? new TreeNode(Integer.valueOf(s)) : stack.pop();
+        return root;
+    }
+
+    public static void test() {
+        System.out.println("Q-536 Construct Binary Tree from String");
+        str2tree("24(-2(3)(1))(6)");
+        str2tree("4");
+    }
+}
+
 /** Q-539 Minimum Time Difference */
 class MinimumTimeDifference {
     private static int numberify(String s) {
@@ -1436,6 +1449,33 @@ class MyCircularQueue {
         System.out.println(cq.deQueue()); // true
         System.out.println(cq.enQueue(4)); // true
         System.out.println(cq.Rear()); // 4
+    }
+}
+
+/**
+ * Q-636 Exclusive Time of Functions
+ */
+class ExclusiveTimeOfFunctions {
+    public int[] exclusiveTime(int n, List<String> logs) {
+        int[] result = new int[n]; // n functions
+        int prevTime = 0;
+        Stack<Integer> activeJobs = new Stack<>();
+        for (String log : logs) {
+            String[] parts = log.split(":");
+            int idx = Integer.valueOf(parts[0]);
+            int time = Integer.valueOf(parts[2]);
+            if (!activeJobs.empty())
+                result[activeJobs.peek()] += time - prevTime;
+            prevTime = time;
+            if (parts[1].equals("start")) {
+                activeJobs.add(idx);
+            } else {
+                activeJobs.pop(); // should be same as idx
+                result[idx] += 1; // account for the current time point
+                prevTime += 1;
+            }
+        }
+        return result;
     }
 }
 
@@ -2509,6 +2549,8 @@ public class Leetcode
         ShuffleArray.test();
         LexicographicalNumbers.test();
         LongestSubstingWithKRepeatingChars.test();
+        ConstructBinaryTreeFromString.test();
+        MinimumTimeDifference.test();
         ZeroOneMatrix.test();
         MinimumGeneticMutations.test();
         RandomPickIndex.test();
@@ -2540,5 +2582,7 @@ public class Leetcode
         NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
         ChampagneTower.test(); // matrix + memoization
         CheapestFlightsWithinKStops.test(); // shortest path
+
+
     }
 }

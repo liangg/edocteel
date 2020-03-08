@@ -6,15 +6,6 @@
 
 import java.util.*;
 
-class Interval {
-    int start;
-    int end;
-    Interval() { start = 0; end = 0; }
-    Interval(int s, int e) { start = s; end = e; }
-    public String toString() {
-        return "(" + start + "," + end + ")";
-    }
-}
 
 /** Q-3 Longest Substring Without Repeating Characters */
 class LongestSubstringWithoutRepeatingChars {
@@ -148,6 +139,35 @@ class LetterComboOfPhoneNumber {
     List<String> r = letterCombinationsRecursive("234");
     System.out.println(r.toString());
   }
+}
+
+/**
+ * Q-23 Merge K Sorted Lists
+ */
+class MergeKSortedLists {
+    public ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> minHeap = new PriorityQueue<>(10, new Comparator<ListNode>() {
+            @Override
+            public int compare(ListNode o1, ListNode o2) {
+                return o1.val == o2.val ? 0 : (o1.val < o2.val ? -1 : 1);
+            }
+        });
+        for (ListNode lh : lists)
+            if (lh != null) minHeap.add(lh);
+        ListNode dummy = new ListNode(-1);
+        ListNode tail = dummy;
+        while (!minHeap.isEmpty()) {
+            ListNode n = minHeap.poll();
+            tail.next = n;
+            tail = n;
+            ListNode next = n.next;
+            tail.next = null;
+            if (next != null) minHeap.add(next);
+        }
+        ListNode head = dummy.next;
+        dummy.next = null;
+        return head;
+    }
 }
 
 /** Q-31 Next Permutation */
@@ -1128,6 +1148,36 @@ class WordLadder {
             }
         }
         return 0;
+    }
+}
+
+/**
+ * Q-128 Longest Consecutive Sequence
+ *
+ * Given an unsorted array of integers, find the length of the longest consecutive elements sequence. Your algorithm
+ * should run in O(n) complexity.
+ */
+class LongestConsecutiveSequence {
+    public int longestConsecutive(int[] nums) {
+        Set<Integer> numSet = new HashSet<>();
+        for (int n : nums) numSet.add(n);
+        int result = 0;
+        for (int n : nums) {
+            if (!numSet.contains(n)) continue;
+            numSet.remove(n);
+            int left = n-1, right = n+1;
+            while (numSet.contains(left)) {
+                numSet.remove(left);
+                left--;
+            }
+            while (numSet.contains(right)) {
+                numSet.remove(right);
+                right++;
+            }
+            if (right-left-1 > result)
+                result = right-left-1;
+        }
+        return result;
     }
 }
 
@@ -2140,6 +2190,49 @@ class DifferentWaysOfAddParenthese {
 }
 
 /**
+ * Q-243 Shortest Word Distance
+ */
+class ShortestWordDistance {
+    public static int shortestDistance1(String[] words, String word1, String word2) {
+        int result = words.length+1;
+        for (int i = 0, p1 = -words.length, p2 = -words.length; i < words.length; ++i) {
+            if (words[i].equals(word1)) {
+                p1 = i;
+                if (p1 - p2 < result)
+                    result = p1-p2;
+            } else if (words[i].equals(word2)) {
+                p2 = i;
+                if (p2 - p1 < result)
+                    result = p2-p1;
+            }
+        }
+        return result;
+    }
+
+    public static int shortestDistance3(String[] words, String word1, String word2) {
+        if (!word1.equals(word2))
+            return shortestDistance1(words, word1, word2);
+
+        int result = words.length+1;
+        for (int i = 0, prev = -words.length; i < words.length; ++i) {
+            if (!words[i].equals(word1)) continue;
+            if (i-prev < result)
+                result = i - prev;
+            prev = i;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-243 Shortest Word Distance");
+        String[] strs = {"practice","makes","perfect","coding","makes"};
+        System.out.println(shortestDistance1(strs, "practice", "coding")); // 3
+        System.out.println(shortestDistance1(strs, "makes", "coding")); // 1
+        System.out.println(shortestDistance3(strs, "makes", "makes")); // 3
+    }
+}
+
+/**
  * Q-253 Meeting Rooms II
  *
  * Given an array of meeting time intervals consisting of start and end times [[s1,e1],[s2,e2],...] (si < ei),
@@ -2448,6 +2541,73 @@ class HIndex {
 }
 
 /**
+ * Q-282 Expression Add Operators
+ *
+ * Given a string that contains only digits 0-9 and a target value, return all possibilities to add binary operators
+ * (not unary) +, -, or * between the digits so they evaluate to the target value.
+ */
+class ExpressionAddOperators {
+    private static void helper(String num, final long target, long currValue, String expr, long last, List<String> result) {
+        if (num.isEmpty() && target == currValue) {
+            result.add(expr);
+            return;
+        }
+        for (int i = 0; i < num.length(); ++i) {
+            String ns = num.substring(0, i+1);
+            if (ns.length() > 1 && ns.charAt(0) == '0') return; // skip "00"
+            String num2 = num.substring(i+1);
+            long num1 = Long.parseLong(ns);
+            if (expr.isEmpty()) {
+                helper(num2, target, num1, ns, num1, result);
+            } else {
+                helper(num2, target, currValue+num1, expr + "+" + ns, num1, result);
+                helper(num2, target, currValue-num1, expr + "-" + ns, -num1, result);
+                // 235 - prev iteration: 2-3, now: 2-3*5
+                helper(num2, target, (currValue-last)+last*num1, expr + '*' + ns, last*num1, result);
+            }
+        }
+    }
+
+    public static List<String> addOperators(String num, int target) {
+        List<String> result = new ArrayList<>();
+        helper(num, target, 0, "", 0, result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-282 Expression Add Operators");
+        System.out.println(addOperators("123", 6)); // ["1+2+3", "1*2*3"]
+        System.out.println(addOperators("232", 8)); // ["2*3+2", "2+3*2"]
+        System.out.println(addOperators("105", 5)); // ["1*0+5","10-5"]
+
+    }
+}
+
+/**
+ * Q-286 Walls and Gates
+ */
+class WallsAndGates {
+    private void dfs(int[][] rooms, int x, int y, int distance) {
+        if (x < 0 || x >= rooms.length || y < 0 || y >= rooms[0].length || distance > rooms[x][y])
+            return;
+        rooms[x][y] = distance;
+        dfs(rooms, x-1, y, distance+1);
+        dfs(rooms, x, y-1, distance+1);
+        dfs(rooms, x+1, y, distance+1);
+        dfs(rooms, x, y+1, distance+1);
+    }
+
+    public void wallsAndGates(int[][] rooms) {
+        for (int i = 0; i < rooms.length; ++i) {
+            for (int j = 0; j < rooms[0].length; ++j) {
+                if (rooms[i][j] == 0) // gate
+                    dfs(rooms, i, j, 0);
+            }
+        }
+    }
+}
+
+/**
  * Q-287 Find the Duplicate Number
  *
  * Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at
@@ -2471,7 +2631,7 @@ class FindDuplicateNumber {
 
     public static void test() {
         System.out.println("Q-287 Find the Duplicate Number");
-        //System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
+        System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
         System.out.println(findDuplicate(new int[]{2,3,4,1,1}));
     }
 }
@@ -2750,11 +2910,25 @@ class RemoveDuplicateLetters {
 }
 
 /**
+ * Q-280 Wiggle Sort
+ *
+ * Given an unsorted array nums, reorder it in-place such that nums[0] <= nums[1] >= nums[2] <= nums[3] ...
+ *
  * Q-324 Wiggle Sort 2
  *
  * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
  */
 class WiggleSort {
+    public static void wiggleSort1(int[] nums) {
+        Arrays.sort(nums);
+        for (int i = 1; i < nums.length-1; i += 2) {
+            int t = nums[i];
+            nums[i] = nums[i+1];
+            nums[i+1] = t;
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
     public static void wiggleSort(int[] nums) {
         int[] c = Arrays.copyOf(nums, nums.length);
         Arrays.sort(c);
@@ -2770,7 +2944,38 @@ class WiggleSort {
 
     public static void test() {
         System.out.println("Q-324 Wiggle Sort 2");
+        wiggleSort1(new int[]{1,5,2,3,6,4,7});
         wiggleSort(new int[]{1,5,1,1,6,4});
+    }
+}
+
+/**
+ * Q-325 Maximum Size Subarray Sum Equals K
+ *
+ * Given an array nums and a target value k, find the maximum length of a subarray that sums to k. If there isn't
+ * one, return 0 instead.
+ */
+class MaximumSizeSubarraySumEqualsK {
+    public static int maxSubArrayLen(int[] nums, int k) {
+        int result = 0;
+        Map<Integer, Integer> sumPos = new HashMap<>();
+        for (int i = 0, sum = 0; i < nums.length; ++i) {
+            sum += nums[i];
+            if (sum == k)
+                result = i + 1;
+            else if (sumPos.containsKey(Integer.valueOf(sum - k)))
+                result = Math.max(result, i - sumPos.get(Integer.valueOf(sum - k)));
+            if (!sumPos.containsKey(Integer.valueOf(sum)))
+                sumPos.put(Integer.valueOf(sum), i); // remember the shortest prefix sum
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-325 Maximum Size Subarray Sum Equals K");
+        System.out.println(maxSubArrayLen(new int[]{-2,-1,2,1}, 1)); // 2
+        System.out.println(maxSubArrayLen(new int[]{1,0,-1}, -1)); // 2
+        System.out.println(maxSubArrayLen(new int[]{1,1,0}, 1)); // 2
     }
 }
 
@@ -2938,6 +3143,37 @@ class IncreasingTripletSubsequence {
     }
 }
 
+/**
+ * Q-340 Longest Substring with At Most K Distinct Characters
+ *
+ * Given a string, find the length of the longest substring T that contains at most k distinct characters.
+ */
+class LongestSubstringWithAtMostKDistinctCharacters {
+    public static int lengthOfLongestSubstringKDistinct(String s, int k) {
+        int result = 0;
+        Map<Character, Integer> countMap = new HashMap<>();
+        for (int i = 0, j = 0; i < s.length(); ++i) {
+            Character c = s.charAt(i);
+            int count = countMap.containsKey(c) ? countMap.get(c) + 1 : 1;
+            countMap.put(c, count);
+            while (countMap.size() > k) {
+                Character lc = s.charAt(j++);
+                count = countMap.get(lc) - 1;
+                if (count == 0) countMap.remove(lc);
+                else countMap.put(lc, count);
+            }
+            if (i-j+1 > result) result = i-j+1;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-340 Longest Substring with At Most K Distinct Characters");
+        System.out.println(lengthOfLongestSubstringKDistinct("eceba", 2)); // 3
+        System.out.println(lengthOfLongestSubstringKDistinct("aa", 1)); // 2
+    }
+}
+
 /** Q-349 Intersection of Two Arrays */
 class IntersectionOfTwoArrays {
     public int[] intersection(int[] nums1, int[] nums2) {
@@ -3000,6 +3236,30 @@ class InsertDeleteGetRandomO1 {
     public int getRandom() {
         final int index = new Random().nextInt(values.size());
         return values.get(index);
+    }
+}
+
+/**
+ * Q-426 Convert Binary Search Tree to Sorted Doubly Linked List
+ */
+class ConvertBinarySearchTreeToSortedDoublyLinkedList {
+    public Node treeToDoublyList(Node root) {
+        if (root == null) return null;
+        Node left = treeToDoublyList(root.left);
+        Node right = treeToDoublyList(root.right);
+        Node head = left != null ? left : root;
+        if (left != null) {
+            left.left.right = root;
+            root.left = left.left;
+        }
+        Node tail = right != null ? right.left : root;
+        if (right != null) {
+            right.left = root;
+            root.right = right;
+        }
+        head.left = tail;
+        tail.right = head;
+        return head;
     }
 }
 
@@ -3071,14 +3331,18 @@ public class LeetcodeOne {
         AlienDictionary.test();
         EncodeAndDecodeStrings.test();
         HIndex.test();
+        ExpressionAddOperators.test();
         FindDuplicateNumber.test();
         IntegerToEnglishWords.test();
         GameOfLife.test();
         RemoveInvalidParentheses.test();
         WiggleSort.test();
+        MaximumSizeSubarraySumEqualsK.test();
         ReconstructItinerary.run();
         IncreasingTripletSubsequence.test();
+        LongestSubstringWithAtMostKDistinctCharacters.test();
         FindRightInterval.test();
+        ShortestWordDistance.test();
     }
 }
 

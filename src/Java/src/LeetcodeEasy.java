@@ -4,20 +4,6 @@
 
 import java.util.*;
 
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode(int x) { val = x; }
-}
-
-class Node {
-    int val;
-    Node left;
-    Node right;
-    Node next;
-}
-
 class MorrisTraversal {
     void traverse(TreeNode root) {
         TreeNode n = root;
@@ -497,6 +483,40 @@ class FactorialTrailingZeroes {
     }
 }
 
+
+/**
+ * Q-186 Reverse Words in a String II
+ */
+class ReverseWordsInString2 {
+    private static void reverse(char[] s, int begin, int end) {
+        for (int l = begin, r = end; l < r; ++l, --r) {
+            char t = s[l];
+            s[l] = s[r];
+            s[r] = t;
+        }
+    }
+
+    public static void reverseWords(char[] s) {
+        reverse(s, 0, s.length-1);
+        System.out.print(Arrays.toString(s));
+        int l = 0, r = 0;
+        for (; r < s.length; ++r) {
+            if (s[r] == ' ') {
+                if (l < r) reverse(s, l, r-1);
+                l = r+1;
+            }
+        }
+        if (l < s.length) reverse(s, l, s.length-1);
+        System.out.print(Arrays.toString(s));
+    }
+
+    public static void test() {
+        System.out.println("Q-186 Reverse Words in a String II");
+        String s = "the  sky is a blue";
+        reverseWords(s.toCharArray());
+    }
+}
+
 /** Q-199 Binary Tree Right Side View */
 class BinaryTreeRightSideView {
     public List<Integer> rightSideView(TreeNode root) {
@@ -659,6 +679,66 @@ class LowestCommonAncestorOfBinarySearchTree {
     }
 }
 
+/** Q-283 Move Zeroes */
+class MoveZeroes {
+    public static void moveZeroes(int[] nums) {
+        for (int l = 0, r = 0; r < nums.length; r++) {
+            if (nums[r] != 0) {
+                int t = nums[l];
+                nums[l] = nums[r];
+                nums[r] = t;
+                l++;
+            }
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void test() {
+        System.out.println("Q-283 Move Zeroes");
+        moveZeroes(new int[]{0,1,0,3,12});
+        moveZeroes(new int[]{1,0,3,0,4,12});
+    }
+}
+
+/**
+ * Q-314 Binary Tree Vertical Order Traversal
+ */
+class BinaryTreeVerticalOrderTraversal {
+    private static class Pair {
+        public TreeNode node;
+        public int index;
+        Pair(TreeNode node, int index) {
+            this.node = node;
+            this.index = index;
+        }
+    }
+
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
+        Map<Integer, List<Integer>> treeMap = new TreeMap<>();
+        Queue<Pair> queue = new ArrayDeque<>();
+        queue.add(new Pair(root, 0));
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            for (int i = 0; i < size; ++i) {
+                Pair p = queue.poll();
+                List<Integer> vl = treeMap.containsKey(Integer.valueOf(p.index)) ? treeMap.get(Integer.valueOf(p.index)):
+                    new ArrayList<>();
+                vl.add(p.node.val);
+                treeMap.put(Integer.valueOf(p.index), vl);
+                if (p.node.left != null)
+                    queue.add(new Pair(p.node.left, p.index-1));
+                if (p.node.right != null)
+                    queue.add(new Pair(p.node.right, p.index+1));
+            }
+        }
+        for (Map.Entry<Integer, List<Integer>> e : treeMap.entrySet())
+            result.add(e.getValue());
+        return result;
+    }
+}
+
 /**
  * Q-333 Largest BST
  *
@@ -777,6 +857,32 @@ class NestedListWeightSum {
     }
 }
 
+/** Q-345 Reverse Vowels of a String */
+class ReverseVowelsOfString {
+    public static String reverseVowels(String s) {
+        Character[] v = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>();
+        vowels.addAll(Arrays.asList(v));
+        char[] schars = s.toCharArray();
+        for (int l = 0, r = schars.length-1; l < r; l++, r--) {
+            if (vowels.contains(schars[l]) && vowels.contains(schars[r])) {
+                char c = schars[l];
+                schars[l] = schars[r];
+                schars[r] = c;
+            } else if (vowels.contains(schars[l]))
+                l--;
+            else if (vowels.contains(schars[r]))
+                r++;
+        }
+        return new String(schars);
+    }
+
+    public static void test() {
+        System.out.println("Q-345 Reverse Vowels of a String");
+        System.out.println(reverseVowels("leetcode"));
+    }
+}
+
 /**
  * Q-359 Logger Rate Limiter
  *
@@ -798,6 +904,20 @@ class LoggerRateLimiter {
     }
 }
 
+/** Q-383 Ransom Note */
+class RansomNote {
+    public static boolean canConstruct(String ransomNote, String magazine) {
+        int[] counts = new int[256];
+        for (char c : magazine.toCharArray())
+            counts[c]++;
+        for (char c : ransomNote.toCharArray()) {
+            if (counts[c] <= 0) return false;
+            counts[c] -= 1;
+        }
+        return true;
+    }
+}
+
 /** Q-392 Is Subsequence */
 class IsSubsequence {
     public boolean isSubsequence(String s, String t) {
@@ -807,6 +927,37 @@ class IsSubsequence {
                 p1++;
         }
         return p1 == s.length();
+    }
+}
+
+/** Q-415 Add Strings */
+class AddStrings {
+    public static String addStrings(String num1, String num2) {
+        StringBuilder sum = new StringBuilder("");
+        int i = num1.length()-1, j = num2.length()-1, carryover = 0;
+        for (; i >= 0 && j >= 0; --i, --j) {
+            int d1 = num1.charAt(i) - '0', d2 = num2.charAt(j) - '0';
+            int s = d1+d2+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        for (; i >= 0; --i) {
+            int s = num1.charAt(i)-'0'+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        for (; j >= 0; --j) {
+            int s = num2.charAt(j)-'0'+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        if (carryover > 0) sum.append(carryover);
+        return sum.reverse().toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-415 Add Strings");
+        System.out.println(addStrings("568", "2892")); // 3460
     }
 }
 
@@ -1387,6 +1538,27 @@ class CanPlaceFlowers {
     }
 }
 
+/** Q-606 Construct String from Binary Tree */
+class ConstructStringFromBinaryTree {
+    public String tree2str(TreeNode t) {
+        if (t == null) return "";
+        StringBuilder result = new StringBuilder("");
+        result.append(Integer.toString(t.val));
+        if (t.left != null) {
+            result.append('(');
+            result.append(tree2str(t.left));
+            result.append(')');
+        }
+        if (t.right != null) {
+            if (t.left == null) result.append("()");
+            result.append('(');
+            result.append(tree2str(t.right));
+            result.append(')');
+        }
+        return result.toString();
+    }
+}
+
 /** Q-645 Set Mismatch */
 class SetMismatch {
     public static int[] findErrorNums(int[] nums) {
@@ -1947,6 +2119,25 @@ class VerifyingAnAlienDictionary {
     }
 }
 
+/** Q-1119 Remove Vowels from a String */
+class RemoveVowelsFromString {
+    public static String removeVowels(String S) {
+        Character[] v = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>();
+        vowels.addAll(Arrays.asList(v));
+        StringBuilder result = new StringBuilder("");
+        for (char c : S.toCharArray())
+            if (!vowels.contains(Character.valueOf(c))) result.append(c);
+        return result.toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-1119 Remove Vowels from a String");
+        System.out.println(removeVowels("leetcodeisacommunityforcoders")); // "ltcdscmmntyfrcdrs"
+        System.out.println(removeVowels("aeiou"));
+    }
+}
+
 class BinarySearch {
     public static int search(int[] nums, int target) {
         if (nums.length == 0) return -1;
@@ -1967,15 +2158,17 @@ class BinarySearch {
     }
 }
 
-
 public class LeetcodeEasy {
 
     public static void main(String[] args) {
         System.out.println("Leetcode Easy Level and Tree");
         OneEditDistance.test();
         KthSmallestElements.run();
+        MoveZeroes.test();
         HouseRobber3.run();
+        AddStrings.test();
         ArrangeCoins.test();
+        SerializeAndDeserializeBST.test();
         FindAllNumbersDisappearedInArray.test();
         RepeatedSubstringPattern.test();
         NumberComplement.test();
@@ -1991,9 +2184,6 @@ public class LeetcodeEasy {
         CountBinarySubstrings.test();
         DegreeOfAnArray.test();
         FindSmallestLetterGreaterThanTarget.test();
-
-        SerializeAndDeserializeBST.test();
-
         VerifyingAnAlienDictionary.test();
     }
 
