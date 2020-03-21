@@ -2161,6 +2161,21 @@ class SplitLinkedListInParts {
     }
 }
 
+/**
+ * Q-727 Minimum Window Subsequence
+ *
+ * Given strings S and T, find the minimum (contiguous) substring W of S, so that T is a subsequence of W. If there
+ * is no such window in S that covers all characters in T, return the empty string "". If there are multiple such
+ * minimum-length windows, return the one with the left-most starting index.
+ */
+class MinimumWindowSubsequence {
+    public String minWindow(String S, String T) {
+        String result = "";
+
+        return result;
+    }
+}
+
 /** Q-729 My Calendar */
 class MyCalendar {
     private static class Event {
@@ -2207,6 +2222,58 @@ class DailyTemperature {
     public static void test() {
         System.out.println("Q-739 Daily Temperature");
         dailyTemperatures(new int[]{73, 74, 75, 71, 69, 72, 76, 73});
+    }
+}
+
+/**
+ * Q-742 Closest Leaf in a Binary Tree
+ */
+class ClosestLeafInBinaryTree {
+    // search node and set up parent back pointer for each node on the path
+    private static TreeNode search(TreeNode root, int k, Map<TreeNode, TreeNode> parents) {
+        if (root == null) return null;
+        if (root.val == k) return root;
+        if (root.left != null) {
+            parents.put(root.left, root);
+            TreeNode left = search(root.left, k, parents);
+            if (left != null) return left;
+        }
+        if (root.right != null) {
+            parents.put(root.right, root);
+            TreeNode right = search(root.right, k, parents);
+            if (right != null) return right;
+        }
+        return null;
+    }
+
+    public int findClosestLeaf(TreeNode root, int k) {
+        // BFS finds the nearest leaf in a sub-tree
+        Map<TreeNode, TreeNode> parents = new HashMap<>();
+        TreeNode kn = search(root, k, parents);
+        if (kn == null) return -1;
+        Queue<TreeNode> bfs = new ArrayDeque<>();
+        bfs.add(kn);
+        Set<TreeNode> visited = new HashSet<>();
+        visited.add(kn);
+        while (!bfs.isEmpty()) {
+            TreeNode n = bfs.poll();
+            // bfs finds the first leaf
+            if (n.left == null && n.right == null) return n.val;
+            if (n.left != null && !visited.contains(n.left)) {
+                visited.add(n.left);
+                bfs.add(n.left);
+            }
+            if (n.right != null && !visited.contains(n.right)) {
+                visited.add(n.right);
+                bfs.add(n.right);
+            }
+            if (parents.containsKey(n) && !visited.contains(parents.get(n))) { // BFS on back pointers
+                TreeNode par = parents.get(n);
+                visited.add(par);
+                bfs.add(par);
+            }
+        }
+        return -1;
     }
 }
 

@@ -720,81 +720,48 @@ class SortColors {
 
 /**
  * Q-76: Minimum Window Substring
+ *
+ * Given a string S and a string T, find the minimum window in S which will contain all the characters in T in
+ * complexity O(n).
  */
 class MinimumWindowSubstring {
-    private class Elem {
-        final Character c;
-        final Integer position;
-        public Elem(Character c, Integer p) { this.c = c; this.position = p; }
-    }
-
-    private class ElemComparactor implements Comparator<Elem> {
-        @Override
-        public int compare(Elem e1, Elem e2) {
-            return e1.position.compareTo(e2.position);
-        }
-    }
-
-    public String minWindow(String S, String T) {
-        HashMap<Character, Integer> tchars = new HashMap<Character, Integer>();
-        for (char c : T.toCharArray()) {
-            if (tchars.containsKey(c)) {
-                int count = tchars.get(c);
-                tchars.put(c, count+1);
-            } else {
-                tchars.put(c, 1);
-            }
-        }
-
-        int minWinSize = Integer.MAX_VALUE;
-        int minWinFirst = -1, minWinLast = -1;
-        // remember current position that a T char appears in the window
-        HashMap<Character, ArrayList<Integer>> currTcPos = new HashMap<Character, ArrayList<Integer>>();
-        TreeSet<Elem> window = new TreeSet<Elem>(new ElemComparactor());
+    public static String minWindow(String S, String T) {
+        Map<Character, Integer> tcounts = new HashMap<>();
+        for (char c : T.toCharArray())
+            tcounts.put(c, (tcounts.containsKey(c) ? tcounts.get(c)+1 : 1));
+        String result = "";
+        int minWindow = Integer.MAX_VALUE, start = 0, count = 0;
         for (int i = 0; i < S.length(); ++i) {
-            Character sc = new Character(S.charAt(i));
-            if (tchars.containsKey(sc) == false) {
-                continue;
+            Character c = S.charAt(i);
+            if (tcounts.containsKey(c)) {
+                int cc = tcounts.get(c) - 1;
+                if (cc >= 0)
+                    count++;
+                tcounts.put(c, cc);
             }
-
-            // replace T char position in the window with the latest position
-            if (currTcPos.containsKey(sc)) {
-                ArrayList<Integer> cpos = currTcPos.get(sc);
-                if (cpos.size() == tchars.get(sc)) {
-                    Integer currP = cpos.get(0);
-                    window.remove(new Elem(sc, currP));
-                    // remove the first and add the latest position
-                    cpos.remove(0);
+            while (count == T.length()) {
+                if (i-start+1 < minWindow) {
+                    minWindow = i - start + 1;
+                    result = S.substring(start, i+1);
                 }
-                cpos.add(i);
-            } else {
-                ArrayList<Integer> cpos = new ArrayList<Integer>();
-                cpos.add(i);
-                currTcPos.put(sc, cpos);
-            }
-            window.add(new Elem(sc, new Integer(i)));
-
-            if (window.size() == T.length()) {
-                Elem first = window.first();
-                Elem last = window.last();
-                if (last.position - first.position < minWinSize) {
-                    minWinSize = last.position - first.position;
-                    minWinFirst = first.position;
-                    minWinLast = last.position;
+                // right-shift start pointer
+                Character sc = S.charAt(start);
+                if (tcounts.containsKey(sc)) {
+                    int cc = tcounts.get(sc) + 1;
+                    if (cc > 0) count--;
+                    tcounts.put(sc, cc);
                 }
+                start++;
             }
         }
-
-        String winStr = (minWinSize == Integer.MAX_VALUE) ? "" : S.substring(minWinFirst, minWinLast+1);
-        System.out.println(S + ", " + T + " = " + winStr);
-        return winStr;
+        return result;
     }
 
-    public void run() {
-        System.out.println("---------- Minimum Window Substring -----------");
-        minWindow("ADOBECODEBANC", "ABC");
-        minWindow("a", "aa");
-        minWindow("ADOBECOADEBANC", "ABCA");
+    public static void test() {
+        System.out.println("Q-76 Minimum Window Substring");
+        System.out.println(minWindow("ADOBECODEBANC", "ABC"));
+        System.out.println(minWindow("a", "aa")); // ""
+        System.out.println(minWindow("ADOBECOADEBANC", "ABCA")); // COADEBA
     }
 }
 
@@ -1530,6 +1497,33 @@ class ReadNCharactersWithRead4 {
 }
 
 /**
+ * Q-160 Intersection of Two Linked Lists
+ */
+class IntersectionOfTwoLinkedLists {
+    private int length(ListNode head) {
+        int l = 0;
+        for (ListNode n = head; n != null; n = n.next, l++);
+        return l;
+    }
+
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        int alen = length(headA), blen = length(headB);
+        ListNode longer, other;
+        if (alen > blen) {
+            longer = headA;
+            other = headB;
+        } else {
+            longer = headB;
+            other = headA;
+        }
+        for (int i = 0; i < Math.abs(alen-blen); ++i, longer = longer.next);
+        for (; longer != null && other != null; longer = longer.next, other = other.next)
+            if (longer.equals(other)) return longer;
+        return null;
+    }
+}
+
+/**
  * Q-162 Find Peak Element
  *
  * A peak element is an element that is greater than its neighbors. Given an input array nums, where
@@ -1888,6 +1882,56 @@ class CourseSchedule {
 }
 
 /**
+ * Q-208 Implement Trie (Prefix Tree)
+ */
+class ImplementTrie {
+    private TrieNode root = new TrieNode();
+
+    private static class TrieNode {
+        TrieNode[] childrens = new TrieNode[26];
+        boolean isWord = false;
+        TrieNode() {}
+    }
+
+    /** Initialize your data structure here. */
+    public ImplementTrie() {
+    }
+
+    /** Inserts a word into the trie. */
+    public void insert(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) n.childrens[idx] = new TrieNode();
+            n = n.childrens[idx];
+        }
+        n.isWord = true;
+    }
+
+    /** Returns if the word is in the trie. */
+    public boolean search(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return n.isWord;
+    }
+
+    /** Returns if there is any word in the trie that starts with the given prefix. */
+    public boolean startsWith(String prefix) {
+        TrieNode n = root;
+        for (char c : prefix.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return true;
+    }
+}
+
+/**
  * 209. Minimum Size Subarray Sum
  *
  * Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray
@@ -2134,6 +2178,42 @@ class MajorityElement2 {
 }
 
 /**
+ * Q-234 Palindrome Linked List
+ */
+class PalindromeLinkedList {
+    private static ListNode reverseList(ListNode head) {
+        if (head == null) return null;
+        ListNode newHead = head, tail = head;
+        for (ListNode p = head.next, next; p!= null; p = next) {
+            next = p.next;
+            p.next = newHead;
+            newHead = p;
+        }
+        tail.next = null;
+        return newHead;
+    }
+
+    public static boolean isPalindrome(ListNode head) {
+        if (head == null) return true;
+        ListNode p1 = head, p2 = head;
+        for (; p2.next != null && p2.next.next != null; p1 = p1.next, p2 = p2.next.next);
+        ListNode l2 = p1.next;
+        p1.next = null;
+        l2 = reverseList(l2);
+        for (p1 = head, p2 = l2; p1 != null && p2 != null; p1 = p1.next, p2 = p2.next)
+            if (p1.val != p2.val) return false;
+        return true;
+    }
+
+    public static void test() {
+        System.out.println("Q-234 Palindrome Linked List");
+        ListNode n1 = new ListNode(1), n2 = new ListNode(2), n3 = new ListNode(2), n4 = new ListNode(1);
+        n1.next = n2; n2.next = n3; n3.next = n4;
+        System.out.println(isPalindrome(n1));
+    }
+}
+
+/**
  * 238. Product of Array Except Self
  */
 class ProductOfArrayExceptSelf {
@@ -2148,6 +2228,41 @@ class ProductOfArrayExceptSelf {
             p *= nums[i];
         }
         return result;
+    }
+}
+
+/**
+ * Q-239 Sliding Window Maximum
+ *
+ * Given an array nums, there is a sliding window of size k which is moving from the very left of the array to
+ * the very right. You can only see the k numbers in the window. Each time the sliding window moves right by
+ * one position. Return the max sliding window.
+ */
+class SlidingWindowMaximum {
+    public static int[] maxSlidingWindow(int[] nums, int k) {
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(10, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o1[1] == o2[1] ? 0 : (o1[1] < o2[1] ? 1 : -1);
+            }
+        });
+
+        if (k == 0) return new int[0];
+
+        int[] result = new int[nums.length-k+1]; // N-k+1 windows
+        for (int i = 0, j = 0; i < nums.length; ++i) {
+            // remove head element if it is outside the sliding window, which may have > K elements
+            while (!maxHeap.isEmpty() && maxHeap.peek()[0] <= i-k) maxHeap.remove();
+            maxHeap.add(new int[]{i, nums[i]});
+            if (i >= k-1) result[j++] = maxHeap.peek()[1];
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-239 Sliding Window Maximum");
+        int[] a1 = {1,3,-1,-3,5,3,6,7}; // [3, 3, 5, 5, 6, 7]
+        System.out.println(Arrays.toString(maxSlidingWindow(a1, 3)));
     }
 }
 
@@ -3144,6 +3259,69 @@ class IncreasingTripletSubsequence {
 }
 
 /**
+ * Q-336 Palindrome Pairs
+ *
+ * Given a list of unique words, find all pairs of distinct indices (i, j) in the given list, so that the
+ * concatenation of the two words, i.e. words[i] + words[j] is a palindrome.
+ */
+class PalindromePairs {
+    private static boolean isPalindrome(String str) {
+        for (int l = 0, r = str.length()-1; l < r; ++l, --r)
+            if (str.charAt(l) != str.charAt(r)) return false;
+        return true;
+    }
+
+    public static List<List<Integer>> palindromePairs(String[] words) {
+        Map<String, Integer> reversePos = new HashMap<>();
+        Map<String, Integer> palindromes = new HashMap<>();
+        for (int i = 0; i < words.length; ++i) {
+            if (!words[i].isEmpty() && isPalindrome(words[i])) palindromes.put(words[i], i);
+            StringBuilder w = new StringBuilder(words[i]);
+            reversePos.put(w.reverse().toString(), i);
+        }
+        List<List<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < words.length; ++i) {
+            String w = words[i];
+            if (w.isEmpty()) {
+                for (Map.Entry<String, Integer> e : palindromes.entrySet()) {
+                    result.add(Arrays.asList(new Integer[]{i, e.getValue()}));
+                    result.add(Arrays.asList(new Integer[]{e.getValue(), i}));
+                }
+                continue;
+            }
+            for (int j = w.length()-1; j >= 0; --j) {
+                String suffix = w.substring(j, w.length());
+                String prefix = w.substring(0, j);
+                // the suffix has a matching word
+                if (!suffix.isEmpty() && reversePos.containsKey(suffix) && i != reversePos.get(suffix)) {
+                    if (prefix.isEmpty() || isPalindrome(prefix))
+                        result.add(Arrays.asList(new Integer[]{reversePos.get(suffix), i}));
+                }
+                // the prefix has a matching word
+                if (!prefix.isEmpty() && reversePos.containsKey(prefix) && i != reversePos.get(prefix)) {
+                    if (suffix.isEmpty() || isPalindrome(suffix))
+                        result.add(Arrays.asList(new Integer[]{i, reversePos.get(prefix)}));
+                }
+            }
+        }
+        System.out.println(result.toString());
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-336 Palindrome Pairs");
+        String[] t1 = {"abcd","dcba","lls","s","sssll","bob"};
+        palindromePairs(t1); // [[1, 0], [0, 1], [3, 2], [2, 4]]
+        String[] t2 = {"a",""};
+        palindromePairs(t2);
+        String[] t3 = {"a","b","c","ab","ac","aa"};
+        palindromePairs(t3); // [[3,0],[1,3],[4,0],[2,4],[5,0],[0,5]]
+        String[] t4 = {"ab","ba","abc","cba"};
+        palindromePairs(t4); // [[0,1],[1,0],[2,1],[2,3],[0,3],[3,2]]
+    }
+}
+
+/**
  * Q-340 Longest Substring with At Most K Distinct Characters
  *
  * Given a string, find the length of the longest substring T that contains at most k distinct characters.
@@ -3314,6 +3492,7 @@ public class LeetcodeOne {
         JumpGame.test();
         GrayCode.test();
         SortColors.test();
+        MinimumWindowSubstring.test();
         RemoveDuplicatesFromSortedArray.test();
         RestoreIpAddress.test();
         GasStation.test();
@@ -3343,6 +3522,10 @@ public class LeetcodeOne {
         LongestSubstringWithAtMostKDistinctCharacters.test();
         FindRightInterval.test();
         ShortestWordDistance.test();
+        PalindromePairs.test();
+        PalindromeLinkedList.test();
+
+        SlidingWindowMaximum.test();
     }
 }
 

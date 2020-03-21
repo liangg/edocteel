@@ -2,6 +2,8 @@
  * Leetcode Questions - easy level, Tree
  */
 
+import apple.laf.JRSUIUtils;
+
 import java.util.*;
 
 class MorrisTraversal {
@@ -267,6 +269,22 @@ class BinaryTreePostorderTraversal
             }
         }
         return result;
+    }
+}
+
+/**
+ * Q-112 Path Sum
+ */
+class PathSum {
+    private static boolean helper(TreeNode root, int sum, int currSum) {
+        if (root == null) return false;
+        if (root.left == null && root.right == null) return currSum+root.val == sum;
+        return helper(root.left, sum, currSum+root.val) || helper(root.right, sum, currSum+root.val);
+    }
+
+    public static boolean hasPathSum(TreeNode root, int sum) {
+        if (root == null) return false;
+        return helper(root, sum, 0);
     }
 }
 
@@ -679,6 +697,63 @@ class LowestCommonAncestorOfBinarySearchTree {
     }
 }
 
+/**
+ * Q-250 Count Univalue Subtrees
+ */
+class CountUnivalueSubtrees {
+    private static boolean univalue(TreeNode root, int[] book) {
+        if (root == null) return true;
+        if (root.left == null && root.right == null) {
+            book[0]++;
+            return true;
+        }
+        boolean left = univalue(root.left, book);
+        boolean right = univalue(root.right, book);
+        if (left && (root.left == null || root.val == root.left.val) &&
+            right && (root.right == null || root.val == root.right.val)) {
+            book[0]++;
+            return true;
+        }
+        return false;
+    }
+
+    public static int countUnivalSubtrees(TreeNode root) {
+        int[] book = new int[1];
+        univalue(root, book);
+        return book[0];
+    }
+
+    public static void test() {
+        System.out.println("Q-250 Count Univalue Subtrees");
+        TreeNode n1 = new TreeNode(5);
+        TreeNode n2 = new TreeNode(1);
+        TreeNode n3 = new TreeNode(5);
+        TreeNode n4 = new TreeNode(5);
+        TreeNode n5 = new TreeNode(5);
+        TreeNode n6 = new TreeNode(5);
+        n1.left = n2; n1.right = n5;
+        n2.left = n3; n2.right = n4;
+        n5.right = n6;
+        System.out.println(countUnivalSubtrees(n1)); // 4
+    }
+}
+
+/**
+ * Q-270 Closest Binary Search Tree Value
+ */
+class ClosestBinarySearchTreeValue {
+    public int closestValue(TreeNode root, double target) {
+        TreeNode best = root;
+        for (TreeNode n = root; n != null; ) { // check a root and its in-order neightbours
+            if (Math.abs(best.val - target) < Math.abs(n.val - target))
+                best = n;
+            if (n.val > target) n = n.left;
+            else n = n.right;
+        }
+        return best.val;
+    }
+}
+
 /** Q-283 Move Zeroes */
 class MoveZeroes {
     public static void moveZeroes(int[] nums) {
@@ -697,6 +772,73 @@ class MoveZeroes {
         System.out.println("Q-283 Move Zeroes");
         moveZeroes(new int[]{0,1,0,3,12});
         moveZeroes(new int[]{1,0,3,0,4,12});
+    }
+}
+
+/**
+ * Q-285 Inorder Successor in BST
+ */
+class InorderSuccessorInBST {
+    private void inorder(TreeNode root, TreeNode p, TreeNode[] result) {
+        if (root == null) return;
+        inorder(root.left, p, result);
+        if (result[0] == p && result[1] == null) { // result[0] predecessor
+            result[1] = root;
+            return;
+        }
+        result[0] = root;
+        inorder(root.right, p, result);
+    }
+
+    public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
+        TreeNode[] result = new TreeNode[2];
+        inorder(root, p, result);
+        return result[1];
+    }
+}
+
+/**
+ * Q-298 Binary Tree Longest Consecutive Sequence
+ *
+ * Q-549 Binary Tree Longest Consecutive Sequence II
+ */
+class BinaryTreeLongestConsecutiveSequence {
+    private void longest(TreeNode root, int par, int len, int[] result) {
+        if (root == null) return;
+        if (root.val == par+1)
+            len += 1;
+        else
+            len = 1;
+        if (len > result[0]) result[0] = len;
+        longest(root.left, root.val, len, result);
+        longest(root.right, root.val, len, result);
+    }
+
+    // Q-298 Binary Tree Longest Consecutive Sequence, strict parent-child tree path
+    public int longestConsecutive(TreeNode root) {
+        int[] result = new int[1];
+        if (root == null) return result[0];
+        longest(root, root.val, 0, result);
+        return result[0];
+    }
+
+    // Q-549 Binary Tree Longest Consecutive Sequence II
+    public int longestConsecutive2(TreeNode root) {
+        if (root == null) return 0;
+        int plen = longest2(root, 1) + longest2(root, -1) + 1;
+        return Math.max(plen, Math.max(longestConsecutive2(root.left), longestConsecutive2(root.right)));
+    }
+
+    private int longest2(TreeNode root, int diff) {
+        if (root == null) return 0;
+        int left = longest2(root.left, diff);
+        int right = longest2(root.right, diff);
+        int pl = 0;
+        if (root.left != null && root.val+diff == root.left.val)
+            pl = left+1;
+        if (root.right != null && root.val+diff == root.right.val)
+            pl = Math.max(pl, right+1);
+        return pl;
     }
 }
 
@@ -1378,6 +1520,55 @@ class DiameterOfBinaryTree {
     }
 }
 
+/**
+ * Q-545 Boundary of Binary Tree
+ */
+class BoundaryOfBinaryTree {
+    private static void left(TreeNode root, List<Integer> result) {
+        if (root == null || (root.left == null && root.right == null)) return; // skip leaf
+        result.add(root.val);
+        left(root.left != null ? root.left : root.right, result);
+    }
+
+    private static void right(TreeNode root, List<Integer> result) {
+        if (root == null || (root.left == null && root.right == null)) return; // skip leaf
+        right(root.right != null ? root.right : root.left, result);
+        result.add(root.val);
+    }
+
+    private static void leaves(TreeNode root, List<Integer> result) {
+        if (root == null) return;
+        if (root.left == null && root.right == null) {
+            result.add(root.val);
+            return;
+        }
+        leaves(root.left, result);
+        leaves(root.right, result);
+    }
+
+    public static List<Integer> boundaryOfBinaryTree(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        if (root == null) return result;
+        if (root.left != null || root.right != null) result.add(root.val);
+        left(root.left, result);
+        leaves(root, result);
+        right(root.right, result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-545 Boundary of Binary Tree");
+        TreeNode n1 = new TreeNode(1);
+        TreeNode n2 = new TreeNode(2);
+        TreeNode n3 = new TreeNode(3);
+        TreeNode n4 = new TreeNode(4);
+        n1.right = n2;
+        n2.left = n3;
+        n2.right = n4;
+        System.out.println(boundaryOfBinaryTree(n1)); // [1,3,4,2]
+    }
+}
+
 /** Q-551 Student Attendance Record I */
 class StudentAttendanceRecord1 {
     public boolean checkRecord(String s) {
@@ -1890,6 +2081,39 @@ class DegreeOfAnArray {
     }
 }
 
+/**
+ * Q-700 Search in a Binary Search Tree
+ */
+class SearchInBinarySearchTree {
+    public TreeNode searchBST(TreeNode root, int val) {
+        for (TreeNode n = root; n != null; ) {
+            if (n.val == val) return n;
+            if (n.val > val) n = n.left;
+            else n = n.right;
+        }
+        return null;
+    }
+}
+
+/**
+ * Q-701 Insert into a Binary Search Tree
+ */
+class InsertIntoBinarySearchTree {
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        TreeNode par = null;
+        for (TreeNode n = root; n != null; ) {
+            par = n;
+            if (n.val > val) n = n.left;
+            else n = n.right;
+        }
+        TreeNode n = new TreeNode(val);
+        if (par == null) return n;
+        if (par.val > val) par.left = n;
+        else par.right = n;
+        return root;
+    }
+}
+
 /** Q-724 Find Pivot Index */
 class FindPivotIndex {
     public int pivotIndex(int[] nums) {
@@ -2046,6 +2270,32 @@ class LetterCasePermutation {
     }
 }
 
+/**
+ * Q-811 Subdomain Visit Count
+ */
+class SubdomainVisitCount {
+    public List<String> subdomainVisits(String[] cpdomains) {
+        Map<String, Integer> domCounts = new HashMap<>();
+        for (String dom : cpdomains) {
+            String[] parts = dom.split(" ");
+            int cnt = Integer.valueOf(parts[0]);
+            domCounts.put(parts[1], domCounts.containsKey(parts[1]) ? domCounts.get(parts[1])+cnt : cnt);
+            for (int i = 0; i < parts[1].length(); ++i) {
+                if (parts[1].charAt(i) == '.') {
+                    String sdom = parts[1].substring(i+1);
+                    int visits = domCounts.containsKey(sdom) ? domCounts.get(sdom)+cnt : cnt;
+                    domCounts.put(sdom, visits);
+                }
+            }
+        }
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : domCounts.entrySet()) {
+            result.add(Integer.toString(e.getValue().intValue()) + " " + e.getKey());
+        }
+        return result;
+    }
+}
+
 /** Q-849 Maximize Distance to Closest Person */
 class MaximizeDistanceToClosestPerson {
     public int maxDistToClosest(int[] seats) {
@@ -2164,6 +2414,7 @@ public class LeetcodeEasy {
         System.out.println("Leetcode Easy Level and Tree");
         OneEditDistance.test();
         KthSmallestElements.run();
+        CountUnivalueSubtrees.test();
         MoveZeroes.test();
         HouseRobber3.run();
         AddStrings.test();
@@ -2173,6 +2424,7 @@ public class LeetcodeEasy {
         RepeatedSubstringPattern.test();
         NumberComplement.test();
         MostFrequentSubtreeSum.test();
+        BoundaryOfBinaryTree.test();
         ReverseWordsInString.test();
         FindDuplicateSubtree.test();
         LetterCasePermutation.test();
@@ -2186,5 +2438,4 @@ public class LeetcodeEasy {
         FindSmallestLetterGreaterThanTarget.test();
         VerifyingAnAlienDictionary.test();
     }
-
 }

@@ -200,6 +200,41 @@ class MinimumDominoRotationsForEqualRow {
 }
 
 /**
+ * Q-1060 Missing Element in Sorted Array
+ */
+class MissingElementInSortedArray {
+    public static int missingElement(int[] nums, int k) {
+        int len = nums.length;
+        // the number of missing less than k
+        int missing = nums[len-1] - nums[0] + 1 - len;
+        if (missing < k)
+            return nums[len-1] + (k-missing);
+        int l = 0, r = len-1;
+        while (l < r-1) { // l and r adjacent, missing is always 0
+            int m = l + (r-l)/2;
+            missing = nums[m] - nums[l] - (m-l);
+            if (missing >= k)
+                r = m;
+            else {
+                l = m;
+                k -= missing;
+            }
+        }
+        return nums[l] + k;
+    }
+
+    public static void test() {
+        System.out.println("Q-1060 Missing Element in Sorted Array");
+        int[] a0 = {4,5,7};
+        System.out.println(missingElement(a0, 3)); // 9
+        int[] a1 = {4,7,9,11};
+        System.out.println(missingElement(a1, 1)); // 5
+        System.out.println(missingElement(a1, 3)); // 8
+        System.out.println(missingElement(a1, 4)); // 10
+    }
+}
+
+/**
  * Q-1130 Minimum Cost Tree From Leaf Values
  */
 class  MinimumCostTreeFromLeafValues {
@@ -287,8 +322,9 @@ public class LeetcodeThree {
         System.out.println("Leetcode 3");
         KClosestPointsToOrigin.test();
         IntervalListIntersections.test();
-        MinimumDominoRotationsForEqualRow.test();
-        MinimumRemoveToMakeValidParentheses.test();
         RottingOranges.test();
+        MinimumDominoRotationsForEqualRow.test();
+        MissingElementInSortedArray.test();
+        MinimumRemoveToMakeValidParentheses.test();
     }
 }
