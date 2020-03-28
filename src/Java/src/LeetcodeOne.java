@@ -170,6 +170,37 @@ class MergeKSortedLists {
     }
 }
 
+/**
+ * Q-29 Divide Two Integers
+ */
+class DivideTwoIntegers {
+    public static int divide(int dividend, int divisor) {
+        if (dividend == Integer.MIN_VALUE && divisor == -1) return Integer.MAX_VALUE;
+        int sign = ((dividend < 0 && divisor < 0) || (dividend > 0 && divisor > 0)) ? 1 : -1;
+        long dd = Math.abs((long)dividend), ds = Math.abs((long)divisor);
+        if (ds == 1) return (int)dd*sign;
+        long onePos = 1;
+        for (; dd >= ds; onePos <<= 1, ds <<= 1);
+        ds >>= 1;
+        onePos >>= 1;
+        int result = 0;
+        for (; onePos > 0; onePos >>= 1, ds >>= 1) {
+            if (dd >= ds) {
+                dd -= ds;
+                result |= onePos;
+            }
+        }
+        return result*sign;
+    }
+
+    public static void test() {
+        System.out.println("Q-29 Divide Two Integers");
+        System.out.println(divide(10,3)); // 3
+        System.out.println(divide(-12,3)); // -4
+        System.out.println(divide(-2147483648, 2)); // -1073741824
+    }
+}
+
 /** Q-31 Next Permutation */
 class NextPermutation {
   public static void nextPermutation(int[] nums) {
@@ -1959,6 +1990,58 @@ class MinimumSizeSubarraySum {
 }
 
 /**
+ * Q-211 Add and Search Word - Data structure design
+ */
+class WordDictionary {
+    TrieNode root = new TrieNode();
+
+    private static class TrieNode {
+        TrieNode[] childrens = new TrieNode[26];
+        boolean isWord = false;
+        TrieNode() {}
+    }
+
+    /** Initialize your data structure here. */
+    public WordDictionary() {
+    }
+
+    /** Adds a word into the data structure. */
+    public void addWord(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) n.childrens[idx] = new TrieNode();
+            n = n.childrens[idx];
+        }
+        n.isWord = true;
+    }
+
+    /** Returns if the word is in the data structure. A word could contain the dot character '.' to represent
+     * any one letter. */
+    public boolean search(String word) {
+        return searchDFS(root, word);
+    }
+
+    private boolean searchDFS(TrieNode root, String word) {
+        TrieNode n = root;
+        for (int j = 0; j < word.length(); ++j) {
+            char c = word.charAt(j);
+            if (c == '.') {
+                final String suffix = word.substring(j+1);
+                for (int i = 0; i < 26; ++i)
+                    if (n.childrens[i] != null)
+                        if (searchDFS(n.childrens[i], suffix)) return true;
+                return false;
+            }
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return n.isWord;
+    }
+}
+
+/**
  * Q-213 House Robber
  */
 class HouseRobber2 {
@@ -2369,7 +2452,7 @@ class MeetingRooms2 {
         int result = 0, overlap = 0;
         for (int si = 0, ei = 0; si < starts.length;) {
             if (starts[si] < ends[ei]) {
-                if (++overlap > result)
+                if (++overlap > result) // >= if right-closed interval
                     result = overlap;
                 si++;
             } else {
@@ -3484,6 +3567,7 @@ public class LeetcodeOne {
         FindFirstLastPosSortedArray.test();
         ThreeSum.test();
         LetterComboOfPhoneNumber.run();
+        DivideTwoIntegers.test();
         CombinationSum.test();
         Permutations.test();
         Subsets.test();
@@ -3505,6 +3589,7 @@ public class LeetcodeOne {
         HouseRobber2.test();
         KthLargestNumberInArray.test();
         Skyline.test();
+        SlidingWindowMaximum.test();
         DifferentWaysOfAddParenthese.test();
         MeetingRooms2.test();
         AlienDictionary.test();
@@ -3524,8 +3609,6 @@ public class LeetcodeOne {
         ShortestWordDistance.test();
         PalindromePairs.test();
         PalindromeLinkedList.test();
-
-        SlidingWindowMaximum.test();
     }
 }
 

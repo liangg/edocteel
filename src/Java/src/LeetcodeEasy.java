@@ -1121,6 +1121,40 @@ class ArrangeCoins {
 }
 
 /**
+ * Q-443 String Compression
+ */
+class StringCompression {
+    public static int compress(char[] chars) {
+        char curr = chars[0];
+        int count = 1, w = 0;
+        for (int i = 1; i < chars.length; ++i) {
+            if (chars[i] == curr) {
+                count++;
+            } else {
+                chars[w++] = curr;
+                if (count > 1) {
+                    String cstr = Integer.toString(count);
+                    for (char cc : cstr.toCharArray()) chars[w++] = cc;
+                }
+                curr = chars[i];
+                count = 1;
+            }
+        }
+        chars[w++] = curr;
+        if (count > 1) {
+            String cstr = Integer.toString(count);
+            for (char cc : cstr.toCharArray()) chars[w++] = cc;
+        }
+        return w;
+    }
+
+    public static void test() {
+        System.out.println("String Compression");
+        System.out.println(compress("abbbbbbbbbbbbb".toCharArray()));
+    }
+}
+
+/**
  * Q-449 Serialize and Deserialize BST
  *
  * Design an algorithm to serialize and deserialize a binary search tree. There is no restriction on how your
@@ -2296,6 +2330,32 @@ class SubdomainVisitCount {
     }
 }
 
+/** Q-824 Goat Latin */
+class GoatLatin {
+    public static String toGoatLatin(String S) {
+        Character[] vc = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>(Arrays.asList(vc));
+        String[] words = S.split(" ");
+        StringBuilder result = new StringBuilder("");
+        StringBuilder as = new StringBuilder("a");
+        for (String w : words) {
+            if (vowels.contains(w.charAt(0)))
+                result.append(w).append("ma");
+            else
+                result.append(w.substring(1)).append(w.charAt(0)).append("ma");
+            result.append(as).append(" ");
+            as.append('a');
+        }
+        result.setLength(result.length()-1);
+        return result.toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-824 Goat Latin");
+        System.out.println(toGoatLatin("I speak Goat Latin"));
+    }
+}
+
 /** Q-849 Maximize Distance to Closest Person */
 class MaximizeDistanceToClosestPerson {
     public int maxDistToClosest(int[] seats) {
@@ -2407,6 +2467,7 @@ class BinarySearch {
         System.out.println(search(a, 9));
     }
 }
+
 
 public class LeetcodeEasy {
 
