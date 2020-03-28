@@ -6,20 +6,6 @@ import apple.laf.JRSUIUtils;
 
 import java.util.*;
 
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode(int x) { val = x; }
-}
-
-class Node {
-    int val;
-    Node left;
-    Node right;
-    Node next;
-}
-
 class MorrisTraversal {
     void traverse(TreeNode root) {
         TreeNode n = root;
@@ -46,6 +32,20 @@ class MorrisTraversal {
                 n = n.right;
             }
         }
+    }
+}
+
+/** Q-1 Two Sum */
+class TwoSum {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> posMap = new HashMap<>();
+        for (int l = 0; l < nums.length; ++l) {
+            int d = target - nums[l];
+            if (posMap.containsKey(d))
+                return new int[]{posMap.get(d), l};
+            posMap.put(nums[l], l);
+        }
+        return new int[0];
     }
 }
 
@@ -273,6 +273,22 @@ class BinaryTreePostorderTraversal
 }
 
 /**
+ * Q-112 Path Sum
+ */
+class PathSum {
+    private static boolean helper(TreeNode root, int sum, int currSum) {
+        if (root == null) return false;
+        if (root.left == null && root.right == null) return currSum+root.val == sum;
+        return helper(root.left, sum, currSum+root.val) || helper(root.right, sum, currSum+root.val);
+    }
+
+    public static boolean hasPathSum(TreeNode root, int sum) {
+        if (root == null) return false;
+        return helper(root, sum, 0);
+    }
+}
+
+/**
  * Q-116 Populate Next Right Pointer in Perfect Binary Tree Node
  *
  * You are given a perfect binary tree where all leaves are on the same level, and every parent has two children.
@@ -342,6 +358,13 @@ class PopulateBinaryTreeNextRightPointer
     }
 }
 
+/**
+ * Q-124 Binary Tree Maximum Path Sum
+ *
+ * Given a non-empty binary tree, find the maximum path sum. For this problem, a path is defined as any sequence of
+ * nodes from some starting node to any node in the tree along the parent-child connections. The path must contain
+ * at least one node and does not need to go through the root.
+ */
 class BinaryTreeMaxPathSum
 {
     private int pathSum(TreeNode root, int maxsum[]) {
@@ -363,6 +386,35 @@ class BinaryTreeMaxPathSum
         int maxsum[] = new int[] {Integer.MIN_VALUE};
         pathSum(root, maxsum);
         return maxsum[0];
+    }
+}
+
+/** Q-173 Binary Search Tree Iterator */
+class BSTIterator {
+    private Stack<TreeNode> stack = new Stack<>();
+
+    public BSTIterator(TreeNode root) {
+        TreeNode n = root;
+        while (n != null) {
+            stack.push(n);
+            n = n.left;
+        }
+    }
+
+    /** @return the next smallest number */
+    public int next() {
+        TreeNode n = stack.pop();
+        TreeNode next = n.right;
+        while (next != null) {
+            stack.push(next);
+            next = next.left;
+        }
+        return n.val;
+    }
+
+    /** @return whether we have a next smallest number */
+    public boolean hasNext() {
+        return !stack.empty();
     }
 }
 
@@ -390,31 +442,9 @@ class BinaryTreePreorderTraversal {
  * Q-161 One Edit Distance
  */
 class OneEditDistance {
-    public static boolean isOneEditDistance0(String s, String t) {
-        if (s.length() > t.length()) { // make sure s smaller than t
-            String tmp = t;
-            t = s;
-            s = tmp;
-        }
-        if (t.length() - s.length() > 1) return false;
-        if (s.length() == t.length()) {
-            int mismatch = 0;
-            for (int i = 0; i < s.length(); ++i) {
-                if (s.charAt(i) != t.charAt(i))
-                    mismatch++;
-            }
-            if (mismatch != 1)
-                return false;
-        } else {
-            for (int i = 0; i < s.length(); ++i) {
-                if (s.charAt(i) != t.charAt(i))
-                    return s.substring(i).equals(t.substring(i+1));
-            }
-        }
-        return true;
-    }
-
     public static boolean isOneEditDistance(String s, String t) {
+        if (Math.abs(s.length() - t.length()) > 1)
+            return false;
         for (int i = 0; i < Math.min(s.length(), t.length()); ++i) {
             if (s.charAt(i) != t.charAt(i)) {
                 if (s.length() == t.length()) return s.substring(i+1).equals(t.substring(i+1));
@@ -471,6 +501,80 @@ class FactorialTrailingZeroes {
     }
 }
 
+
+/**
+ * Q-186 Reverse Words in a String II
+ */
+class ReverseWordsInString2 {
+    private static void reverse(char[] s, int begin, int end) {
+        for (int l = begin, r = end; l < r; ++l, --r) {
+            char t = s[l];
+            s[l] = s[r];
+            s[r] = t;
+        }
+    }
+
+    public static void reverseWords(char[] s) {
+        reverse(s, 0, s.length-1);
+        System.out.print(Arrays.toString(s));
+        int l = 0, r = 0;
+        for (; r < s.length; ++r) {
+            if (s[r] == ' ') {
+                if (l < r) reverse(s, l, r-1);
+                l = r+1;
+            }
+        }
+        if (l < s.length) reverse(s, l, s.length-1);
+        System.out.print(Arrays.toString(s));
+    }
+
+    public static void test() {
+        System.out.println("Q-186 Reverse Words in a String II");
+        String s = "the  sky is a blue";
+        reverseWords(s.toCharArray());
+    }
+}
+
+/** Q-199 Binary Tree Right Side View */
+class BinaryTreeRightSideView {
+    public List<Integer> rightSideView(TreeNode root) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        if (root == null)
+            return result;
+        ArrayDeque<TreeNode> queue = new ArrayDeque<TreeNode>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            result.add(queue.peek().val);
+            // traverse the "nlvl" nodes on the same level
+            int nlvl = queue.size();
+            for (int i = 0; i < nlvl; ++i) {
+                TreeNode n = queue.poll();
+                if (n.right != null)
+                    queue.add(n.right);
+                if (n.left != null)
+                    queue.add(n.left);
+            }
+        }
+        return result;
+    }
+}
+
+/** Q-206 Reverse Linked List */
+class ReverseLinkedList {
+    public ListNode reverseList(ListNode head) {
+        if (head == null)
+            return head;
+        ListNode newHead = head, tail = head;
+        for (ListNode p = head.next, next; p!= null; p = next) {
+            next = p.next;
+            p.next = newHead;
+            newHead = p;
+        }
+        tail.next = null;
+        return newHead;
+    }
+}
+
 /**
  * Q-222 Count Complete Tree Node
  */
@@ -485,6 +589,19 @@ class CountCompleteTreeNode {
             return (int)Math.pow(2, ldepth)-1;
         int lc = countNodes(root.left), rc = countNodes(root.right);
         return  lc + rc + 1;
+    }
+}
+
+/** Q-226 Invert Binary Tree */
+class InvertBinaryTree {
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null)
+            return null;
+        TreeNode left = invertTree(root.left);
+        TreeNode right = invertTree(root.right);
+        root.left = right;
+        root.right = left;
+        return root;
     }
 }
 
@@ -559,6 +676,208 @@ class KthSmallestElements
         n3.left = n2;
         System.out.printf("kth = %d\n", kthSmallest2(n9, 3)); // 5
         System.out.printf("kth = %d\n", kthSmallest2(n9, 6)); // 14
+    }
+}
+
+/** Q-235 Lowest Common Ancestor of a Binary Search Tree */
+class LowestCommonAncestorOfBinarySearchTree {
+    private TreeNode lca(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null)
+            return null;
+        if (root.val < p.val)
+            return lca(root.right, p, q);
+        if (root.val > q.val)
+            return lca(root.left, p, q);
+        // LCA can be one of p and q
+        return root;
+    }
+
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        return p.val < q.val ? lca(root, p, q) : lca(root, q, p);
+    }
+}
+
+/**
+ * Q-250 Count Univalue Subtrees
+ */
+class CountUnivalueSubtrees {
+    private static boolean univalue(TreeNode root, int[] book) {
+        if (root == null) return true;
+        if (root.left == null && root.right == null) {
+            book[0]++;
+            return true;
+        }
+        boolean left = univalue(root.left, book);
+        boolean right = univalue(root.right, book);
+        if (left && (root.left == null || root.val == root.left.val) &&
+            right && (root.right == null || root.val == root.right.val)) {
+            book[0]++;
+            return true;
+        }
+        return false;
+    }
+
+    public static int countUnivalSubtrees(TreeNode root) {
+        int[] book = new int[1];
+        univalue(root, book);
+        return book[0];
+    }
+
+    public static void test() {
+        System.out.println("Q-250 Count Univalue Subtrees");
+        TreeNode n1 = new TreeNode(5);
+        TreeNode n2 = new TreeNode(1);
+        TreeNode n3 = new TreeNode(5);
+        TreeNode n4 = new TreeNode(5);
+        TreeNode n5 = new TreeNode(5);
+        TreeNode n6 = new TreeNode(5);
+        n1.left = n2; n1.right = n5;
+        n2.left = n3; n2.right = n4;
+        n5.right = n6;
+        System.out.println(countUnivalSubtrees(n1)); // 4
+    }
+}
+
+/**
+ * Q-270 Closest Binary Search Tree Value
+ */
+class ClosestBinarySearchTreeValue {
+    public int closestValue(TreeNode root, double target) {
+        TreeNode best = root;
+        for (TreeNode n = root; n != null; ) { // check a root and its in-order neightbours
+            if (Math.abs(best.val - target) < Math.abs(n.val - target))
+                best = n;
+            if (n.val > target) n = n.left;
+            else n = n.right;
+        }
+        return best.val;
+    }
+}
+
+/** Q-283 Move Zeroes */
+class MoveZeroes {
+    public static void moveZeroes(int[] nums) {
+        for (int l = 0, r = 0; r < nums.length; r++) {
+            if (nums[r] != 0) {
+                int t = nums[l];
+                nums[l] = nums[r];
+                nums[r] = t;
+                l++;
+            }
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void test() {
+        System.out.println("Q-283 Move Zeroes");
+        moveZeroes(new int[]{0,1,0,3,12});
+        moveZeroes(new int[]{1,0,3,0,4,12});
+    }
+}
+
+/**
+ * Q-285 Inorder Successor in BST
+ */
+class InorderSuccessorInBST {
+    private void inorder(TreeNode root, TreeNode p, TreeNode[] result) {
+        if (root == null) return;
+        inorder(root.left, p, result);
+        if (result[0] == p && result[1] == null) { // result[0] predecessor
+            result[1] = root;
+            return;
+        }
+        result[0] = root;
+        inorder(root.right, p, result);
+    }
+
+    public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
+        TreeNode[] result = new TreeNode[2];
+        inorder(root, p, result);
+        return result[1];
+    }
+}
+
+/**
+ * Q-298 Binary Tree Longest Consecutive Sequence
+ *
+ * Q-549 Binary Tree Longest Consecutive Sequence II
+ */
+class BinaryTreeLongestConsecutiveSequence {
+    private void longest(TreeNode root, int par, int len, int[] result) {
+        if (root == null) return;
+        if (root.val == par+1)
+            len += 1;
+        else
+            len = 1;
+        if (len > result[0]) result[0] = len;
+        longest(root.left, root.val, len, result);
+        longest(root.right, root.val, len, result);
+    }
+
+    // Q-298 Binary Tree Longest Consecutive Sequence, strict parent-child tree path
+    public int longestConsecutive(TreeNode root) {
+        int[] result = new int[1];
+        if (root == null) return result[0];
+        longest(root, root.val, 0, result);
+        return result[0];
+    }
+
+    // Q-549 Binary Tree Longest Consecutive Sequence II
+    public int longestConsecutive2(TreeNode root) {
+        if (root == null) return 0;
+        int plen = longest2(root, 1) + longest2(root, -1) + 1;
+        return Math.max(plen, Math.max(longestConsecutive2(root.left), longestConsecutive2(root.right)));
+    }
+
+    private int longest2(TreeNode root, int diff) {
+        if (root == null) return 0;
+        int left = longest2(root.left, diff);
+        int right = longest2(root.right, diff);
+        int pl = 0;
+        if (root.left != null && root.val+diff == root.left.val)
+            pl = left+1;
+        if (root.right != null && root.val+diff == root.right.val)
+            pl = Math.max(pl, right+1);
+        return pl;
+    }
+}
+
+/**
+ * Q-314 Binary Tree Vertical Order Traversal
+ */
+class BinaryTreeVerticalOrderTraversal {
+    private static class Pair {
+        public TreeNode node;
+        public int index;
+        Pair(TreeNode node, int index) {
+            this.node = node;
+            this.index = index;
+        }
+    }
+
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
+        Map<Integer, List<Integer>> treeMap = new TreeMap<>();
+        Queue<Pair> queue = new ArrayDeque<>();
+        queue.add(new Pair(root, 0));
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            for (int i = 0; i < size; ++i) {
+                Pair p = queue.poll();
+                List<Integer> vl = treeMap.containsKey(Integer.valueOf(p.index)) ? treeMap.get(Integer.valueOf(p.index)):
+                    new ArrayList<>();
+                vl.add(p.node.val);
+                treeMap.put(Integer.valueOf(p.index), vl);
+                if (p.node.left != null)
+                    queue.add(new Pair(p.node.left, p.index-1));
+                if (p.node.right != null)
+                    queue.add(new Pair(p.node.right, p.index+1));
+            }
+        }
+        for (Map.Entry<Integer, List<Integer>> e : treeMap.entrySet())
+            result.add(e.getValue());
+        return result;
     }
 }
 
@@ -648,6 +967,65 @@ class HouseRobber3 {
 }
 
 /**
+ * Q-339 Nested List Weight Sum
+ *
+ * Given a nested list of integers, return the sum of all integers in the list weighted by their depth. Each element
+ * is either an integer, or a list -- whose elements may also be integers or other lists.
+ */
+class NestedListWeightSum {
+    interface NestedInteger {
+        // @return true if this NestedInteger holds a single integer, rather than a nested list.
+        public boolean isInteger();
+
+        // @return the single integer that this NestedInteger holds, if it holds a single integer
+        // Return null if this NestedInteger holds a nested list
+        public Integer getInteger();
+
+        // Return null if this NestedInteger holds a single integer
+        public List<NestedInteger> getList();
+    }
+
+    private int helper(List<NestedInteger> nestedList, int depth) {
+        int sum = 0;
+        for (NestedInteger ni : nestedList) {
+            if (ni.isInteger()) sum += depth*ni.getInteger();
+            else sum += helper(ni.getList(), depth+1);
+        }
+        return sum;
+    }
+
+    public int depthSum(List<NestedInteger> nestedList) {
+        return helper(nestedList, 1);
+    }
+}
+
+/** Q-345 Reverse Vowels of a String */
+class ReverseVowelsOfString {
+    public static String reverseVowels(String s) {
+        Character[] v = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>();
+        vowels.addAll(Arrays.asList(v));
+        char[] schars = s.toCharArray();
+        for (int l = 0, r = schars.length-1; l < r; l++, r--) {
+            if (vowels.contains(schars[l]) && vowels.contains(schars[r])) {
+                char c = schars[l];
+                schars[l] = schars[r];
+                schars[r] = c;
+            } else if (vowels.contains(schars[l]))
+                l--;
+            else if (vowels.contains(schars[r]))
+                r++;
+        }
+        return new String(schars);
+    }
+
+    public static void test() {
+        System.out.println("Q-345 Reverse Vowels of a String");
+        System.out.println(reverseVowels("leetcode"));
+    }
+}
+
+/**
  * Q-359 Logger Rate Limiter
  *
  * Design a logger system that receive stream of messages along with its timestamps, each message should be printed
@@ -662,10 +1040,66 @@ class LoggerRateLimiter {
         if (messageStore.containsKey(message)) {
             if (messageStore.get(message) + MSG_RETENTION > timestamp)
                 return false;
-        } else {
-            messageStore.put(message, timestamp);
+        }
+        messageStore.put(message, timestamp);
+        return true;
+    }
+}
+
+/** Q-383 Ransom Note */
+class RansomNote {
+    public static boolean canConstruct(String ransomNote, String magazine) {
+        int[] counts = new int[256];
+        for (char c : magazine.toCharArray())
+            counts[c]++;
+        for (char c : ransomNote.toCharArray()) {
+            if (counts[c] <= 0) return false;
+            counts[c] -= 1;
         }
         return true;
+    }
+}
+
+/** Q-392 Is Subsequence */
+class IsSubsequence {
+    public boolean isSubsequence(String s, String t) {
+        int p1 = 0, p2 = 0;
+        for (p1 = 0, p2 = 0; p1 < s.length() && p2 < t.length(); p2++) {
+            if (s.charAt(p1) == t.charAt(p2))
+                p1++;
+        }
+        return p1 == s.length();
+    }
+}
+
+/** Q-415 Add Strings */
+class AddStrings {
+    public static String addStrings(String num1, String num2) {
+        StringBuilder sum = new StringBuilder("");
+        int i = num1.length()-1, j = num2.length()-1, carryover = 0;
+        for (; i >= 0 && j >= 0; --i, --j) {
+            int d1 = num1.charAt(i) - '0', d2 = num2.charAt(j) - '0';
+            int s = d1+d2+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        for (; i >= 0; --i) {
+            int s = num1.charAt(i)-'0'+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        for (; j >= 0; --j) {
+            int s = num2.charAt(j)-'0'+carryover;
+            sum.append(s%10);
+            carryover = s/10;
+        }
+        if (carryover > 0) sum.append(carryover);
+        return sum.reverse().toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-415 Add Strings");
+        System.out.println(addStrings("568", "2892")); // 3460
     }
 }
 
@@ -683,6 +1117,110 @@ class ArrangeCoins {
         System.out.println(arrangeCoins(5));
         System.out.println(arrangeCoins(6));
         System.out.println(arrangeCoins(8));
+    }
+}
+
+/**
+ * Q-443 String Compression
+ */
+class StringCompression {
+    public static int compress(char[] chars) {
+        char curr = chars[0];
+        int count = 1, w = 0;
+        for (int i = 1; i < chars.length; ++i) {
+            if (chars[i] == curr) {
+                count++;
+            } else {
+                chars[w++] = curr;
+                if (count > 1) {
+                    String cstr = Integer.toString(count);
+                    for (char cc : cstr.toCharArray()) chars[w++] = cc;
+                }
+                curr = chars[i];
+                count = 1;
+            }
+        }
+        chars[w++] = curr;
+        if (count > 1) {
+            String cstr = Integer.toString(count);
+            for (char cc : cstr.toCharArray()) chars[w++] = cc;
+        }
+        return w;
+    }
+
+    public static void test() {
+        System.out.println("String Compression");
+        System.out.println(compress("abbbbbbbbbbbbb".toCharArray()));
+    }
+}
+
+/**
+ * Q-449 Serialize and Deserialize BST
+ *
+ * Design an algorithm to serialize and deserialize a binary search tree. There is no restriction on how your
+ * serialization/deserialization algorithm should work. You just need to ensure that a binary search tree can
+ * be serialized to a string and this string can be deserialized to the original tree structure.
+ */
+class SerializeAndDeserializeBST {
+
+    private static void serializeHelper(TreeNode root, StringBuilder serialized) {
+        if (root == null) {
+            serialized.append("# ");
+            return;
+        }
+        serialized.append(Integer.toString(root.val));
+        serialized.append(" ");
+        serializeHelper(root.left, serialized);
+        serializeHelper(root.right, serialized);
+    }
+
+    // Encodes a tree to a single string.
+    public static String serialize(TreeNode root) {
+        StringBuilder serialized = new StringBuilder("");
+        serializeHelper(root, serialized);
+        return serialized.toString();
+    }
+
+    private static TreeNode deserializeHelper(String[] data, int index, int[] position) {
+        if (index == data.length || data[index].equals("#")) {
+            position[0] = index;
+            return null;
+        }
+        TreeNode n = new TreeNode(Integer.parseInt(data[index]));
+        n.left = deserializeHelper(data, index+1, position);
+        n.right = deserializeHelper(data, position[0]+1, position);
+        return n;
+    }
+
+    // Decodes your encoded data to tree.
+    public static TreeNode deserialize(String data) {
+        String[] split = data.split(" ");
+        int[] position = new int[1];
+        TreeNode root = deserializeHelper(split, 0, position);
+        return root;
+    }
+
+    public static void test() {
+        System.out.println("Q-449 Serialize and Deserialize BST");
+        TreeNode n15 = new TreeNode(15);
+        TreeNode n16 = new TreeNode(16);
+        TreeNode n12 = new TreeNode(12);
+        n15.right = n16;
+        n15.left = n12;
+        TreeNode n14 = new TreeNode(14);
+        n12.right = n14;
+        TreeNode n9 = new TreeNode(9); // root
+        n9.right = n15;
+        TreeNode n5 = new TreeNode(5);
+        n9.left = n5;
+        TreeNode n3 = new TreeNode(3);
+        TreeNode n2 = new TreeNode(2);
+        n5.left = n3;
+        n3.left = n2;
+        String serialized = serialize(n9);
+        System.out.println(serialized); // 9 5 3 2 # # # # 15 12 # 14 # # 16 # #
+        TreeNode root = deserialize(serialized);
+        System.out.println(serialize(root));
     }
 }
 
@@ -801,6 +1339,30 @@ class NumberComplement {
     }
 }
 
+/** Q-496 Next Greater Element I */
+class NextGreaterElement1 {
+    public int[] nextGreaterElement(int[] nums1, int[] nums2) {
+        Map<Integer, Integer> greaterRight = new HashMap<>();
+        Stack<Integer> stack = new Stack<>();
+        for (int n : nums2) {
+            while (!stack.empty() && n > stack.peek()) {
+                greaterRight.put(stack.peek(), n);
+                stack.pop();
+            }
+            stack.add(n);
+        }
+        // note that num1 and num2 have no duplicates
+        int[] result = new int[nums1.length];
+        for (int i = 0; i < nums1.length; ++i) {
+            if (greaterRight.containsKey(nums1[i]))
+                result[i] = greaterRight.get(nums1[i]);
+            else
+                result[i] = -1;
+        }
+        return result;
+    }
+}
+
 /**
  * Q-501 Find the Mode in Binary Search Tree
  */
@@ -826,7 +1388,6 @@ class FindModeInBinarySearchTree {
         for (Map.Entry<Integer, Integer> e : map.entrySet()) {
             if (e.getValue() == maxCount[0])
                 result.add(e.getKey());
-
         }
         int i = 0;
         int[] res = new int[result.size()];
@@ -929,6 +1490,46 @@ class FindLargestValueInEachTreeRow {
     }
 }
 
+/** Q-530 Minimum Absolute Difference in BST */
+class MinimumAbsoluteDifferenceInBST {
+    private void inorder(TreeNode root, List<Integer> inordered) {
+        if (root == null)
+            return;
+        inorder(root.left, inordered);
+        inordered.add(root.val);
+        inorder(root.right, inordered);
+    }
+
+    public int getMinimumDifference(TreeNode root) {
+        List<Integer> inordered = new ArrayList<>();
+        inorder(root, inordered);
+        int result = Integer.MAX_VALUE;
+        for (int i = 1; i < inordered.size(); ++i) {
+            if (Math.abs(inordered.get(i)-inordered.get(i-1)) < result)
+                result = Math.abs(inordered.get(i)-inordered.get(i-1));
+        }
+        return result;
+    }
+}
+
+/** Q-538 Convert BST to Greater Tree */
+class ConvertBstToGreaterTree {
+    private void inorder(TreeNode root, int[] sum) {
+        if (root == null)
+            return;
+        inorder(root.right, sum);
+        root.val += sum[0];
+        sum[0] = root.val;
+        inorder(root.left, sum);
+    }
+
+    public TreeNode convertBST(TreeNode root) {
+        int[] sum = new int[1];
+        inorder(root, sum);
+        return root;
+    }
+}
+
 /** Q-543 Diameter of Binary Tree */
 class DiameterOfBinaryTree {
     private int path(TreeNode root, int[] state) {
@@ -954,7 +1555,76 @@ class DiameterOfBinaryTree {
 }
 
 /**
- * Q-557 Reverse Words in a String
+ * Q-545 Boundary of Binary Tree
+ */
+class BoundaryOfBinaryTree {
+    private static void left(TreeNode root, List<Integer> result) {
+        if (root == null || (root.left == null && root.right == null)) return; // skip leaf
+        result.add(root.val);
+        left(root.left != null ? root.left : root.right, result);
+    }
+
+    private static void right(TreeNode root, List<Integer> result) {
+        if (root == null || (root.left == null && root.right == null)) return; // skip leaf
+        right(root.right != null ? root.right : root.left, result);
+        result.add(root.val);
+    }
+
+    private static void leaves(TreeNode root, List<Integer> result) {
+        if (root == null) return;
+        if (root.left == null && root.right == null) {
+            result.add(root.val);
+            return;
+        }
+        leaves(root.left, result);
+        leaves(root.right, result);
+    }
+
+    public static List<Integer> boundaryOfBinaryTree(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        if (root == null) return result;
+        if (root.left != null || root.right != null) result.add(root.val);
+        left(root.left, result);
+        leaves(root, result);
+        right(root.right, result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-545 Boundary of Binary Tree");
+        TreeNode n1 = new TreeNode(1);
+        TreeNode n2 = new TreeNode(2);
+        TreeNode n3 = new TreeNode(3);
+        TreeNode n4 = new TreeNode(4);
+        n1.right = n2;
+        n2.left = n3;
+        n2.right = n4;
+        System.out.println(boundaryOfBinaryTree(n1)); // [1,3,4,2]
+    }
+}
+
+/** Q-551 Student Attendance Record I */
+class StudentAttendanceRecord1 {
+    public boolean checkRecord(String s) {
+        int absent = 0, late = 0;
+        for (char c : s.toCharArray()) {
+            if (c == 'A') {
+                if (++absent >= 2)
+                    return false;
+                late = 0;
+            } else if (c == 'L') {
+                if (++late >= 3)
+                    return false;
+            } else {
+                late = 0;
+            }
+        }
+        return true;
+    }
+}
+
+/**
+ * Q-557 Reverse Words in a String 3
  */
 class ReverseWordsInString {
     public static String reverseWords(String s) {
@@ -984,7 +1654,13 @@ class ReverseWordsInString {
     }
 }
 
-/** Q-563 Binary Tree Tilt */
+/**
+ * Q-563 Binary Tree Tilt
+ *
+ * The tilt of a tree node is defined as the absolute difference between the sum of all left subtree node values
+ * and the sum of all right subtree node values. Null node has tilt 0. The tilt of the whole tree is defined as
+ * the sum of all nodes' tilt.
+ */
 class BinaryTreeTilt {
     private static void tilt(TreeNode node, int[] pair) {
         if (node == null) {
@@ -1040,6 +1716,95 @@ class ShortestUnsortedContinuousSubarray {
         System.out.println("Q-581 Shortest Unsorted Continuous Subarray");
         System.out.println(findUnsortedSubarray(new int[]{2,6,4,8,10,9,15})); // 5
         System.out.println(findUnsortedSubarray(new int[]{1,2,3,4})); // 0
+    }
+}
+
+/** Q-594 Longest Harmonious Subsequence */
+class LongestHarmoniousSubsequence {
+    public static int findLHS(int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        int[] clone = nums.clone();
+        Arrays.sort(clone);
+        int result = 0, curr = clone[0], last = clone[0], lastCount = 0, count = 1;
+        for (int i = 1; i < clone.length; ++i) {
+            if (clone[i] == clone[i-1]) {
+                count++;
+            } else {
+                if (curr-last == 1) {
+                    if (lastCount + count > result)
+                        result = lastCount + count;
+                }
+                last = curr;
+                lastCount = count;
+                curr = clone[i];
+                count = 1;
+            }
+        }
+        if (curr-last == 1) {
+            if (lastCount + count > result)
+                result = lastCount + count;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-594 Longest Harmonious Subsequence");
+        System.out.println(findLHS(new int[]{1,3,2,2,5,2,3,7})); // 5
+        System.out.println(findLHS(new int[]{1,2,2,1})); // 4
+        System.out.println(findLHS(new int[]{1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0}));
+    }
+}
+
+/** Q-605 Can Place Flowers */
+class CanPlaceFlowers {
+    public boolean canPlaceFlowers(int[] flowerbed, int n) {
+        return false;
+    }
+}
+
+/** Q-606 Construct String from Binary Tree */
+class ConstructStringFromBinaryTree {
+    public String tree2str(TreeNode t) {
+        if (t == null) return "";
+        StringBuilder result = new StringBuilder("");
+        result.append(Integer.toString(t.val));
+        if (t.left != null) {
+            result.append('(');
+            result.append(tree2str(t.left));
+            result.append(')');
+        }
+        if (t.right != null) {
+            if (t.left == null) result.append("()");
+            result.append('(');
+            result.append(tree2str(t.right));
+            result.append(')');
+        }
+        return result.toString();
+    }
+}
+
+/** Q-645 Set Mismatch */
+class SetMismatch {
+    public static int[] findErrorNums(int[] nums) {
+        // nums has 1 - N
+        for (int i = 0; i < nums.length; ++i) {
+            while (nums[i] != nums[nums[i]-1]) {
+                int t = nums[i], idx = nums[i]-1;
+                nums[i] = nums[idx];
+                nums[idx] = t;
+            }
+        }
+        for (int i = 0; i < nums.length; ++i) {
+            if (nums[i]-1 != i)
+                return new int[]{nums[i], i+1};
+        }
+        return new int[]{-1,-1};
+    }
+
+    public static void test() {
+        System.out.println("Q-645 Set Mismatch");
+        System.out.println(Arrays.toString(findErrorNums(new int[]{4,2,1,2})));
     }
 }
 
@@ -1161,6 +1926,22 @@ class MaximumWidthOfBinaryTree {
     }
 }
 
+/** Q-665 Non-decreasing Array */
+class NondecreasingArray {
+    public boolean checkPossibility(int[] nums) {
+        boolean changed = false;
+        for (int i = 1; i < nums.length; ++i) {
+            if (nums[i] < nums[i-1]) {
+                if (changed) return false;
+                if (i == 1 || nums[i-2] <= nums[i]) nums[i-1] = nums[i]; // 4，2，3 or -1，4，2，3
+                else nums[i] = nums[i-1]; // 2，3，3，2，4
+                changed = true;
+            }
+        }
+        return true;
+    }
+}
+
 /** Q-669 Trim Binary Search Tree */
 class TrimBinarySearchTree {
     public TreeNode trimBST(TreeNode root, int L, int R) {
@@ -1203,6 +1984,23 @@ class SecondMinimumNodeInBinaryTree {
         if (left != -1 && right != -1)
             return left < right ? left : right;
         return left != -1 ? left : right;
+    }
+}
+
+/** Q-686 Repeated String Match */
+class RepeatedStringMatch {
+    public static int repeatedStringMatch(String A, String B) {
+        String t = A;
+        for (int i = 1; i <= (B.length()/A.length() + 2); ++i) {
+            if (t.indexOf(B) != -1) return i;
+            t += A;
+        }
+        return -1;
+    }
+
+    public static void test() {
+        System.out.println("Q-686 Repeated String Match");
+        System.out.println(repeatedStringMatch("abc", "cabcabca"));
     }
 }
 
@@ -1279,6 +2077,192 @@ class CountBinarySubstrings {
     }
 }
 
+/** Q-697 Degree of an Array */
+class DegreeOfAnArray {
+    public static int findShortestSubArray(int[] nums) {
+        int degree = 0;
+        Map<Integer, List<Integer>> map = new HashMap<>(); // [count, begin, end]
+        for (int i = 0; i < nums.length; ++i) {
+            List<Integer> entry;
+            if (map.containsKey(nums[i])) {
+                entry = map.get(nums[i]);
+                entry.set(0, entry.get(0)+1);
+                entry.set(2, i);
+            } else {
+                entry = new ArrayList<Integer>();
+                entry.add(1);
+                entry.add(i);
+                entry.add(i);
+                map.put(nums[i], entry);
+            }
+            if (entry.get(0) > degree)
+                degree = entry.get(0);
+        }
+        int result = nums.length + 1;
+        for (Map.Entry<Integer, List<Integer>> e : map.entrySet()) {
+            List<Integer> v = e.getValue();
+            if (v.get(0) == degree) {
+                if (v.get(2)-v.get(1)+1 < result)
+                    result = v.get(2)-v.get(1)+1;
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-697 Degree of an Array");
+        System.out.println(findShortestSubArray(new int[]{1,2,2,3,1,4,2})); // 6
+    }
+}
+
+/**
+ * Q-700 Search in a Binary Search Tree
+ */
+class SearchInBinarySearchTree {
+    public TreeNode searchBST(TreeNode root, int val) {
+        for (TreeNode n = root; n != null; ) {
+            if (n.val == val) return n;
+            if (n.val > val) n = n.left;
+            else n = n.right;
+        }
+        return null;
+    }
+}
+
+/**
+ * Q-701 Insert into a Binary Search Tree
+ */
+class InsertIntoBinarySearchTree {
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        TreeNode par = null;
+        for (TreeNode n = root; n != null; ) {
+            par = n;
+            if (n.val > val) n = n.left;
+            else n = n.right;
+        }
+        TreeNode n = new TreeNode(val);
+        if (par == null) return n;
+        if (par.val > val) par.left = n;
+        else par.right = n;
+        return root;
+    }
+}
+
+/** Q-724 Find Pivot Index */
+class FindPivotIndex {
+    public int pivotIndex(int[] nums) {
+        int sum = 0;
+        for (int n : nums) sum += n;
+        for (int i = 0, prefixSum = 0; i < nums.length; ++i) {
+            if (sum - prefixSum - nums[i] == prefixSum)
+                return i;
+            prefixSum += nums[i];
+        }
+        return -1;
+    }
+}
+
+/** Q-733 Flood Fill */
+class FloodFill {
+    public int[][] floodFill(int[][] image, int sr, int sc, int newColor) {
+        if (image[sr][sc] == newColor)
+            return image;
+        int initColor = image[sr][sc];
+        int nrow = image.length, ncol = image[0].length;
+        Queue<Integer[]> queue = new ArrayDeque<>();
+        queue.add(new Integer[]{sr, sc});
+        while (!queue.isEmpty()) {
+            Integer[] crd = queue.poll();
+            int r = crd[0], c = crd[1];
+            image[r][c] = newColor;
+            if (r - 1 >= 0 && image[r - 1][c] == initColor) queue.add(new Integer[]{r - 1, c});
+            if (c + 1 < ncol && image[r][c + 1] == initColor) queue.add(new Integer[]{r, c + 1});
+            if (r + 1 < nrow && image[r + 1][c] == initColor) queue.add(new Integer[]{r + 1, c});
+            if (c - 1 >= 0 && image[r][c - 1] == initColor) queue.add(new Integer[]{r, c - 1});
+        }
+        return image;
+    }
+}
+
+/** Q-744 Find Smallest Letter Greater Than Target */
+class FindSmallestLetterGreaterThanTarget {
+    public static char nextGreatestLetter(char[] letters, char target) {
+        int l = 0, r = letters.length-1;
+        while (l < r) {
+            int m = l + (r-l)/2 + 1;
+            if (letters[m] > target)
+                r = m-1;
+            else
+                l = m;
+        }
+        if (l == 0 && letters[l] > target)
+            return letters[0];
+        return l < letters.length-1 ? letters[l+1] : letters[0];
+    }
+
+    public static void test() {
+        System.out.println("Q-744 Find Smallest Letter Greater Than Target");
+        System.out.println(nextGreatestLetter(new char[]{'c','f','j'}, 'b')); // c
+        System.out.println(nextGreatestLetter(new char[]{'c','f','j'}, 'c')); // f
+        System.out.println(nextGreatestLetter(new char[]{'c','f','j'}, 'd')); // f
+        System.out.println(nextGreatestLetter(new char[]{'c','f','j'}, 'g')); // j
+        System.out.println(nextGreatestLetter(new char[]{'a','b','b','b','c','e'}, 'b')); // c
+        System.out.println(nextGreatestLetter(new char[]{'a','b','b','b','c','e'}, 'd')); // e
+        System.out.println(nextGreatestLetter(new char[]{'a','b','b','b','c','e'}, 'f')); // a
+
+    }
+}
+
+/** Q-747. Largest Number At Least Twice of Others */
+class LargestNumberAtLeastTwiceOfOthers {
+    public int dominantIndex(int[] nums) {
+        if (nums.length == 0)
+            return -1;
+        if (nums.length == 1)
+            return 0;
+        int m1 = nums[0] > nums[1] ? 0 : 1, m2 = nums[0] > nums[1] ? 1 : 0;
+        for (int i = 2; i < nums.length; ++i) {
+            if (nums[i] <= nums[m2]) continue;
+            m2 = i;
+            if (nums[i] > nums[m1]) {
+                m2 = m1;
+                m1 = i;
+            }
+        }
+        return nums[m1]-nums[m2] >= nums[m2] ? m1 : -1;
+    }
+}
+
+/**
+ * Q-751 IP to CIDR
+ *
+ * Given a start IP address ip and a number of ips we need to cover n, return a representation of the range as a list
+ * (of smallest possible length) of CIDR blocks. A CIDR block is a string consisting of an IP, followed by a slash,
+ * and then the prefix length. For example: "123.45.67.89/20". That prefix length "20" represents the number of common
+ * prefix bits in the specified range.
+ */
+class IPToCIDR {
+    public List<String> ipToCIDR(String ip, int n) {
+        return null;
+    }
+}
+
+/**
+ * Q-766 Toeplitz Matrix
+ *
+ * A matrix is Toeplitz if every diagonal from top-left to bottom-right has the same element. Now given an M x N
+ * matrix, return True if and only if the matrix is Toeplitz.
+ */
+class ToeplitzMatrix {
+    public boolean isToeplitzMatrix(int[][] matrix) {
+        for (int i = 0; i < matrix.length-1; ++i)
+            for (int j = 0; j < matrix[0].length-1; ++j)
+                if (matrix[i][j] != matrix[i+1][j+1])
+                    return false;
+        return true;
+    }
+}
+
 /** Q-784 Letter Case Permutation */
 class LetterCasePermutation {
     public static void helper(char[] str, int index, HashSet<String> result) {
@@ -1321,6 +2305,77 @@ class LetterCasePermutation {
 }
 
 /**
+ * Q-811 Subdomain Visit Count
+ */
+class SubdomainVisitCount {
+    public List<String> subdomainVisits(String[] cpdomains) {
+        Map<String, Integer> domCounts = new HashMap<>();
+        for (String dom : cpdomains) {
+            String[] parts = dom.split(" ");
+            int cnt = Integer.valueOf(parts[0]);
+            domCounts.put(parts[1], domCounts.containsKey(parts[1]) ? domCounts.get(parts[1])+cnt : cnt);
+            for (int i = 0; i < parts[1].length(); ++i) {
+                if (parts[1].charAt(i) == '.') {
+                    String sdom = parts[1].substring(i+1);
+                    int visits = domCounts.containsKey(sdom) ? domCounts.get(sdom)+cnt : cnt;
+                    domCounts.put(sdom, visits);
+                }
+            }
+        }
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : domCounts.entrySet()) {
+            result.add(Integer.toString(e.getValue().intValue()) + " " + e.getKey());
+        }
+        return result;
+    }
+}
+
+/** Q-824 Goat Latin */
+class GoatLatin {
+    public static String toGoatLatin(String S) {
+        Character[] vc = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>(Arrays.asList(vc));
+        String[] words = S.split(" ");
+        StringBuilder result = new StringBuilder("");
+        StringBuilder as = new StringBuilder("a");
+        for (String w : words) {
+            if (vowels.contains(w.charAt(0)))
+                result.append(w).append("ma");
+            else
+                result.append(w.substring(1)).append(w.charAt(0)).append("ma");
+            result.append(as).append(" ");
+            as.append('a');
+        }
+        result.setLength(result.length()-1);
+        return result.toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-824 Goat Latin");
+        System.out.println(toGoatLatin("I speak Goat Latin"));
+    }
+}
+
+/** Q-849 Maximize Distance to Closest Person */
+class MaximizeDistanceToClosestPerson {
+    public int maxDistToClosest(int[] seats) {
+        int result = 0, start = 0;
+        for (int i = 0; i < seats.length; ++i) {
+            if (seats[i] == 1) {
+                if (start == 0)
+                    result = i - start;
+                else if ((i - start + 1)/2 > result)
+                    result = (i - start + 1)/2;
+                start = i+1; // 1 2 3 4 5 6
+            }
+        }
+        if (seats.length - start > result)
+            result = seats.length - start;
+        return result;
+    }
+}
+
+/**
  * Q-852 Peak Index in a Mountain Array
  */
 class PeakIndexInMountainArray {
@@ -1338,6 +2393,58 @@ class PeakIndexInMountainArray {
 
     public static void test() {
         System.out.println(peakIndexInMountainArray(new int[]{0,1,3,4,5,6,3,2}));
+    }
+}
+
+/** Q-953 Verifying an Alien Dictionary */
+class VerifyingAnAlienDictionary {
+    public static boolean isAlienSorted(String[] words, String order) {
+        Map<Character, Integer> charOrder = new HashMap<>();
+        for (int i = 0; i < order.length(); ++i)
+            charOrder.put(order.charAt(i), i);
+        for (int i = 0; i < words.length-1; ++i) {
+            String w1 = words[i], w2 = words[i+1];
+            boolean commonPrefix = true;
+            for (int j = 0; j < w1.length() && j < w2.length(); ++j) {
+                if (w1.charAt(j) != w2.charAt(j)) {
+                    commonPrefix = false;
+                    if (charOrder.get(w1.charAt(j)) > charOrder.get(w2.charAt(j)))
+                        return false;
+                    break;
+                }
+            }
+            // "app" < "apple"
+            if (commonPrefix && w2.length() < w1.length())
+                return false;
+        }
+        return true;
+    }
+
+    public static void test() {
+        System.out.println("Q-953 Verifying an Alien Dictionary");
+        System.out.println(isAlienSorted(new String[]{"hello","leetcode"}, "hlabcdefgijkmnopqrstuvwxyz")); // true
+        System.out.println(isAlienSorted(new String[]{"word","world","row"}, "worldabcefghijkmnpqstuvxyz")); // false
+        System.out.println(isAlienSorted(new String[]{"apple","app"}, "abcdefghijklmnopqrstuvwxyz")); // false
+        System.out.println(isAlienSorted(new String[]{"kuvp","q"}, "ngxlkthsjuoqcpavbfdermiywz")); // true
+    }
+}
+
+/** Q-1119 Remove Vowels from a String */
+class RemoveVowelsFromString {
+    public static String removeVowels(String S) {
+        Character[] v = {'a','e','i','o','u','A','E','I','O','U'};
+        Set<Character> vowels = new HashSet<>();
+        vowels.addAll(Arrays.asList(v));
+        StringBuilder result = new StringBuilder("");
+        for (char c : S.toCharArray())
+            if (!vowels.contains(Character.valueOf(c))) result.append(c);
+        return result.toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-1119 Remove Vowels from a String");
+        System.out.println(removeVowels("leetcodeisacommunityforcoders")); // "ltcdscmmntyfrcdrs"
+        System.out.println(removeVowels("aeiou"));
     }
 }
 
@@ -1368,18 +2475,28 @@ public class LeetcodeEasy {
         System.out.println("Leetcode Easy Level and Tree");
         OneEditDistance.test();
         KthSmallestElements.run();
+        CountUnivalueSubtrees.test();
+        MoveZeroes.test();
         HouseRobber3.run();
+        AddStrings.test();
         ArrangeCoins.test();
+        SerializeAndDeserializeBST.test();
         FindAllNumbersDisappearedInArray.test();
         RepeatedSubstringPattern.test();
         NumberComplement.test();
         MostFrequentSubtreeSum.test();
+        BoundaryOfBinaryTree.test();
         ReverseWordsInString.test();
         FindDuplicateSubtree.test();
         LetterCasePermutation.test();
         PeakIndexInMountainArray.test();
         ShortestUnsortedContinuousSubarray.test();
+        LongestHarmoniousSubsequence.test();
+        SetMismatch.test();
+        RepeatedStringMatch.test();
         CountBinarySubstrings.test();
+        DegreeOfAnArray.test();
+        FindSmallestLetterGreaterThanTarget.test();
+        VerifyingAnAlienDictionary.test();
     }
-
 }

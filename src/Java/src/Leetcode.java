@@ -1,5 +1,5 @@
 /**
- * Leetcode questions 300 - *, (list)
+ * Leetcode questions 351 - 799, (list)
  */
 
 import java.lang.Math;
@@ -8,14 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode(int x) {
-        this.val = x;
-        this.next = null;
-    }
-}
 
 /**
  * Q-61 Rotate List
@@ -252,249 +244,6 @@ class SubstrsWithConcatWords {
   }
 }
 
-/**
- * Q-316: Remove Duplicate Letters
- *
- * Given a string which contains only lowercase letters, remove duplicate letters so that every letter
- * appear once and only once. You must make sure your result is the smallest in lexicographical order
- * among all possible results.
- */
-class RemoveDuplicateLetters {
-    public static String removeDuplicateLetters(String s) {
-        int nchars = 0;
-        Map<Character, List<Integer>> positions = new HashMap<Character, List<Integer>>();
-        // remember positions of each individual letter
-        for (int i = 0; i < s.length(); ++i) {
-            char c = s.charAt(i);
-            List<Integer> p = positions.get(c);
-            if (p == null) {
-                nchars++;
-                p = new ArrayList<Integer>();
-                positions.put(c, p);
-            }
-            p.add(c - 'a');
-        }
-
-        Set<Character> taken = new HashSet<Character>();
-        char result[] = new char[nchars];
-        for (int i = 0; i < nchars; ++i) {
-            char ch = 0;
-            int ch_pos = -1;
-            for (Iterator it = positions.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Character, List<Integer>> entry = (Map.Entry) it.next();
-                if (taken.contains(entry.getKey()))
-                    continue;
-
-                char ech = entry.getKey();
-                List<Integer> epos = entry.getValue();
-                if (ch_pos == -1) {
-                    ch = ech;
-                    ch_pos = epos.remove(0);
-                } else {
-                    if (epos.size() == 1) {
-                        if (positions.get(ch).isEmpty() && epos.get(0) < ch_pos) {
-                            // restore the position of previous chosen char
-                            positions.get(ch).add(ch_pos);
-                            ch = ech;
-                            ch_pos = epos.remove(0);
-                        }
-                    } else {
-                        for (int p = epos.get(0); !epos.isEmpty() && p < ch_pos; p = epos.get(0)) {
-                            epos.remove(0);
-                        }
-                    }
-                }
-            }
-
-            taken.add(ch);
-            result[i] = ch;
-        }
-
-        return String.valueOf(result);
-    }
-}
-
-/**
- * Q-324 Wiggle Sort 2
- *
- * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
- */
-class WiggleSort {
-    public static void wiggleSort(int[] nums) {
-        int[] c = Arrays.copyOf(nums, nums.length);
-        Arrays.sort(c);
-        for (int i = 0, j = nums.length%2 == 0 ? nums.length/2-1 : nums.length/2, k = nums.length-1;
-             i < nums.length; ++i) {
-            if (i % 2 == 0)
-                nums[i] = c[j--];
-            else
-                nums[i] = c[k--];
-        }
-        System.out.println(Arrays.toString(nums));
-    }
-
-    public static void test() {
-        System.out.println("Q-324 Wiggle Sort 2");
-        wiggleSort(new int[]{1,5,1,1,6,4});
-    }
-}
-
-/**
- * Q-332: Reconstruct Itinerary
- *
- * Given a list of airline tickets represented by pairs of departure and arrival
- * airports [from, to], reconstruct the itinerary in order. All of the tickets
- * belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.
- */
-class ReconstructItinerary {
-    private static boolean flyNext(List<String> trip, Map<String, ArrayList<String>> flights,
-                            final int numCities) {
-        if (trip.size() == numCities)
-            return true;
-
-        String curr = trip.get(trip.size()-1);
-        if (!flights.containsKey(curr) || flights.get(curr).size() == 0)
-            return false;
-
-        ArrayList<String> orig = flights.get(curr);
-        ArrayList<String> triedDests = new ArrayList<String>();
-        ArrayList<String> destinations = new ArrayList<String>(orig);
-        while (destinations.size() > 0) {
-            String next = destinations.remove(0);
-            trip.add(next);
-            ArrayList<String> newDests = new ArrayList<String>(triedDests);
-            newDests.addAll(destinations);
-            flights.put(curr, newDests);
-            if (flyNext(trip, flights, numCities))
-                return true;
-
-            trip.remove(trip.size() - 1);
-            triedDests.add(next);
-        }
-
-        flights.put(curr, orig);
-        return false;
-    }
-
-    private static List<String> findItinerary(String[][] tickets) {
-        int numCities = tickets.length + 1;
-        Map<String, ArrayList<String>> flightsMap = new HashMap<String, ArrayList<String>>();
-        for (String[] t : tickets) {
-            if (!flightsMap.containsKey(t[0])) {
-                flightsMap.put(t[0], new ArrayList<String>());
-            }
-            flightsMap.get(t[0]).add(t[1]);
-        }
-
-        // sort destinations of the same source city
-        for (Iterator it = flightsMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, ArrayList<String>> entry = (Map.Entry) it.next();
-            Collections.sort(entry.getValue());
-        }
-
-        // assume there is at lease one valid trip
-        List<String> trip = new ArrayList<String>();
-        trip.add("JFK");
-        flyNext(trip, flightsMap, numCities);
-
-        for (String c : trip)
-            System.out.print(c + " ");
-        System.out.println();
-        return trip;
-    }
-
-    private static void dfs(String from, Map<String, ArrayList<String>> flights, List<String> result) {
-        // I first used SortedSet in flights, thinking it would provide sorting; however, remove() would remove all
-        // duplicate city strings
-        while (flights.get(from) != null && flights.get(from).size() > 0) {
-            String to = flights.get(from).get(0);
-            flights.get(from).remove(0);
-            dfs(to, flights, result);
-        }
-        result.add(from);
-    }
-
-    // Implementation #2 use recursive DFS
-    private static List<String> recreateItinerary(String[][] tickets) {
-        ArrayList<String> result = new ArrayList<String>();
-        if (tickets.length == 0)
-            return result;
-        // build adjacency sorted list
-        Map<String, ArrayList<String>> flights = new HashMap<String, ArrayList<String>>();
-        for (String[] t : tickets) {
-            if (!flights.containsKey(t[0]))
-                flights.put(t[0], new ArrayList<String>());
-            flights.get(t[0]).add(t[1]);
-        }
-        // sort destinations,
-        for (Map.Entry<String, ArrayList<String>> e : flights.entrySet()) {
-            Collections.sort(e.getValue());
-        }
-
-        // do DFS from the start JFK
-        dfs("JFK", flights, result);
-        Collections.reverse(result);
-        System.out.println(Arrays.toString(result.toArray()));
-        return result;
-    }
-
-    public static void run() {
-        System.out.println("------------ Reconstruct Itinerary ------------");
-        String[][] tickets = {{"JFK","SFO"},{"JFK","ATL"},{"SFO","ATL"},{"ATL","JFK"},{"ATL","SFO"}};
-        recreateItinerary(tickets);
-
-        String[][] tickets1 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"}};
-        recreateItinerary(tickets1);
-
-        String[][] tickets2 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"},{"ATL","JML"},
-                {"JML","ATL"}};
-        recreateItinerary(tickets2);
-
-        String[][] tickets4 = {{"EZE","AXA"},{"TIA","ANU"},{"ANU","JFK"},{"JFK","ANU"},{"ANU","EZE"},{"TIA","ANU"},
-                {"AXA","TIA"},{"TIA","JFK"},{"ANU","TIA"},{"JFK","TIA"}};
-        recreateItinerary(tickets4); // ["JFK","ANU","EZE","AXA","TIA","ANU","JFK","TIA","ANU","TIA","JFK"]
-
-        String[][] tickets3 = {{"CBR","JFK"},{"TIA","EZE"},{"AUA","TIA"},{"JFK","EZE"},
-                {"BNE","CBR"},{"JFK","CBR"},{"CBR","AUA"},{"EZE","HBA"},{"AXA","ANU"},{"BNE","EZE"},
-                {"AXA","EZE"},{"AUA","ADL"},{"OOL","JFK"},{"BNE","AXA"},{"OOL","EZE"},{"EZE","ADL"},
-                {"TIA","BNE"},{"EZE","TIA"},{"JFK","AUA"},{"AUA","EZE"},{"ANU","ADL"},{"TIA","BNE"},
-                {"EZE","OOL"},{"ANU","BNE"},{"EZE","ANU"},{"ANU","AUA"},{"BNE","ANU"},{"CNS","JFK"},
-                {"TIA","ADL"},{"ADL","AXA"},{"JFK","OOL"},{"AUA","ADL"},{"ADL","TIA"},{"ADL","ANU"},
-                {"ADL","JFK"},{"BNE","EZE"},{"ANU","BNE"},{"JFK","BNE"},{"EZE", "AUA"}, {"EZE","AXA"},
-                {"AUA","TIA"},{"ADL","CNS"},{"AXA","AUA"}};
-        findItinerary(tickets3);
-        recreateItinerary(tickets3);
-    }
-}
-
-/**
- * Q-334 Increasing Triplet Subsequence
- */
-class IncreasingTripletSubsequence {
-    public static boolean increasingTriplet(int[] nums) {
-        if (nums.length < 3)
-            return false;
-        int m1 = nums[0], m2 = Integer.MAX_VALUE, count = 1;
-        for (int i = 1; i < nums.length; ++i) {
-            if (nums[i] > m2) {
-                return true;
-            } else if (nums[i] > m1) {
-                m2 = nums[i];
-                if (count < 2) {
-                    count++;
-                }
-            } else {
-                m1 = nums[i];
-            }
-        }
-        return false;
-    }
-
-    public static void test() {
-        System.out.println("Q-334 Increasing Triplet Subsequence");
-        System.out.println(increasingTriplet(new int[]{4,3,1,2,5}));
-    }
-}
 
 /**
  * Q-362 Design Hit Counter
@@ -931,6 +680,75 @@ class LongestRepeatingCharacterReplacement {
     }
 }
 
+/** Q-427 Construct Quad Tree */
+class ConstructQuadTree {
+    private static QuadTreeNode build(int[][] grid, int r, int c, int size) {
+        if (size == 1)
+            return new QuadTreeNode(grid[r][c] == 1, true, null, null, null, null);
+        for (int i = r; i < r+size; ++i) {
+            for (int j = c; j < c+size; ++j) {
+                if (grid[i][j] != grid[r][c]) {
+                    int half = size/2;
+                    QuadTreeNode topLeft = build(grid, r, c, half);
+                    QuadTreeNode topRight = build(grid, r, c+half, half);
+                    QuadTreeNode bottomLeft = build(grid, r+half, c, half);
+                    QuadTreeNode bottomRight = build(grid, r+half, c+half, half);
+                    return new QuadTreeNode(false, false, topLeft, topRight, bottomLeft, bottomRight);
+                }
+            }
+        }
+        return new QuadTreeNode(grid[r][c] == 1, true, null, null, null, null);
+    }
+
+    public static QuadTreeNode construct(int[][] grid) {
+        return build(grid, 0, 0, grid.length);
+    }
+
+    public static void test() {
+        System.out.println("Q-427 Construct Quad Tree");
+        int[][] grid = {{1, 1, 0, 0, 0, 0, 0, 0}, {1, 1, 0, 0, 0, 0, 0, 0}, {1, 1, 0, 0, 0, 0, 1, 1}, {1, 1, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {0, 0, 0, 0, 0, 0, 1, 1}, {1, 1, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 0, 0}};
+        construct(grid);
+    }
+}
+
+/**
+ * Q-430 Flatten a Multilevel Doubly Linked List
+ */
+class FlattenMultilevelDoublyLinkedList {
+    static class Node {
+        public int val;
+        public Node prev;
+        public Node next;
+        public Node child;
+    };
+
+    public Node flatten(Node head) {
+        if (head != null) {
+            helper(head);
+            head.prev = null;
+        }
+        return head;
+    }
+
+    private Node helper(Node head) {
+        Node last = null;
+        for (Node n = head; n != null; last = n, n = n.next) {
+            if (n.child != null) {
+                Node nested = helper(n.child);
+                Node nestedLast = nested.prev;
+                nestedLast.next = n.next; // insert nested list
+                if (n.next != null) n.next.prev = nestedLast;
+                nested.prev = n;
+                n.next = nested;
+                n.child = null;
+                n = nestedLast;
+            }
+        }
+        head.prev = last;
+        return head;
+    }
+}
+
 /**
  * Q-433 Minimum Genetic Mutations
  *
@@ -1288,6 +1106,29 @@ class TeemoAttacking {
 }
 
 /**
+ * Q-523 Continuous Subarray Sum
+ *
+ * Given a list of non-negative numbers and a target integer k, write a function to check if the array has a
+ * continuous subarray of size at least 2 that sums up to a multiple of k, that is, sums up to n*k where n is
+ * also an integer.
+ */
+class ContinuousSubarraySum {
+    public boolean checkSubarraySum(int[] nums, int k) {
+        Map<Integer, Integer> modPos = new HashMap<>();
+        modPos.put(0,-1);
+        for (int i = 0, sum = 0; i < nums.length; ++i) {
+            sum += nums[i];
+            int m = k == 0 ? sum : sum % k;
+            if (!modPos.containsKey(m))
+                modPos.put(m, i);
+            else if (i - modPos.get(m) > 1)
+                return true;
+        }
+        return false;
+    }
+}
+
+/**
  * Q-525 Continguous Array
  *
  * Given a binary array, find the maximum length of a contiguous subarray with equal number of 0 and 1.
@@ -1306,6 +1147,47 @@ class ContinguousArray {
             }
         }
         return result;
+    }
+}
+
+/**
+ * Q-536 Construct Binary Tree from String
+ */
+class ConstructBinaryTreeFromString {
+    public static TreeNode str2tree(String s) {
+        if (s.isEmpty()) return null;
+        Stack<TreeNode> stack = new Stack<>();
+        for (int i = 0, start = 0; i < s.length(); ++i) {
+            if (s.charAt(i) == '(') {
+                if (s.charAt(i-1) == ')') { // the second '(' in (3)(1)
+                    start = i+1;
+                    continue;
+                }
+                int val = Integer.valueOf(s.substring(start, i));
+                TreeNode n = new TreeNode(val);
+                stack.push(n);
+                start = i+1;
+            } else if (s.charAt(i) == ')') {
+                TreeNode n;
+                if (s.charAt(i-1) == ')')
+                    n = stack.pop();
+                else { // the last ')' in 2(3)(1)
+                    n = new TreeNode(Integer.valueOf(s.substring(start, i)));
+                    start = i+1;
+                }
+                TreeNode par = stack.peek();
+                if (par.left == null) par.left = n;
+                else par.right = n;
+            }
+        }
+        TreeNode root = stack.empty() ? new TreeNode(Integer.valueOf(s)) : stack.pop();
+        return root;
+    }
+
+    public static void test() {
+        System.out.println("Q-536 Construct Binary Tree from String");
+        str2tree("24(-2(3)(1))(6)");
+        str2tree("4");
     }
 }
 
@@ -1567,6 +1449,33 @@ class MyCircularQueue {
         System.out.println(cq.deQueue()); // true
         System.out.println(cq.enQueue(4)); // true
         System.out.println(cq.Rear()); // 4
+    }
+}
+
+/**
+ * Q-636 Exclusive Time of Functions
+ */
+class ExclusiveTimeOfFunctions {
+    public int[] exclusiveTime(int n, List<String> logs) {
+        int[] result = new int[n]; // n functions
+        int prevTime = 0;
+        Stack<Integer> activeJobs = new Stack<>();
+        for (String log : logs) {
+            String[] parts = log.split(":");
+            int idx = Integer.valueOf(parts[0]);
+            int time = Integer.valueOf(parts[2]);
+            if (!activeJobs.empty())
+                result[activeJobs.peek()] += time - prevTime;
+            prevTime = time;
+            if (parts[1].equals("start")) {
+                activeJobs.add(idx);
+            } else {
+                activeJobs.pop(); // should be same as idx
+                result[idx] += 1; // account for the current time point
+                prevTime += 1;
+            }
+        }
+        return result;
     }
 }
 
@@ -1970,6 +1879,57 @@ class RedundantConnections {
     }
 }
 
+/** Q-692 Top K Frequent Words */
+class TopKFrequentWords {
+    static class Pair {
+        String word;
+        int count;
+        Pair(String word, int count) {
+            this.word = word;
+            this.count = count;
+        }
+    }
+
+    public static List<String> topKFrequent(String[] words, int k) {
+        Map<String, Integer> countMap = new HashMap<>();
+        PriorityQueue<Pair> maxHeap = new PriorityQueue<>(k, new Comparator<Pair>() {
+            @Override
+            public int compare(Pair o1, Pair o2) {
+                // max heap use ascending order
+                if (o1.count < o2.count)
+                    return 1;
+                if (o1.count == o2.count && o1.word.compareTo(o2.word) > 0)
+                    return 1;
+                if (o1.word.equals(o2.word) && o1.count == o2.count)
+                    return 0;
+                return -1;
+            }
+        });
+        for (String w : words) {
+            int c = 1;
+            if (countMap.containsKey(w))
+                c = countMap.get(w) + 1;
+            countMap.put(w, c);
+        }
+        for (Map.Entry<String, Integer> e : countMap.entrySet()) {
+            maxHeap.add(new Pair(e.getKey(), e.getValue()));
+        }
+        int cnt = 0;
+        List<String> result = new ArrayList<>();
+        while (!maxHeap.isEmpty() && cnt++ < k) {
+            result.add(maxHeap.poll().word);
+        }
+        //Collections.reverse(result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-692 Top K Frequent Words");
+        System.out.println(topKFrequent(new String[]{"the", "day", "is", "sunny", "the", "the", "the", "sunny", "is", "is"}, 4));
+        System.out.println(topKFrequent(new String[]{"l", "iove", "leetcode", "l", "iove", "coding"}, 2));
+    }
+}
+
 /** Q-695 Max Area of Island */
 class MaxAreaOfIsland {
     private int MOVES[][] = new int[][]{{0,-1},{-1,0},{0,1},{1,0}};
@@ -2128,6 +2088,56 @@ class AccountsMerge {
     }
 }
 
+/** Q-722 Remove Comments */
+class RemoveComments {
+    public static List<String> removeComments(String[] source) {
+        List<String> result = new ArrayList<>();
+        boolean starComment = false;
+        StringBuilder newLine = new StringBuilder(""); // code line with multi-line comments will be concatenated
+        for (String line : source) {
+            for (int i = 0; i < line.length(); i++) {
+                if (i < line.length()-1) {
+                    String s2 = line.substring(i, i + 2);
+                    if (s2.equals("//") && !starComment) {
+                        // skip everything after //, incl. "/*" "*/"
+                        break;
+                    } else if (s2.equals("/*")) {
+                        if (!starComment) {
+                            starComment = true;
+                            i += 1;
+                        }
+                    } else if (s2.equals("*/") && starComment) { // test #4
+                        if (starComment) {
+                            starComment = false;
+                            i += 1;
+                        }
+                    } else if (!starComment)
+                        newLine.append(line.charAt(i));
+                } else if (!starComment){
+                    newLine.append(line.charAt(i));
+                }
+            }
+            if (!starComment && newLine.length() > 0) {
+                result.add(newLine.toString());
+                newLine.setLength(0);
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-722 Remove Comments");
+        String[] f1 = new String[] {"/*Test program */", "int main()", "{ ", "  // variable declaration ", "int a, b, c;", "/* This is a test", "   multiline  ", "   comment for ", "   testing */", "a = b + c;", "}"};
+        System.out.println(removeComments(f1));
+        String[] f2 = new String[] {"// Test program */", "int main()", "{ ", "  // variable declaration ", "int a, b, c;", "/* This is a test //", "   multiline  ", "//   comment for ", "   testing */", "a = b + c;", "}"};
+        System.out.println(removeComments(f2));
+        String[] f3 = new String[] {"a/*comment", "line", "more_comment*/b"};
+        System.out.println(removeComments(f3));
+        String[] f4 = new String[] {"void func(int k) {", "// this function does nothing /*", "   k = k*2/4;", "   k = k/2;*/", "}"};
+        System.out.println(removeComments(f4));
+    }
+}
+
 /** Q-725 Split Linked List in Parts */
 class SplitLinkedListInParts {
     public ListNode[] splitListToParts(ListNode root, int k) {
@@ -2147,6 +2157,21 @@ class SplitLinkedListInParts {
             if (ptail != null) ptail.next = null;
             result[i] = phead;
         }
+        return result;
+    }
+}
+
+/**
+ * Q-727 Minimum Window Subsequence
+ *
+ * Given strings S and T, find the minimum (contiguous) substring W of S, so that T is a subsequence of W. If there
+ * is no such window in S that covers all characters in T, return the empty string "". If there are multiple such
+ * minimum-length windows, return the one with the left-most starting index.
+ */
+class MinimumWindowSubsequence {
+    public String minWindow(String S, String T) {
+        String result = "";
+
         return result;
     }
 }
@@ -2197,6 +2222,58 @@ class DailyTemperature {
     public static void test() {
         System.out.println("Q-739 Daily Temperature");
         dailyTemperatures(new int[]{73, 74, 75, 71, 69, 72, 76, 73});
+    }
+}
+
+/**
+ * Q-742 Closest Leaf in a Binary Tree
+ */
+class ClosestLeafInBinaryTree {
+    // search node and set up parent back pointer for each node on the path
+    private static TreeNode search(TreeNode root, int k, Map<TreeNode, TreeNode> parents) {
+        if (root == null) return null;
+        if (root.val == k) return root;
+        if (root.left != null) {
+            parents.put(root.left, root);
+            TreeNode left = search(root.left, k, parents);
+            if (left != null) return left;
+        }
+        if (root.right != null) {
+            parents.put(root.right, root);
+            TreeNode right = search(root.right, k, parents);
+            if (right != null) return right;
+        }
+        return null;
+    }
+
+    public int findClosestLeaf(TreeNode root, int k) {
+        // BFS finds the nearest leaf in a sub-tree
+        Map<TreeNode, TreeNode> parents = new HashMap<>();
+        TreeNode kn = search(root, k, parents);
+        if (kn == null) return -1;
+        Queue<TreeNode> bfs = new ArrayDeque<>();
+        bfs.add(kn);
+        Set<TreeNode> visited = new HashSet<>();
+        visited.add(kn);
+        while (!bfs.isEmpty()) {
+            TreeNode n = bfs.poll();
+            // bfs finds the first leaf
+            if (n.left == null && n.right == null) return n.val;
+            if (n.left != null && !visited.contains(n.left)) {
+                visited.add(n.left);
+                bfs.add(n.left);
+            }
+            if (n.right != null && !visited.contains(n.right)) {
+                visited.add(n.right);
+                bfs.add(n.right);
+            }
+            if (parents.containsKey(n) && !visited.contains(parents.get(n))) { // BFS on back pointers
+                TreeNode par = parents.get(n);
+                visited.add(par);
+                bfs.add(par);
+            }
+        }
+        return -1;
     }
 }
 
@@ -2301,6 +2378,42 @@ class ShortestCompletingWords {
         System.out.println("Q-748 Shortest Completing Word");
         System.out.println(shortestCompletingWord("1s3 PSt", new String[]{"step", "stepss", "stripe", "stepple", "steps"}));
         System.out.println(shortestCompletingWord("1s3 456", new String[]{"looks", "pest", "stew", "show"}));
+    }
+}
+
+/**
+ * Q-759 Employee Free Time
+ */
+class EmployeeFreeTime {
+    public List<Interval> employeeFreeTime(List<List<Interval>> schedule) {
+        List<Interval> intervals = new ArrayList<>();
+        for (List<Interval> sch : schedule) {
+            intervals.addAll(sch);
+        }
+        Collections.sort(intervals, new Comparator<Interval>() {
+            @Override
+            public int compare(Interval o1, Interval o2) {
+                if (o1.start == o2.start && o1.end == o2.end)
+                    return 0;
+                if (o1.start < o2.start || (o1.start == o2.start && o1.end < o2.end))
+                    return -1;
+                return 1;
+            }
+        });
+
+        List<Interval> result = new ArrayList<>();
+        int mergedStart = intervals.get(0).start, mergedEnd = intervals.get(0).end;
+        for (int i = 1; i < intervals.size(); ++i) {
+            Interval curr = intervals.get(i);
+            if (curr.start <= mergedEnd) {
+                mergedEnd = Math.max(mergedEnd, curr.end);
+            } else {
+                result.add(new Interval(mergedEnd, curr.start));
+                mergedStart = curr.start;
+                mergedEnd = curr.end;
+            }
+        }
+        return result;
     }
 }
 
@@ -2496,17 +2609,15 @@ public class Leetcode
     public static void main(String[] args)
     {
         System.out.println("Leetcode");
-        SimplifyPath.run();
         SubstrsWithConcatWords.run();
         FindSubstring.run();
         CoinChange.run();
-        WiggleSort.test();
-        ReconstructItinerary.run();
-        IncreasingTripletSubsequence.test();
         KthSmallestInSortedMatrix.test();
         ShuffleArray.test();
         LexicographicalNumbers.test();
         LongestSubstingWithKRepeatingChars.test();
+        ConstructBinaryTreeFromString.test();
+        MinimumTimeDifference.test();
         ZeroOneMatrix.test();
         MinimumGeneticMutations.test();
         RandomPickIndex.test();
@@ -2515,6 +2626,7 @@ public class Leetcode
         OneThreeTwoPattern.test();
         UniqueSubstringsInWraparoundString.test(); //
         LongestRepeatingCharacterReplacement.test();
+        ConstructQuadTree.test();
         FindAllAnagramsInString.test(); // sliding window
         PermutationInString.test(); // sliding window char count
         TaskScheduler.test(); // priority queue
@@ -2526,8 +2638,10 @@ public class Leetcode
         MagicDictionary.test(); // hashmap
         MapSum.test(); // data structure
         RedundantConnections.test(); // union find
+        TopKFrequentWords.test(); // priority queue + map
         PartitionKEqualSumSubsets.test(); // recursion
         AccountsMerge.test(); // union find
+        RemoveComments.test();
         DailyTemperature.test(); // stack
         NetworkDelayTime.test(); // single-source multi-destination shortest path
         ShortestCompletingWords.test();
@@ -2535,5 +2649,7 @@ public class Leetcode
         NumberOfMatchingSubsequences.test(); // is_subsequence + memoization
         ChampagneTower.test(); // matrix + memoization
         CheapestFlightsWithinKStops.test(); // shortest path
+
+
     }
 }

@@ -1,20 +1,11 @@
 /**
- * Leetcode Questions - medium level 1 - 300
+ * Leetcode Questions - medium level 1 - 350
  *
  * Including intervals questions
  */
 
 import java.util.*;
 
-class Interval {
-    int start;
-    int end;
-    Interval() { start = 0; end = 0; }
-    Interval(int s, int e) { start = s; end = e; }
-    public String toString() {
-        return "(" + start + "," + end + ")";
-    }
-}
 
 /** Q-3 Longest Substring Without Repeating Characters */
 class LongestSubstringWithoutRepeatingChars {
@@ -148,6 +139,66 @@ class LetterComboOfPhoneNumber {
     List<String> r = letterCombinationsRecursive("234");
     System.out.println(r.toString());
   }
+}
+
+/**
+ * Q-23 Merge K Sorted Lists
+ */
+class MergeKSortedLists {
+    public ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> minHeap = new PriorityQueue<>(10, new Comparator<ListNode>() {
+            @Override
+            public int compare(ListNode o1, ListNode o2) {
+                return o1.val == o2.val ? 0 : (o1.val < o2.val ? -1 : 1);
+            }
+        });
+        for (ListNode lh : lists)
+            if (lh != null) minHeap.add(lh);
+        ListNode dummy = new ListNode(-1);
+        ListNode tail = dummy;
+        while (!minHeap.isEmpty()) {
+            ListNode n = minHeap.poll();
+            tail.next = n;
+            tail = n;
+            ListNode next = n.next;
+            tail.next = null;
+            if (next != null) minHeap.add(next);
+        }
+        ListNode head = dummy.next;
+        dummy.next = null;
+        return head;
+    }
+}
+
+/**
+ * Q-29 Divide Two Integers
+ */
+class DivideTwoIntegers {
+    public static int divide(int dividend, int divisor) {
+        if (dividend == Integer.MIN_VALUE && divisor == -1) return Integer.MAX_VALUE;
+        int sign = ((dividend < 0 && divisor < 0) || (dividend > 0 && divisor > 0)) ? 1 : -1;
+        long dd = Math.abs((long)dividend), ds = Math.abs((long)divisor);
+        if (ds == 1) return (int)dd*sign;
+        long onePos = 1;
+        for (; dd >= ds; onePos <<= 1, ds <<= 1);
+        ds >>= 1;
+        onePos >>= 1;
+        int result = 0;
+        for (; onePos > 0; onePos >>= 1, ds >>= 1) {
+            if (dd >= ds) {
+                dd -= ds;
+                result |= onePos;
+            }
+        }
+        return result*sign;
+    }
+
+    public static void test() {
+        System.out.println("Q-29 Divide Two Integers");
+        System.out.println(divide(10,3)); // 3
+        System.out.println(divide(-12,3)); // -4
+        System.out.println(divide(-2147483648, 2)); // -1073741824
+    }
 }
 
 /** Q-31 Next Permutation */
@@ -557,6 +608,38 @@ class MergeIntervals {
     }
 }
 
+/** Q-67 Add Binary */
+class AddBinary {
+    public static String addBinary(String a, String b) {
+        if (a.length() < b.length()) {
+            String t = a;
+            a = b;
+            b = t;
+        }
+        StringBuilder result = new StringBuilder("");
+        int bi = b.length()-1, ai = a.length()-1, carry = 0;
+        for (; bi >= 0; bi--, ai--) {
+            int da = a.charAt(ai) - '0', db = b.charAt(bi) - '0';
+            int s = da + db + carry;
+            result.append(s % 2);
+            carry = s/2;
+        }
+        for (; ai >= 0; ai--) {
+            int s = (int)(a.charAt(ai) - '0') + carry;
+            result.append(s % 2);
+            carry = s/2;
+        }
+        if (carry > 0)
+            result.append(carry);
+        return result.reverse().toString();
+    }
+
+    public static void test() {
+        System.out.println("Q-67 Add binary");
+        System.out.println(addBinary("1010", "1011")); // "10101"
+        System.out.println(addBinary("101011", "1011")); // "110110"
+    }
+}
 
 /**
  * Q-71 Simplify Path
@@ -668,81 +751,48 @@ class SortColors {
 
 /**
  * Q-76: Minimum Window Substring
+ *
+ * Given a string S and a string T, find the minimum window in S which will contain all the characters in T in
+ * complexity O(n).
  */
 class MinimumWindowSubstring {
-    private class Elem {
-        final Character c;
-        final Integer position;
-        public Elem(Character c, Integer p) { this.c = c; this.position = p; }
-    }
-
-    private class ElemComparactor implements Comparator<Elem> {
-        @Override
-        public int compare(Elem e1, Elem e2) {
-            return e1.position.compareTo(e2.position);
-        }
-    }
-
-    public String minWindow(String S, String T) {
-        HashMap<Character, Integer> tchars = new HashMap<Character, Integer>();
-        for (char c : T.toCharArray()) {
-            if (tchars.containsKey(c)) {
-                int count = tchars.get(c);
-                tchars.put(c, count+1);
-            } else {
-                tchars.put(c, 1);
-            }
-        }
-
-        int minWinSize = Integer.MAX_VALUE;
-        int minWinFirst = -1, minWinLast = -1;
-        // remember current position that a T char appears in the window
-        HashMap<Character, ArrayList<Integer>> currTcPos = new HashMap<Character, ArrayList<Integer>>();
-        TreeSet<Elem> window = new TreeSet<Elem>(new ElemComparactor());
+    public static String minWindow(String S, String T) {
+        Map<Character, Integer> tcounts = new HashMap<>();
+        for (char c : T.toCharArray())
+            tcounts.put(c, (tcounts.containsKey(c) ? tcounts.get(c)+1 : 1));
+        String result = "";
+        int minWindow = Integer.MAX_VALUE, start = 0, count = 0;
         for (int i = 0; i < S.length(); ++i) {
-            Character sc = new Character(S.charAt(i));
-            if (tchars.containsKey(sc) == false) {
-                continue;
+            Character c = S.charAt(i);
+            if (tcounts.containsKey(c)) {
+                int cc = tcounts.get(c) - 1;
+                if (cc >= 0)
+                    count++;
+                tcounts.put(c, cc);
             }
-
-            // replace T char position in the window with the latest position
-            if (currTcPos.containsKey(sc)) {
-                ArrayList<Integer> cpos = currTcPos.get(sc);
-                if (cpos.size() == tchars.get(sc)) {
-                    Integer currP = cpos.get(0);
-                    window.remove(new Elem(sc, currP));
-                    // remove the first and add the latest position
-                    cpos.remove(0);
+            while (count == T.length()) {
+                if (i-start+1 < minWindow) {
+                    minWindow = i - start + 1;
+                    result = S.substring(start, i+1);
                 }
-                cpos.add(i);
-            } else {
-                ArrayList<Integer> cpos = new ArrayList<Integer>();
-                cpos.add(i);
-                currTcPos.put(sc, cpos);
-            }
-            window.add(new Elem(sc, new Integer(i)));
-
-            if (window.size() == T.length()) {
-                Elem first = window.first();
-                Elem last = window.last();
-                if (last.position - first.position < minWinSize) {
-                    minWinSize = last.position - first.position;
-                    minWinFirst = first.position;
-                    minWinLast = last.position;
+                // right-shift start pointer
+                Character sc = S.charAt(start);
+                if (tcounts.containsKey(sc)) {
+                    int cc = tcounts.get(sc) + 1;
+                    if (cc > 0) count--;
+                    tcounts.put(sc, cc);
                 }
+                start++;
             }
         }
-
-        String winStr = (minWinSize == Integer.MAX_VALUE) ? "" : S.substring(minWinFirst, minWinLast+1);
-        System.out.println(S + ", " + T + " = " + winStr);
-        return winStr;
+        return result;
     }
 
-    public void run() {
-        System.out.println("---------- Minimum Window Substring -----------");
-        minWindow("ADOBECODEBANC", "ABC");
-        minWindow("a", "aa");
-        minWindow("ADOBECOADEBANC", "ABCA");
+    public static void test() {
+        System.out.println("Q-76 Minimum Window Substring");
+        System.out.println(minWindow("ADOBECODEBANC", "ABC"));
+        System.out.println(minWindow("a", "aa")); // ""
+        System.out.println(minWindow("ADOBECOADEBANC", "ABCA")); // COADEBA
     }
 }
 
@@ -1100,6 +1150,36 @@ class WordLadder {
 }
 
 /**
+ * Q-128 Longest Consecutive Sequence
+ *
+ * Given an unsorted array of integers, find the length of the longest consecutive elements sequence. Your algorithm
+ * should run in O(n) complexity.
+ */
+class LongestConsecutiveSequence {
+    public int longestConsecutive(int[] nums) {
+        Set<Integer> numSet = new HashSet<>();
+        for (int n : nums) numSet.add(n);
+        int result = 0;
+        for (int n : nums) {
+            if (!numSet.contains(n)) continue;
+            numSet.remove(n);
+            int left = n-1, right = n+1;
+            while (numSet.contains(left)) {
+                numSet.remove(left);
+                left--;
+            }
+            while (numSet.contains(right)) {
+                numSet.remove(right);
+                right++;
+            }
+            if (right-left-1 > result)
+                result = right-left-1;
+        }
+        return result;
+    }
+}
+
+/**
  * Q-130 Surrounded Regions
  *
  * Given a 2D board containing 'X' and 'O' (the letter O), capture all regions surrounded by 'X'. A region is captured
@@ -1148,6 +1228,50 @@ class SurroundedRegions {
             if (board[board.length-1][i] == 'Y')
                 dfs(board, board.length-1, i, false);
         }
+    }
+}
+
+/** Q-133 Clone Graph */
+class CloneGraph {
+    private static class Node {
+        public int val;
+        public List<Node> neighbors;
+
+        public Node() {
+            val = 0;
+            neighbors = new ArrayList<Node>();
+        }
+
+        public Node(int _val) {
+            val = _val;
+            neighbors = new ArrayList<Node>();
+        }
+
+        public Node(int _val, ArrayList<Node> _neighbors) {
+            val = _val;
+            neighbors = _neighbors;
+        }
+    }
+
+    public Node cloneGraph(Node node) {
+        if (node == null)
+            return null;
+        Map<Node, Node> cloneMap = new HashMap<>();
+        cloneMap.put(node, new Node(node.val));
+        Deque<Node> queue = new ArrayDeque<>();
+        queue.add(node);
+        while (!queue.isEmpty()) {
+            Node n = queue.pop();
+            Node nclone = cloneMap.get(n);
+            for (Node neighbour : n.neighbors) {
+                if (!cloneMap.containsKey(neighbour)) {
+                    cloneMap.put(neighbour, new Node(neighbour.val));
+                    queue.add(neighbour);
+                }
+                nclone.neighbors.add(cloneMap.get(neighbour));
+            }
+        }
+        return cloneMap.get(node);
     }
 }
 
@@ -1204,9 +1328,15 @@ class SingleNumber {
 }
 
 /**
- * Q-139: Word Break
+ * Q-139 Word Break
+ *
+ * Q-140 Word Break II
+ *
+ * Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, add spaces in s to
+ * construct a sentence where each word is a valid dictionary word. Return all such possible sentences.
  */
 class WordBreak {
+    // Q-139
     public static boolean wordBreak(String s, Set<String> dict) {
         // hasWord[i] remembers the length of longest word ends at [i]
         int hasWord[] = new int[s.length()];
@@ -1231,6 +1361,42 @@ class WordBreak {
         return hasWord[s.length()-1] != 0;
     }
 
+    // Q-140
+    public static List<String> wordBreak2(String s, List<String> wordDict) {
+        Map<String, Set<String>> memo = new HashMap<>();
+        Set<String> dict = new HashSet<>();
+        for (String w : wordDict)
+            dict.add(w);
+        List<String> result = new ArrayList<>(helper(s, dict, memo));
+        System.out.println(result);
+        return result;
+    }
+
+    private static Set<String> helper(String s, Set<String> dict, Map<String, Set<String>> memo) {
+        if (s.length() == 0) {
+            Set<String> r = new HashSet<>();
+            r.add("");
+            return r;
+        }
+        if (memo.containsKey(s))
+            return memo.get(s);
+        Set<String> result = new HashSet<>();
+        for (int i = 0; i < s.length(); ++i) {
+            String prefix = s.substring(0, i+1);
+            if (dict.contains(prefix)) {
+                String suffix = s.substring(i+1);
+                Set<String> suffixes = helper(suffix, dict, memo);
+                for (String ss : suffixes) {
+                    String s2 = ss.isEmpty() ? prefix : prefix + " " + ss;
+                    if (!result.contains(s2))
+                        result.add(s2);
+                }
+            }
+        }
+        memo.put(s, result);
+        return result;
+    }
+
     public static void run() {
         System.out.println("--------- Word Break -----------");
         Set<String> dict = new TreeSet<String>();
@@ -1248,6 +1414,45 @@ class WordBreak {
         wordBreak("lovereading", dict);
         wordBreak("eareading", dict);
         wordBreak("ab", dict);
+
+        String[] dict2 = {"cat", "cats", "and", "sand", "dog"};
+        wordBreak2("catsanddog", Arrays.asList(dict2));
+    }
+}
+
+/**
+ * Q-146 LRU Cache
+ */
+class LRUCache {
+    private final int capacity;
+    Map<Integer, Integer> cache = new HashMap<>(); // ConcurrentHashMap
+    LinkedList<Integer> accessList = new LinkedList<>(); // need lock
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public int get(int key) {
+        if (cache.containsKey(key)) {
+            int value = cache.get(key);
+            // move to the head of the access list
+            accessList.remove(Integer.valueOf(key));
+            accessList.addFirst(Integer.valueOf(key));
+            return value;
+        }
+        return -1;
+    }
+
+    public void put(int key, int value) {
+        boolean keyExists = cache.containsKey(key);
+        if (!keyExists && accessList.size() >= capacity) {
+            Integer evicted = accessList.pollLast();
+            cache.remove(evicted);
+        }
+        if (keyExists)
+            accessList.remove(Integer.valueOf(key));
+        cache.put(key, value);
+        accessList.addFirst(Integer.valueOf(key));
     }
 }
 
@@ -1277,6 +1482,75 @@ class EvaluateReversePolishNotation {
         }
         int result = operands.pop();
         return result;
+    }
+}
+
+/**
+ * Q-158 Read N Characters Given Read4 -- read multiple times
+ *
+ * Given a file and assume that you can only read the file using a given method read4, implement a method read to
+ * read n characters. Your method read may be called multiple times.
+ */
+class ReadNCharactersWithRead4 {
+    private int read4(char[] buf) {
+        return 0;
+    }
+
+    // Q-157. Read N characters given read4
+    public int read(char[] buf, int n) {
+        char[] readbuf = new char[4];
+        int writePtr = 0;
+        for (int i = 0; i <= n/4; ++i) {
+            int r = read4(readbuf);
+            for (int j = 0; j < r; ++j)
+                buf[writePtr++] = readbuf[j];
+        }
+        return n > writePtr ? writePtr : n;
+    }
+
+    // II read may be called multiple times
+    // file = "abcdefg", do read(1), read(2), read(2), should return "abcde"
+    public int read_II(char[] buf, int n) {
+        for (int i = 0; i < n; ++i) {
+            if (readPos == writePos) {
+                writePos = read4(rbuf);
+                readPos = 0;
+                if (writePos == 0)
+                    return i;
+            }
+            buf[i] = rbuf[readPos++];
+        }
+        return n;
+    }
+
+    private char[] rbuf = new char[4];
+    private int readPos = 0, writePos = 0;
+}
+
+/**
+ * Q-160 Intersection of Two Linked Lists
+ */
+class IntersectionOfTwoLinkedLists {
+    private int length(ListNode head) {
+        int l = 0;
+        for (ListNode n = head; n != null; n = n.next, l++);
+        return l;
+    }
+
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        int alen = length(headA), blen = length(headB);
+        ListNode longer, other;
+        if (alen > blen) {
+            longer = headA;
+            other = headB;
+        } else {
+            longer = headB;
+            other = headA;
+        }
+        for (int i = 0; i < Math.abs(alen-blen); ++i, longer = longer.next);
+        for (; longer != null && other != null; longer = longer.next, other = other.next)
+            if (longer.equals(other)) return longer;
+        return null;
     }
 }
 
@@ -1444,28 +1718,25 @@ class RepeatedDNASequence {
     }
 }
 
-
-/** Q-199 Binary Tree Right Side View */
-class BinaryTreeRightSideView {
-    public List<Integer> rightSideView(TreeNode root) {
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        if (root == null)
-            return result;
-        ArrayDeque<TreeNode> queue = new ArrayDeque<TreeNode>();
-        queue.add(root);
-        while (!queue.isEmpty()) {
-            result.add(queue.peek().val);
-            // traverse the "nlvl" nodes on the same level
-            int nlvl = queue.size();
-            for (int i = 0; i < nlvl; ++i) {
-                TreeNode n = queue.poll();
-                if (n.right != null)
-                    queue.add(n.right);
-                if (n.left != null)
-                    queue.add(n.left);
+/** Q-202 Happy Number */
+class HappyNumber {
+    public static boolean isHappy(int n) {
+        HashSet<Integer> visited = new HashSet<>();
+        for (int num = n, value = 0; num != 1; num = value, value = 0) {
+            for (int num1 = num; num1 > 0; num1 /= 10) {
+                int d = num1 % 10;
+                value += d*d;
             }
+            if (visited.contains(value)) return false;
+            visited.add(value);
         }
-        return result;
+        return true;
+    }
+
+    public static void test() {
+        System.out.println("Q-202 Happy Number");
+        System.out.println(isHappy(19)); // true
+        System.out.println(isHappy(11)); // false
     }
 }
 
@@ -1642,6 +1913,56 @@ class CourseSchedule {
 }
 
 /**
+ * Q-208 Implement Trie (Prefix Tree)
+ */
+class ImplementTrie {
+    private TrieNode root = new TrieNode();
+
+    private static class TrieNode {
+        TrieNode[] childrens = new TrieNode[26];
+        boolean isWord = false;
+        TrieNode() {}
+    }
+
+    /** Initialize your data structure here. */
+    public ImplementTrie() {
+    }
+
+    /** Inserts a word into the trie. */
+    public void insert(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) n.childrens[idx] = new TrieNode();
+            n = n.childrens[idx];
+        }
+        n.isWord = true;
+    }
+
+    /** Returns if the word is in the trie. */
+    public boolean search(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return n.isWord;
+    }
+
+    /** Returns if there is any word in the trie that starts with the given prefix. */
+    public boolean startsWith(String prefix) {
+        TrieNode n = root;
+        for (char c : prefix.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return true;
+    }
+}
+
+/**
  * 209. Minimum Size Subarray Sum
  *
  * Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray
@@ -1665,6 +1986,58 @@ class MinimumSizeSubarraySum {
             }
         }
         return result != nums.length+1 ? result : 0;
+    }
+}
+
+/**
+ * Q-211 Add and Search Word - Data structure design
+ */
+class WordDictionary {
+    TrieNode root = new TrieNode();
+
+    private static class TrieNode {
+        TrieNode[] childrens = new TrieNode[26];
+        boolean isWord = false;
+        TrieNode() {}
+    }
+
+    /** Initialize your data structure here. */
+    public WordDictionary() {
+    }
+
+    /** Adds a word into the data structure. */
+    public void addWord(String word) {
+        TrieNode n = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) n.childrens[idx] = new TrieNode();
+            n = n.childrens[idx];
+        }
+        n.isWord = true;
+    }
+
+    /** Returns if the word is in the data structure. A word could contain the dot character '.' to represent
+     * any one letter. */
+    public boolean search(String word) {
+        return searchDFS(root, word);
+    }
+
+    private boolean searchDFS(TrieNode root, String word) {
+        TrieNode n = root;
+        for (int j = 0; j < word.length(); ++j) {
+            char c = word.charAt(j);
+            if (c == '.') {
+                final String suffix = word.substring(j+1);
+                for (int i = 0; i < 26; ++i)
+                    if (n.childrens[i] != null)
+                        if (searchDFS(n.childrens[i], suffix)) return true;
+                return false;
+            }
+            int idx = c - 'a';
+            if (n.childrens[idx] == null) return false;
+            n = n.childrens[idx];
+        }
+        return n.isWord;
     }
 }
 
@@ -1734,6 +2107,61 @@ class KthLargestNumberInArray {
         System.out.println("Q-215 Kth Largest Number in a Array");
         System.out.println(findKthLargest(new int[]{3,2,1,5,6,4}, 2));
         System.out.println(findKthLargest(new int[]{3,1,2,4}, 2));
+    }
+}
+
+/**
+ * Q-218 The Skyline Problem
+ */
+class Skyline {
+    public static List<List<Integer>> getSkyline(int[][] buildings) {
+        int[][] sideHeights = new int[buildings.length*2][];
+        for (int i = 0; i < buildings.length; ++i) {
+            sideHeights[i*2] = new int[]{buildings[i][0], 0-buildings[i][2]};
+            sideHeights[i*2+1] = new int[]{buildings[i][1], buildings[i][2]};
+        }
+        Arrays.sort(sideHeights, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] a1, int[] a2) {
+                if (a1[0] == a2[0] && a1[1] == a2[1])
+                    return 0;
+                else if (a1[0] < a2[0] || (a1[0] == a2[0] && a1[1] < a2[1]))
+                    return -1;
+                return 1;
+            }
+        });
+        System.out.println(Arrays.deepToString(sideHeights));
+
+        List<List<Integer>> result = new ArrayList<>();
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(10, Collections.reverseOrder());
+        maxHeap.add(0); // needed for showing key point at height 0
+        for (int i = 0, currMax = 0; i < sideHeights.length; ++i) {
+            int[] p = sideHeights[i];
+            if (p[1] < 0) { // left side
+                int h = 0-p[1];
+                if (h > maxHeap.peek()) {
+                    result.add(Arrays.asList(new Integer[]{p[0], h}));
+                    currMax = h;
+                }
+                maxHeap.add(h); // sort build heights
+            } else { // right side
+                maxHeap.remove(p[1]);
+                if (p[1] == currMax && currMax != maxHeap.peek()) {
+                    currMax = maxHeap.peek();
+                    result.add(Arrays.asList(new Integer[]{p[0], currMax}));
+                }
+            }
+        }
+        System.out.println(result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-218 The Skyline Problem");
+        int[][] t = {{2,9,10},{3,7,15},{5,12,12},{15,20,10},{19,24,8}}; // [[2, 10], [3, 15], [7, 12], [12, 0], [15, 10], [20, 8], [24, 0]]
+        getSkyline(t);
+        int[][] t2 = {{0,2,3},{2,5,3}}; // [[0,3],[5,0]]
+        getSkyline(t2);
     }
 }
 
@@ -1833,6 +2261,42 @@ class MajorityElement2 {
 }
 
 /**
+ * Q-234 Palindrome Linked List
+ */
+class PalindromeLinkedList {
+    private static ListNode reverseList(ListNode head) {
+        if (head == null) return null;
+        ListNode newHead = head, tail = head;
+        for (ListNode p = head.next, next; p!= null; p = next) {
+            next = p.next;
+            p.next = newHead;
+            newHead = p;
+        }
+        tail.next = null;
+        return newHead;
+    }
+
+    public static boolean isPalindrome(ListNode head) {
+        if (head == null) return true;
+        ListNode p1 = head, p2 = head;
+        for (; p2.next != null && p2.next.next != null; p1 = p1.next, p2 = p2.next.next);
+        ListNode l2 = p1.next;
+        p1.next = null;
+        l2 = reverseList(l2);
+        for (p1 = head, p2 = l2; p1 != null && p2 != null; p1 = p1.next, p2 = p2.next)
+            if (p1.val != p2.val) return false;
+        return true;
+    }
+
+    public static void test() {
+        System.out.println("Q-234 Palindrome Linked List");
+        ListNode n1 = new ListNode(1), n2 = new ListNode(2), n3 = new ListNode(2), n4 = new ListNode(1);
+        n1.next = n2; n2.next = n3; n3.next = n4;
+        System.out.println(isPalindrome(n1));
+    }
+}
+
+/**
  * 238. Product of Array Except Self
  */
 class ProductOfArrayExceptSelf {
@@ -1847,6 +2311,41 @@ class ProductOfArrayExceptSelf {
             p *= nums[i];
         }
         return result;
+    }
+}
+
+/**
+ * Q-239 Sliding Window Maximum
+ *
+ * Given an array nums, there is a sliding window of size k which is moving from the very left of the array to
+ * the very right. You can only see the k numbers in the window. Each time the sliding window moves right by
+ * one position. Return the max sliding window.
+ */
+class SlidingWindowMaximum {
+    public static int[] maxSlidingWindow(int[] nums, int k) {
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(10, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o1[1] == o2[1] ? 0 : (o1[1] < o2[1] ? 1 : -1);
+            }
+        });
+
+        if (k == 0) return new int[0];
+
+        int[] result = new int[nums.length-k+1]; // N-k+1 windows
+        for (int i = 0, j = 0; i < nums.length; ++i) {
+            // remove head element if it is outside the sliding window, which may have > K elements
+            while (!maxHeap.isEmpty() && maxHeap.peek()[0] <= i-k) maxHeap.remove();
+            maxHeap.add(new int[]{i, nums[i]});
+            if (i >= k-1) result[j++] = maxHeap.peek()[1];
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-239 Sliding Window Maximum");
+        int[] a1 = {1,3,-1,-3,5,3,6,7}; // [3, 3, 5, 5, 6, 7]
+        System.out.println(Arrays.toString(maxSlidingWindow(a1, 3)));
     }
 }
 
@@ -1889,6 +2388,91 @@ class DifferentWaysOfAddParenthese {
 }
 
 /**
+ * Q-243 Shortest Word Distance
+ */
+class ShortestWordDistance {
+    public static int shortestDistance1(String[] words, String word1, String word2) {
+        int result = words.length+1;
+        for (int i = 0, p1 = -words.length, p2 = -words.length; i < words.length; ++i) {
+            if (words[i].equals(word1)) {
+                p1 = i;
+                if (p1 - p2 < result)
+                    result = p1-p2;
+            } else if (words[i].equals(word2)) {
+                p2 = i;
+                if (p2 - p1 < result)
+                    result = p2-p1;
+            }
+        }
+        return result;
+    }
+
+    public static int shortestDistance3(String[] words, String word1, String word2) {
+        if (!word1.equals(word2))
+            return shortestDistance1(words, word1, word2);
+
+        int result = words.length+1;
+        for (int i = 0, prev = -words.length; i < words.length; ++i) {
+            if (!words[i].equals(word1)) continue;
+            if (i-prev < result)
+                result = i - prev;
+            prev = i;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-243 Shortest Word Distance");
+        String[] strs = {"practice","makes","perfect","coding","makes"};
+        System.out.println(shortestDistance1(strs, "practice", "coding")); // 3
+        System.out.println(shortestDistance1(strs, "makes", "coding")); // 1
+        System.out.println(shortestDistance3(strs, "makes", "makes")); // 3
+    }
+}
+
+/**
+ * Q-253 Meeting Rooms II
+ *
+ * Given an array of meeting time intervals consisting of start and end times [[s1,e1],[s2,e2],...] (si < ei),
+ * find the minimum number of conference rooms required.
+ */
+class MeetingRooms2 {
+    public static int minMeetingRooms(int[][] intervals) {
+        int[] starts = new int[intervals.length];
+        int[] ends = new int[intervals.length];
+        for (int i = 0; i < intervals.length; ++i) {
+            starts[i] = intervals[i][0];
+            ends[i] = intervals[i][1];
+        }
+
+        Arrays.sort(starts);
+        Arrays.sort(ends);
+
+        // track the max number of overlapping intervals at any point
+        int result = 0, overlap = 0;
+        for (int si = 0, ei = 0; si < starts.length;) {
+            if (starts[si] < ends[ei]) {
+                if (++overlap > result) // >= if right-closed interval
+                    result = overlap;
+                si++;
+            } else {
+                overlap--;
+                ei++;
+            }
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-253 Meeting Rooms II");
+        int[][] intervals = {{0,30},{5,10},{15,20}};
+        System.out.println(minMeetingRooms(intervals)); // 2
+        int[][] intervals2 = {{13,15},{1,13}};
+        System.out.println(minMeetingRooms(intervals2)); // 1
+    }
+}
+
+/**
  * Q-255 Verify Preorder Sequence in Binary Search Tree
  */
 class VerifyPreorderSequenceInBST {
@@ -1925,6 +2509,184 @@ class SingleNumber3 {
                 first ^= n;
         int second = xor ^ first;
         return new int[]{first, second};
+    }
+}
+
+/**
+ * Q-269 Alien Dictionary
+ *
+ * There is a new alien language which uses the latin alphabet. However, the order among letters are unknown to you.
+ * You receive a list of non-empty words from the dictionary, where words are sorted lexicographically by the rules
+ * of this new language. Derive the order of letters in this language.
+ */
+class AlienDictionary {
+    public static String alienOrder(String[] words) {
+        Set<Character> chars = new HashSet<>();
+        Map<Character, Integer> indegree = new HashMap<>();
+        for (String w : words) {
+            for (char c : w.toCharArray()) {
+                chars.add(c);
+                indegree.put(c, 0);
+            }
+        }
+        Map<Character, List<Character>> edges = new HashMap<>();
+        for (int i = 0; i < words.length-1; ++i) {
+            String w1 = words[i], w2 = words[i+1];
+            for (int p1 = 0, p2 = 0; p1 < w1.length() && p2 < w2.length(); p1++, p2++) {
+                char c1 = w1.charAt(p1), c2 = w2.charAt(p2);
+                if (w1.charAt(p1) != w2.charAt(p2)) {
+                    List<Character> e = edges.containsKey(c1) ? edges.get(c1) : new ArrayList<>();
+                    e.add(c2);
+                    edges.put(c1, e);
+                    int count2 = indegree.containsKey(c2) ? indegree.get(c2)+1 : 1;
+                    indegree.put(c2, count2);
+                    break;
+                }
+            }
+        }
+
+        StringBuilder result = new StringBuilder("");
+        Deque<Character> queue = new ArrayDeque<>();
+        for (Character c : chars) {
+            if (indegree.get(c) == 0) {
+                queue.add(c);
+                // char with 0 in-edge are sorted to the head, because OJ expects so
+                result.append(c);
+            }
+        }
+        while (!queue.isEmpty()) {
+            Character c = queue.pop();
+            if (edges.containsKey(c)) {
+                for (Character d : edges.get(c)) {
+                    int count = indegree.get(d) - 1;
+                    if (count == 0) {
+                        queue.push(d);
+                        result.append(d);
+                    }
+                    indegree.put(d, count);
+                }
+            }
+        }
+        // detect existence of cycle, nodes in cycle will never reach 0 in-edge
+        String alphabets = result.toString();
+        return alphabets.length() == chars.size() ? alphabets : "";
+    }
+
+    public static void test() {
+        System.out.println("Q-269 Alien Dictionary");
+        System.out.println(alienOrder(new String[]{"wrt","wrf","er", "ett", "rftt"})); // wertf
+        System.out.println(alienOrder(new String[]{"z","z"})); // z
+        System.out.println(alienOrder(new String[]{"ab","adc"})); // abcd
+    }
+}
+
+/**
+ * Q-271 Encode and Decode Strings
+ *
+ * Design an algorithm to encode a list of strings to a string. The encoded string is then sent over the network
+ * and is decoded back to the original list of strings.
+ */
+class EncodeAndDecodeStrings {
+
+    // Encodes a list of strings to a single string.
+    public static String encode(List<String> strs) {
+        StringBuilder encoded = new StringBuilder("");
+        encoded.append(Integer.toString(strs.size()));
+        encoded.append(',');
+        for (String s : strs) {
+            encoded.append(Integer.toString(s.length()));
+            encoded.append(',');
+        }
+        for (String s : strs) {
+            encoded.append(s);
+        }
+        return encoded.toString();
+    }
+
+    // Decodes a single string to a list of strings.
+    public static List<String> decode(String s) {
+        int idx = s.indexOf(',');
+        int total = Integer.parseInt(s.substring(0, idx));
+        int[] lens = new int[total];
+        for (int i = 0; i < total; ++i) {
+            int p = s.indexOf(',', idx+1);
+            String ns = s.substring(idx+1, p);
+            lens[i] = Integer.parseInt(ns);
+            idx = p;
+        }
+        idx++; // skip the last ','
+        System.out.println(Arrays.toString(lens));
+
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < total; ++i) {
+            int l = lens[i];
+            result.add(s.substring(idx, idx + l));
+            idx += l;
+        }
+        System.out.println(result.toString());
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-271 Encode and Decode Strings");
+        String[] ts = {"this","is,not a","test","leetcode"};
+        decode(encode(Arrays.asList(ts)));
+        //System.out.println();
+    }
+}
+
+/**
+ * Q-273 Integer to English Words
+ *
+ * Convert a non-negative integer to its english words representation. Given input is guaranteed to be less
+ * than 2^31 - 1.
+ */
+class IntegerToEnglishWords {
+    static String[] teens = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+        "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
+    static String[] tens = {"Zero", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+    static String[] thousands = {"", " Thousand", " Million", " Billion"};
+
+    public static String numberToWords(int num) {
+        if (num == 0) return tens[0];
+        Stack<String> s = new Stack<>();
+        for (int i = 0, n = num; n > 0; i++, n /= 1000) {
+            int n3 = n%1000;
+            if (n3 != 0)
+                s.push(convert(n3) + thousands[i]);
+        }
+        StringBuilder result = new StringBuilder("");
+        while (!s.empty())
+            result.append(s.pop()).append(" ");
+        return result.toString().trim();
+    }
+
+    public static String convert(int num) {
+        StringBuilder result = new StringBuilder("");
+        int h = num/100;
+        if (h > 0)
+            result.append(teens[h]).append(" Hundred ");
+        int r = num%100;
+        if (r > 0) {
+            int t = r/10, d = r%10;
+            if (r >= 20)
+                result.append(tens[t]).append(" ").append(teens[d]);
+            else
+                result.append(teens[r]);
+        }
+        return result.toString().trim();
+    }
+
+    public static void test() {
+        System.out.println("Q-273 Integer to English Words");
+        System.out.println(numberToWords(0));
+        System.out.println(numberToWords(5));
+        System.out.println(numberToWords(17));
+        System.out.println(numberToWords(200));
+        System.out.println(numberToWords(503));
+        System.out.println(numberToWords(12345));
+        System.out.println(numberToWords(1234567));
+        System.out.println(numberToWords(1000000));
     }
 }
 
@@ -1977,6 +2739,73 @@ class HIndex {
 }
 
 /**
+ * Q-282 Expression Add Operators
+ *
+ * Given a string that contains only digits 0-9 and a target value, return all possibilities to add binary operators
+ * (not unary) +, -, or * between the digits so they evaluate to the target value.
+ */
+class ExpressionAddOperators {
+    private static void helper(String num, final long target, long currValue, String expr, long last, List<String> result) {
+        if (num.isEmpty() && target == currValue) {
+            result.add(expr);
+            return;
+        }
+        for (int i = 0; i < num.length(); ++i) {
+            String ns = num.substring(0, i+1);
+            if (ns.length() > 1 && ns.charAt(0) == '0') return; // skip "00"
+            String num2 = num.substring(i+1);
+            long num1 = Long.parseLong(ns);
+            if (expr.isEmpty()) {
+                helper(num2, target, num1, ns, num1, result);
+            } else {
+                helper(num2, target, currValue+num1, expr + "+" + ns, num1, result);
+                helper(num2, target, currValue-num1, expr + "-" + ns, -num1, result);
+                // 235 - prev iteration: 2-3, now: 2-3*5
+                helper(num2, target, (currValue-last)+last*num1, expr + '*' + ns, last*num1, result);
+            }
+        }
+    }
+
+    public static List<String> addOperators(String num, int target) {
+        List<String> result = new ArrayList<>();
+        helper(num, target, 0, "", 0, result);
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-282 Expression Add Operators");
+        System.out.println(addOperators("123", 6)); // ["1+2+3", "1*2*3"]
+        System.out.println(addOperators("232", 8)); // ["2*3+2", "2+3*2"]
+        System.out.println(addOperators("105", 5)); // ["1*0+5","10-5"]
+
+    }
+}
+
+/**
+ * Q-286 Walls and Gates
+ */
+class WallsAndGates {
+    private void dfs(int[][] rooms, int x, int y, int distance) {
+        if (x < 0 || x >= rooms.length || y < 0 || y >= rooms[0].length || distance > rooms[x][y])
+            return;
+        rooms[x][y] = distance;
+        dfs(rooms, x-1, y, distance+1);
+        dfs(rooms, x, y-1, distance+1);
+        dfs(rooms, x+1, y, distance+1);
+        dfs(rooms, x, y+1, distance+1);
+    }
+
+    public void wallsAndGates(int[][] rooms) {
+        for (int i = 0; i < rooms.length; ++i) {
+            for (int j = 0; j < rooms[0].length; ++j) {
+                if (rooms[i][j] == 0) // gate
+                    dfs(rooms, i, j, 0);
+            }
+        }
+    }
+}
+
+/**
  * Q-287 Find the Duplicate Number
  *
  * Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at
@@ -2000,7 +2829,7 @@ class FindDuplicateNumber {
 
     public static void test() {
         System.out.println("Q-287 Find the Duplicate Number");
-        //System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
+        System.out.println(findDuplicate(new int[]{1,1,4,2,3}));
         System.out.println(findDuplicate(new int[]{2,3,4,1,1}));
     }
 }
@@ -2085,6 +2914,52 @@ class WordPattern {
 }
 
 /**
+ * Q-295 Find Median from Data Stream
+ */
+class FindMedianFromDataStream {
+    PriorityQueue<Integer> firstHalf = new PriorityQueue<>(10, Collections.reverseOrder()); // first half
+    PriorityQueue<Integer> secondHalf = new PriorityQueue<>(10); // second half
+
+    /** initialize your data structure here. */
+    public FindMedianFromDataStream() {}
+
+    public void addNum(int num) {
+        if (firstHalf.size() == 0) {
+            firstHalf.add(num);
+            return;
+        } else if (secondHalf.size() == 0) {
+            if (num > firstHalf.peek())
+                secondHalf.add(num);
+            else {
+                secondHalf.add(firstHalf.poll());
+                firstHalf.add(num);
+            }
+            return;
+        }
+        // invariance is firstHalf size is equal or 1 greater than secondHalf
+        if (firstHalf.size() == secondHalf.size()) {
+            if (num > secondHalf.peek()) {
+                firstHalf.add(secondHalf.poll());
+                secondHalf.add(num);
+            } else {
+                firstHalf.add(num);
+            }
+        } else {
+            if (num >= firstHalf.peek())
+                secondHalf.add(num);
+            else {
+                secondHalf.add(firstHalf.poll());
+                firstHalf.add(num);
+            }
+        }
+    }
+
+    public double findMedian() {
+        return firstHalf.size() > secondHalf.size() ? firstHalf.peek()*1.0 : (firstHalf.peek()+secondHalf.peek())*0.5;
+    }
+}
+
+/**
  * Q-296 Best meeting point
  *
  * A group of two or more people wants to meet and minimize the total travel distance. You are given a 2D grid of
@@ -2116,10 +2991,536 @@ class BestMeetingPoint {
     }
 }
 
+/**
+ * Q-301 Remove Invalid Parentheses
+ *
+ * Remove the minimum number of invalid parentheses in order to make the input string valid. Return all possible
+ * results. The input string may contain letters other than the parentheses '(' and ')'.
+ */
+class RemoveInvalidParentheses {
+    public static List<String> removeInvalidParentheses(String s) {
+        List<String> result = new ArrayList<>();
+        Queue<String> queue = new ArrayDeque<>();
+        Set<String> visited = new HashSet<>();
+        queue.add(s);
+        visited.add(s);
+        boolean found = false;
+        while (!queue.isEmpty()) {
+            String str = queue.poll();
+            if (valid(str)) {
+                result.add(str);
+                found = true;
+            }
+            // found the valid with minimal removal, no need of search with more removals
+            if (found) continue;
+            for (int i = 0; i < str.length(); ++i) {
+                if (str.charAt(i) == '(' || str.charAt(i) == ')') {
+                    String str2 = "" + str.substring(0, i) + str.substring(i+1);
+                    if (!visited.contains(str2)) {
+                        queue.add(str2);
+                        visited.add(str2);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // check if the string has valid parentheses
+    private static boolean valid(String s) {
+        int left = 0;
+        for (int i = 0; i < s.length(); ++i) {
+            if (s.charAt(i) == '(') left++;
+            else if (s.charAt(i) == ')')
+                if (--left < 0) return false;
+        }
+        return left == 0;
+    }
+
+    public static void test() {
+        System.out.println("Q-301 Remove Invalid Parentheses");
+        System.out.println(removeInvalidParentheses("()())()")); // ()()(), (())()
+        System.out.println(removeInvalidParentheses(")(")); // ""
+        System.out.println(removeInvalidParentheses("(a)())()")); // (a())(), (a)()()
+    }
+}
+
+/**
+ * Q-316: Remove Duplicate Letters
+ *
+ * Given a string which contains only lowercase letters, remove duplicate letters so that every letter
+ * appear once and only once. You must make sure your result is the smallest in lexicographical order
+ * among all possible results.
+ */
+class RemoveDuplicateLetters {
+    public static String removeDuplicateLetters(String s) {
+        int nchars = 0;
+        Map<Character, List<Integer>> positions = new HashMap<Character, List<Integer>>();
+        // remember positions of each individual letter
+        for (int i = 0; i < s.length(); ++i) {
+            char c = s.charAt(i);
+            List<Integer> p = positions.get(c);
+            if (p == null) {
+                nchars++;
+                p = new ArrayList<Integer>();
+                positions.put(c, p);
+            }
+            p.add(c - 'a');
+        }
+
+        Set<Character> taken = new HashSet<Character>();
+        char result[] = new char[nchars];
+        for (int i = 0; i < nchars; ++i) {
+            char ch = 0;
+            int ch_pos = -1;
+            for (Iterator it = positions.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<Character, List<Integer>> entry = (Map.Entry) it.next();
+                if (taken.contains(entry.getKey()))
+                    continue;
+
+                char ech = entry.getKey();
+                List<Integer> epos = entry.getValue();
+                if (ch_pos == -1) {
+                    ch = ech;
+                    ch_pos = epos.remove(0);
+                } else {
+                    if (epos.size() == 1) {
+                        if (positions.get(ch).isEmpty() && epos.get(0) < ch_pos) {
+                            // restore the position of previous chosen char
+                            positions.get(ch).add(ch_pos);
+                            ch = ech;
+                            ch_pos = epos.remove(0);
+                        }
+                    } else {
+                        for (int p = epos.get(0); !epos.isEmpty() && p < ch_pos; p = epos.get(0)) {
+                            epos.remove(0);
+                        }
+                    }
+                }
+            }
+
+            taken.add(ch);
+            result[i] = ch;
+        }
+
+        return String.valueOf(result);
+    }
+}
+
+/**
+ * Q-280 Wiggle Sort
+ *
+ * Given an unsorted array nums, reorder it in-place such that nums[0] <= nums[1] >= nums[2] <= nums[3] ...
+ *
+ * Q-324 Wiggle Sort 2
+ *
+ * Given an unsorted array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3]....
+ */
+class WiggleSort {
+    public static void wiggleSort1(int[] nums) {
+        Arrays.sort(nums);
+        for (int i = 1; i < nums.length-1; i += 2) {
+            int t = nums[i];
+            nums[i] = nums[i+1];
+            nums[i+1] = t;
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void wiggleSort(int[] nums) {
+        int[] c = Arrays.copyOf(nums, nums.length);
+        Arrays.sort(c);
+        for (int i = 0, j = nums.length%2 == 0 ? nums.length/2-1 : nums.length/2, k = nums.length-1;
+             i < nums.length; ++i) {
+            if (i % 2 == 0)
+                nums[i] = c[j--];
+            else
+                nums[i] = c[k--];
+        }
+        System.out.println(Arrays.toString(nums));
+    }
+
+    public static void test() {
+        System.out.println("Q-324 Wiggle Sort 2");
+        wiggleSort1(new int[]{1,5,2,3,6,4,7});
+        wiggleSort(new int[]{1,5,1,1,6,4});
+    }
+}
+
+/**
+ * Q-325 Maximum Size Subarray Sum Equals K
+ *
+ * Given an array nums and a target value k, find the maximum length of a subarray that sums to k. If there isn't
+ * one, return 0 instead.
+ */
+class MaximumSizeSubarraySumEqualsK {
+    public static int maxSubArrayLen(int[] nums, int k) {
+        int result = 0;
+        Map<Integer, Integer> sumPos = new HashMap<>();
+        for (int i = 0, sum = 0; i < nums.length; ++i) {
+            sum += nums[i];
+            if (sum == k)
+                result = i + 1;
+            else if (sumPos.containsKey(Integer.valueOf(sum - k)))
+                result = Math.max(result, i - sumPos.get(Integer.valueOf(sum - k)));
+            if (!sumPos.containsKey(Integer.valueOf(sum)))
+                sumPos.put(Integer.valueOf(sum), i); // remember the shortest prefix sum
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-325 Maximum Size Subarray Sum Equals K");
+        System.out.println(maxSubArrayLen(new int[]{-2,-1,2,1}, 1)); // 2
+        System.out.println(maxSubArrayLen(new int[]{1,0,-1}, -1)); // 2
+        System.out.println(maxSubArrayLen(new int[]{1,1,0}, 1)); // 2
+    }
+}
+
 /** Q-331 Verify Preorder Serialization of Binary Tree */
 class VerifyPreorderSerializationBinaryTree {
     public static boolean isValidSerialization(String preorder) {
         return true;
+    }
+}
+
+/**
+ * Q-332: Reconstruct Itinerary
+ *
+ * Given a list of airline tickets represented by pairs of departure and arrival
+ * airports [from, to], reconstruct the itinerary in order. All of the tickets
+ * belong to a man who departs from JFK. Thus, the itinerary must begin with JFK.
+ */
+class ReconstructItinerary {
+    private static boolean flyNext(List<String> trip, Map<String, ArrayList<String>> flights,
+                                   final int numCities) {
+        if (trip.size() == numCities)
+            return true;
+
+        String curr = trip.get(trip.size()-1);
+        if (!flights.containsKey(curr) || flights.get(curr).size() == 0)
+            return false;
+
+        ArrayList<String> orig = flights.get(curr);
+        ArrayList<String> triedDests = new ArrayList<String>();
+        ArrayList<String> destinations = new ArrayList<String>(orig);
+        while (destinations.size() > 0) {
+            String next = destinations.remove(0);
+            trip.add(next);
+            ArrayList<String> newDests = new ArrayList<String>(triedDests);
+            newDests.addAll(destinations);
+            flights.put(curr, newDests);
+            if (flyNext(trip, flights, numCities))
+                return true;
+
+            trip.remove(trip.size() - 1);
+            triedDests.add(next);
+        }
+
+        flights.put(curr, orig);
+        return false;
+    }
+
+    private static List<String> findItinerary(String[][] tickets) {
+        int numCities = tickets.length + 1;
+        Map<String, ArrayList<String>> flightsMap = new HashMap<String, ArrayList<String>>();
+        for (String[] t : tickets) {
+            if (!flightsMap.containsKey(t[0])) {
+                flightsMap.put(t[0], new ArrayList<String>());
+            }
+            flightsMap.get(t[0]).add(t[1]);
+        }
+
+        // sort destinations of the same source city
+        for (Iterator it = flightsMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, ArrayList<String>> entry = (Map.Entry) it.next();
+            Collections.sort(entry.getValue());
+        }
+
+        // assume there is at lease one valid trip
+        List<String> trip = new ArrayList<String>();
+        trip.add("JFK");
+        flyNext(trip, flightsMap, numCities);
+
+        for (String c : trip)
+            System.out.print(c + " ");
+        System.out.println();
+        return trip;
+    }
+
+    private static void dfs(String from, Map<String, ArrayList<String>> flights, List<String> result) {
+        // I first used SortedSet in flights, thinking it would provide sorting; however, remove() would remove all
+        // duplicate city strings
+        while (flights.get(from) != null && flights.get(from).size() > 0) {
+            String to = flights.get(from).get(0);
+            flights.get(from).remove(0);
+            dfs(to, flights, result);
+        }
+        result.add(from);
+    }
+
+    // Implementation #2 use recursive DFS
+    private static List<String> recreateItinerary(String[][] tickets) {
+        ArrayList<String> result = new ArrayList<String>();
+        if (tickets.length == 0)
+            return result;
+        // build adjacency sorted list
+        Map<String, ArrayList<String>> flights = new HashMap<String, ArrayList<String>>();
+        for (String[] t : tickets) {
+            if (!flights.containsKey(t[0]))
+                flights.put(t[0], new ArrayList<String>());
+            flights.get(t[0]).add(t[1]);
+        }
+        // sort destinations,
+        for (Map.Entry<String, ArrayList<String>> e : flights.entrySet()) {
+            Collections.sort(e.getValue());
+        }
+
+        // do DFS from the start JFK
+        dfs("JFK", flights, result);
+        Collections.reverse(result);
+        System.out.println(Arrays.toString(result.toArray()));
+        return result;
+    }
+
+    public static void run() {
+        System.out.println("------------ Reconstruct Itinerary ------------");
+        String[][] tickets = {{"JFK","SFO"},{"JFK","ATL"},{"SFO","ATL"},{"ATL","JFK"},{"ATL","SFO"}};
+        recreateItinerary(tickets);
+
+        String[][] tickets1 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"}};
+        recreateItinerary(tickets1);
+
+        String[][] tickets2 = {{"ATL","TKO"},{"SFO","JFK"},{"JFK","SFO"},{"JFK","ATL"},{"ATL","JML"},
+            {"JML","ATL"}};
+        recreateItinerary(tickets2);
+
+        String[][] tickets4 = {{"EZE","AXA"},{"TIA","ANU"},{"ANU","JFK"},{"JFK","ANU"},{"ANU","EZE"},{"TIA","ANU"},
+            {"AXA","TIA"},{"TIA","JFK"},{"ANU","TIA"},{"JFK","TIA"}};
+        recreateItinerary(tickets4); // ["JFK","ANU","EZE","AXA","TIA","ANU","JFK","TIA","ANU","TIA","JFK"]
+
+        String[][] tickets3 = {{"CBR","JFK"},{"TIA","EZE"},{"AUA","TIA"},{"JFK","EZE"},
+            {"BNE","CBR"},{"JFK","CBR"},{"CBR","AUA"},{"EZE","HBA"},{"AXA","ANU"},{"BNE","EZE"},
+            {"AXA","EZE"},{"AUA","ADL"},{"OOL","JFK"},{"BNE","AXA"},{"OOL","EZE"},{"EZE","ADL"},
+            {"TIA","BNE"},{"EZE","TIA"},{"JFK","AUA"},{"AUA","EZE"},{"ANU","ADL"},{"TIA","BNE"},
+            {"EZE","OOL"},{"ANU","BNE"},{"EZE","ANU"},{"ANU","AUA"},{"BNE","ANU"},{"CNS","JFK"},
+            {"TIA","ADL"},{"ADL","AXA"},{"JFK","OOL"},{"AUA","ADL"},{"ADL","TIA"},{"ADL","ANU"},
+            {"ADL","JFK"},{"BNE","EZE"},{"ANU","BNE"},{"JFK","BNE"},{"EZE", "AUA"}, {"EZE","AXA"},
+            {"AUA","TIA"},{"ADL","CNS"},{"AXA","AUA"}};
+        findItinerary(tickets3);
+        recreateItinerary(tickets3);
+    }
+}
+
+/**
+ * Q-334 Increasing Triplet Subsequence
+ */
+class IncreasingTripletSubsequence {
+    public static boolean increasingTriplet(int[] nums) {
+        if (nums.length < 3)
+            return false;
+        int m1 = nums[0], m2 = Integer.MAX_VALUE, count = 1;
+        for (int i = 1; i < nums.length; ++i) {
+            if (nums[i] > m2) {
+                return true;
+            } else if (nums[i] > m1) {
+                m2 = nums[i];
+                if (count < 2) {
+                    count++;
+                }
+            } else {
+                m1 = nums[i];
+            }
+        }
+        return false;
+    }
+
+    public static void test() {
+        System.out.println("Q-334 Increasing Triplet Subsequence");
+        System.out.println(increasingTriplet(new int[]{4,3,1,2,5}));
+    }
+}
+
+/**
+ * Q-336 Palindrome Pairs
+ *
+ * Given a list of unique words, find all pairs of distinct indices (i, j) in the given list, so that the
+ * concatenation of the two words, i.e. words[i] + words[j] is a palindrome.
+ */
+class PalindromePairs {
+    private static boolean isPalindrome(String str) {
+        for (int l = 0, r = str.length()-1; l < r; ++l, --r)
+            if (str.charAt(l) != str.charAt(r)) return false;
+        return true;
+    }
+
+    public static List<List<Integer>> palindromePairs(String[] words) {
+        Map<String, Integer> reversePos = new HashMap<>();
+        Map<String, Integer> palindromes = new HashMap<>();
+        for (int i = 0; i < words.length; ++i) {
+            if (!words[i].isEmpty() && isPalindrome(words[i])) palindromes.put(words[i], i);
+            StringBuilder w = new StringBuilder(words[i]);
+            reversePos.put(w.reverse().toString(), i);
+        }
+        List<List<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < words.length; ++i) {
+            String w = words[i];
+            if (w.isEmpty()) {
+                for (Map.Entry<String, Integer> e : palindromes.entrySet()) {
+                    result.add(Arrays.asList(new Integer[]{i, e.getValue()}));
+                    result.add(Arrays.asList(new Integer[]{e.getValue(), i}));
+                }
+                continue;
+            }
+            for (int j = w.length()-1; j >= 0; --j) {
+                String suffix = w.substring(j, w.length());
+                String prefix = w.substring(0, j);
+                // the suffix has a matching word
+                if (!suffix.isEmpty() && reversePos.containsKey(suffix) && i != reversePos.get(suffix)) {
+                    if (prefix.isEmpty() || isPalindrome(prefix))
+                        result.add(Arrays.asList(new Integer[]{reversePos.get(suffix), i}));
+                }
+                // the prefix has a matching word
+                if (!prefix.isEmpty() && reversePos.containsKey(prefix) && i != reversePos.get(prefix)) {
+                    if (suffix.isEmpty() || isPalindrome(suffix))
+                        result.add(Arrays.asList(new Integer[]{i, reversePos.get(prefix)}));
+                }
+            }
+        }
+        System.out.println(result.toString());
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-336 Palindrome Pairs");
+        String[] t1 = {"abcd","dcba","lls","s","sssll","bob"};
+        palindromePairs(t1); // [[1, 0], [0, 1], [3, 2], [2, 4]]
+        String[] t2 = {"a",""};
+        palindromePairs(t2);
+        String[] t3 = {"a","b","c","ab","ac","aa"};
+        palindromePairs(t3); // [[3,0],[1,3],[4,0],[2,4],[5,0],[0,5]]
+        String[] t4 = {"ab","ba","abc","cba"};
+        palindromePairs(t4); // [[0,1],[1,0],[2,1],[2,3],[0,3],[3,2]]
+    }
+}
+
+/**
+ * Q-340 Longest Substring with At Most K Distinct Characters
+ *
+ * Given a string, find the length of the longest substring T that contains at most k distinct characters.
+ */
+class LongestSubstringWithAtMostKDistinctCharacters {
+    public static int lengthOfLongestSubstringKDistinct(String s, int k) {
+        int result = 0;
+        Map<Character, Integer> countMap = new HashMap<>();
+        for (int i = 0, j = 0; i < s.length(); ++i) {
+            Character c = s.charAt(i);
+            int count = countMap.containsKey(c) ? countMap.get(c) + 1 : 1;
+            countMap.put(c, count);
+            while (countMap.size() > k) {
+                Character lc = s.charAt(j++);
+                count = countMap.get(lc) - 1;
+                if (count == 0) countMap.remove(lc);
+                else countMap.put(lc, count);
+            }
+            if (i-j+1 > result) result = i-j+1;
+        }
+        return result;
+    }
+
+    public static void test() {
+        System.out.println("Q-340 Longest Substring with At Most K Distinct Characters");
+        System.out.println(lengthOfLongestSubstringKDistinct("eceba", 2)); // 3
+        System.out.println(lengthOfLongestSubstringKDistinct("aa", 1)); // 2
+    }
+}
+
+/** Q-349 Intersection of Two Arrays */
+class IntersectionOfTwoArrays {
+    public int[] intersection(int[] nums1, int[] nums2) {
+        HashSet<Integer> num1set = new HashSet<>();
+        for (int n : nums1)
+            num1set.add(n);
+        // each element in the result must be unique
+        HashSet<Integer> intersect = new HashSet<>();
+        for (int n : nums2)
+            if (num1set.contains(n))
+                intersect.add(n);
+        // the stream transformation is slower (5ms) than the verbose code (2ms) in leetcode OJ
+        int[] result = intersect.stream().mapToInt(i -> i).toArray();
+        /*int[] result = new int[intersect.size()];
+        int i = 0;
+        for (Integer n : intersect)
+            result[i++] = n;*/
+        return result;
+    }
+}
+
+/**
+ * Q-380 Insert Delete GetRandom O(1)
+ */
+class InsertDeleteGetRandomO1 {
+    // ReentrantLock
+    private List<Integer> values = new ArrayList<>();
+    private Map<Integer, Integer> valueMap = new HashMap<>(); // val -> values[] index
+
+    /** Initialize your data structure here. */
+    public InsertDeleteGetRandomO1() {}
+
+    /** Inserts a value to the set. Returns true if the set did not already contain the specified element. */
+    public boolean insert(int val) {
+        if (!valueMap.containsKey(val)) {
+            valueMap.put(val, values.size());
+            values.add(val);
+            return true;
+        }
+        return false;
+    }
+
+    /** Removes a value from the set. Returns true if the set contained the specified element. */
+    public boolean remove(int val) {
+        if (valueMap.containsKey(val)) {
+            final int index = valueMap.get(val);
+            if (index == values.size()-1) {
+                values.remove(values.size()-1);
+            } else {
+                values.set(index, values.remove(values.size() - 1));
+                valueMap.put(values.get(index), index);
+            }
+            valueMap.remove(val);
+            return true;
+        }
+        return false;
+    }
+
+    /** Get a random element from the set. */
+    public int getRandom() {
+        final int index = new Random().nextInt(values.size());
+        return values.get(index);
+    }
+}
+
+/**
+ * Q-426 Convert Binary Search Tree to Sorted Doubly Linked List
+ */
+class ConvertBinarySearchTreeToSortedDoublyLinkedList {
+    public Node treeToDoublyList(Node root) {
+        if (root == null) return null;
+        Node left = treeToDoublyList(root.left);
+        Node right = treeToDoublyList(root.right);
+        Node head = left != null ? left : root;
+        if (left != null) {
+            left.left.right = root;
+            root.left = left.left;
+        }
+        Node tail = right != null ? right.left : root;
+        if (right != null) {
+            right.left = root;
+            root.right = right;
+        }
+        head.left = tail;
+        tail.right = head;
+        return head;
     }
 }
 
@@ -2158,34 +3559,56 @@ class FindRightInterval {
     }
 }
 
+
 public class LeetcodeOne {
     public static void main(String[] args) {
+        SimplifyPath.run();
         LongestSubstringWithoutRepeatingChars.test();
         FindFirstLastPosSortedArray.test();
         ThreeSum.test();
         LetterComboOfPhoneNumber.run();
+        DivideTwoIntegers.test();
         CombinationSum.test();
         Permutations.test();
         Subsets.test();
         MergeIntervals.test();
+        AddBinary.test();
         JumpGame.test();
         GrayCode.test();
         SortColors.test();
+        MinimumWindowSubstring.test();
         RemoveDuplicatesFromSortedArray.test();
         RestoreIpAddress.test();
         GasStation.test();
+        WordBreak.run();
         FindPeakElement.test();
         LargestNumber.test();
+        HappyNumber.test();
         CourseSchedule.test();
         RepeatedDNASequence.test();
         HouseRobber2.test();
         KthLargestNumberInArray.test();
+        Skyline.test();
+        SlidingWindowMaximum.test();
         DifferentWaysOfAddParenthese.test();
+        MeetingRooms2.test();
+        AlienDictionary.test();
+        EncodeAndDecodeStrings.test();
         HIndex.test();
+        ExpressionAddOperators.test();
         FindDuplicateNumber.test();
-        FindRightInterval.test();
+        IntegerToEnglishWords.test();
         GameOfLife.test();
-
+        RemoveInvalidParentheses.test();
+        WiggleSort.test();
+        MaximumSizeSubarraySumEqualsK.test();
+        ReconstructItinerary.run();
+        IncreasingTripletSubsequence.test();
+        LongestSubstringWithAtMostKDistinctCharacters.test();
+        FindRightInterval.test();
+        ShortestWordDistance.test();
+        PalindromePairs.test();
+        PalindromeLinkedList.test();
     }
 }
 
