@@ -3,6 +3,7 @@
 #include <map>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,7 @@ typedef string PKey;
 typedef string RowVal; 
 
 const int KeySize = 5;
+const int64_t MaxVersion = std::numeric_limits<int64_t>::max();
 const string NonVal = "";
 
 class InMemDB {
@@ -41,8 +43,16 @@ public:
         return false;
     }
 
-    // return the most recent version i.e. largest key
+    // return the most recent version i.e. key with largest timestamp
     RowVal get(string key) {
+        PKey pkey = makeKey(key, MaxVersion);
+        auto iter = _memtable.upper_bound(pkey);
+        if (iter != _memtable.begin()) {
+            auto prevIter = std::prev(iter);
+            const PKey& prevKey = prevIter->first;
+            if (!prevKey.compare(0, KeySize, key))
+                return prevIter->second;
+        }
         return NonVal;
     }
 
@@ -55,7 +65,6 @@ public:
         auto iter = _memtable.lower_bound(pkey); // >= pkey
         if (iter != _memtable.end()) {
             const PKey& fkey = iter->first;
-            std::cout << "find key " << fkey << "\n";
             if (!fkey.compare(pkey)) // exact match
                 return iter->second;
             // reach the leftmost range boundary, i.e. not in valid range
@@ -83,8 +92,8 @@ private:
 void unittest() 
 {
     std::cout << "unittest" << "\n";
-
     InMemDB db;
+
     db.set("AAAAA", "val1", 1100);
     db.set("AAAAA", "val2", 1105);
     db.set("AAAAA", "val3", 1110);
@@ -112,6 +121,11 @@ void unittest()
     assert(db.get("AAAA9", 1010) == "val9"); // AAAA91010
     assert(db.get("AAAAA", 1099) == NonVal); // still invalid range
     assert(db.get("AAAA9", 1014) == "val9"); // AAAA91009
+
+    assert(db.get("AAAAA") == "val5");
+    assert(db.get("AAAA9") == "val10");
+    assert(db.get("AAAAB") == "val6");
+    assert(db.get("AAAAD") == "val8");
 }
 
 int main(int argc, char **argv)
