@@ -22,7 +22,12 @@ typedef string RowVal;
 const int KeySize = 5;
 const int64_t MaxVersion = std::numeric_limits<int64_t>::max();
 const string NonVal = "";
+const string TombstoneMark = "DEADMARKER";
 
+/**
+ * The in-memory table uses a red-black tree for ordering row versions of
+ * the same key.
+ */
 class InMemDB {
     typedef map<PKey, RowVal> MemTable;
 
@@ -38,27 +43,39 @@ public:
         return true;
     }
 
-    bool del(string key) {
-        assert(0 == 1);
-        return false;
+    /**
+     * A tombstone record's key has a deletion marker "DEADMARKER" at the end
+     * of its key.
+     */
+    bool del(string key, int64_t timestamp) {
+        PKey tombstoneKey = makeTombstone(key, timestamp);
+        _memtable[tombstoneKey] = NonVal;
+        return true;
     }
 
-    // return the most recent version i.e. key with largest timestamp
+    /**
+     * Return the most recent version i.e. key with largest timestamp.
+     */
     RowVal get(string key) {
         PKey pkey = makeKey(key, MaxVersion);
         auto iter = _memtable.upper_bound(pkey);
         if (iter != _memtable.begin()) {
             auto prevIter = std::prev(iter);
             const PKey& prevKey = prevIter->first;
-            if (!prevKey.compare(0, KeySize, key))
+            if (!prevKey.compare(0, KeySize, key)) {
+                // FIXME: check tombstone record
                 return prevIter->second;
+            }
         }
         return NonVal;
     }
 
     /**
      * Return the largest key whose version is <= timestamp, i.e. a row version
-     * that has committed prior to the timestamp.
+     * that has committed prior to the timestamp. 
+     * 
+     * FIXME: needs to check whether the key has been delete-marked, i.e. tombstone 
+     * record exists.
      */
     RowVal get(string key, int64_t timestamp) {
         PKey pkey = makeKey(key, timestamp);
@@ -86,6 +103,10 @@ private:
 
     PKey makeKey(string key, int64_t timestamp) {
         return key + std::to_string(timestamp);
+    }
+
+    PKey makeTombstone(string key, int64_t timestamp) {
+        return key + std::to_string(timestamp) + TombstoneMark;
     }
 };
 
@@ -126,6 +147,9 @@ void unittest()
     assert(db.get("AAAA9") == "val10");
     assert(db.get("AAAAB") == "val6");
     assert(db.get("AAAAD") == "val8");
+
+    db.del("AAAAA", 1200);
+    assert(db.get("AAAAA") == NonVal);
 }
 
 int main(int argc, char **argv)
