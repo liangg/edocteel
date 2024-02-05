@@ -1,4 +1,5 @@
 #include "stdio.h"
+#include <list> // bidirectional list
 #include <map>
 #include <set>
 #include <string>
@@ -6,6 +7,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+using std::list;
 using std::vector;
 using std::string;
 using std::unordered_map;
@@ -18,6 +20,33 @@ struct ListNode {
     ListNode(int x) : val(x), next(nullptr) {}
     ListNode(int x, ListNode *next) : val(x), next(next) {}
  };
+
+/**
+ * Q-3: Longest Substring Without Repeating Characters
+ */
+class LongestSubstrWithoutRepeatingCharacters {
+public:
+    int lengthOfLongestSubstring(string s) {
+        unordered_set<char> window;
+        int maxLen = 0, windowLen = 0;
+        for (int i = 0; i < s.size(); ++i) {
+            char c = s.at(i);
+            if (window.count(c) == 0) {
+                window.emplace(c);
+                windowLen++;
+                if (windowLen > maxLen)
+                    maxLen = windowLen;
+                continue;
+            }
+            // readjust the window of non-repeating chars
+            for (int j = i - windowLen; s.at(j) != c; ++j) {
+                window.erase(s.at(j));
+                windowLen--;
+            }
+        }
+        return maxLen;
+    }
+};
 
 // Q-18
 class ThreeSum {
@@ -42,6 +71,29 @@ public:
                     r--;
                 else
                     l++;
+            }
+        }
+        return result;
+    }
+};
+
+// Q-55 Merge intervals
+class MergeInterval {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        vector<vector<int>> result;
+        if (intervals.size() == 0)
+            return result;
+        std::sort(intervals.begin(), intervals.end());
+        result.emplace_back(intervals.at(0));
+        for (int i = 1; i < intervals.size(); ++i) {
+            vector<int>& intv = intervals.at(i);
+            vector<int>& prev = result.back();
+            if (intv[0] <= prev[1]) {
+                if (intv[1] > prev[1]) 
+                    prev[1] = intv[1];
+            } else {
+                result.emplace_back(intv);
             }
         }
         return result;
@@ -152,31 +204,90 @@ public:
 };
 
 /**
- * Q-359 Logger rate limiter
+ * Q-146 LRU cache
  * 
- * Design a logger system that receive stream of messages along with its timestamps, each message should 
- * be printed if and only if it is not printed in the last 10 seconds. Given a message and a timestamp 
- * (in seconds granularity), return true if the message should be printed in the given timestamp, 
- * otherwise returns false. It is possible that several messages arrive roughly at the same time.
+ * DB buffer cache uses a doubly linked list for LRU and a Hashmap to reference the buffer 
+ * cache entry. Use std::pair<key,value> to mimic cache entry, and std::list for doubly 
+ * linked list.
  */
-class Logger {
+class LRUCache {
 public:
-    Logger() {}
+    LRUCache(int capacity) : cap_(capacity) {}
     
-    bool shouldPrintMessage(int timestamp, string message) {
-        auto miter = m.find(message);
-        if (miter == m.end() || (timestamp - miter->second) >= TTL) {
-            m[message] = timestamp;
-            return true;
-        } 
-        return false;
+    int get(int key) {
+        auto iter = map_.find(key);        
+        if (iter == map_.end())
+            return -1;
+        // move to the head of the LRU cache
+        lruCache_.splice(lruCache_.begin(), lruCache_, iter->second);
+        return iter->second->second; // return value
+    }
+    
+    void put(int key, int value) {
+        auto iter = map_.find(key);
+        if (iter != map_.end()) {
+            // remove the entry from the list, using the iterator
+            lruCache_.erase(iter->second);
+        }
+        lruCache_.emplace_front(std::make_pair(key, value));
+        map_[key] = lruCache_.begin();
+        // evict the last item to make space
+        if (map_.size() > cap_) {
+            auto& evicted = lruCache_.back();
+            map_.erase(evicted.first);
+            lruCache_.pop_back();
+        }
     }
 
 private:
-    const int TTL = 10; // 10s
-    unordered_map<string, int> m;
+    const int cap_;
+    list<std::pair<int, int>> lruCache_; // (key, value)
+    unordered_map<int, list<std::pair<int, int>>::iterator> map_;
 };
 
+/** Q-148 Sort List */
+class SortList {
+public:
+    ListNode* middleOfList(ListNode* head) {
+        ListNode *prev;
+        for (ListNode *p1 = head, *p2 = head; 
+             p2 != NULL && p2->next != NULL; 
+             prev = p1, p1 = p1->next, p2 = p2->next->next);
+        return prev;
+    }
+
+    ListNode* sortList(ListNode* head) {
+        if (head == NULL || head->next == NULL)
+            return head;
+        ListNode *p1 = head, *mid = middleOfList(head); 
+        ListNode *p2 = mid->next;
+        mid->next = NULL;
+        p1 = sortList(p1);
+        p2 = sortList(p2);
+        ListNode *p3 = NULL, *tail = NULL;
+        for (ListNode* p; p1 != NULL && p2 != NULL; tail = p) {
+            if (p1->val < p2->val) {
+                p = p1;
+                p1 = p1->next;
+            } else {
+                p = p2;
+                p2 = p2->next;
+            }
+            if (p3 == NULL)
+                p3 = tail = p;
+            tail->next = p;
+        }
+        tail->next = p1 != NULL ? p1 : p2;
+        return p3;
+    }
+};
+
+/**
+ * Q-284 Peeking iterator
+ *
+ * Design an iterator that supports the peek operation on an existing iterator in addition 
+ * to the hasNext and the next operations.
+ */
 class Iterator {
  	struct Data;
  	Data* data;
@@ -191,12 +302,6 @@ public:
  	bool hasNext() const;
 };
 
-/**
- * Q-284 Peeking iterator
- *
- * Design an iterator that supports the peek operation on an existing iterator in addition 
- * to the hasNext and the next operations.
- */
 class PeekingIterator : public Iterator {
 public:
 	PeekingIterator(const vector<int>& nums) : Iterator(nums) {
@@ -235,6 +340,32 @@ private:
 };
 
 /**
+ * Q-359 Logger rate limiter
+ * 
+ * Design a logger system that receive stream of messages along with its timestamps, each message should 
+ * be printed if and only if it is not printed in the last 10 seconds. Given a message and a timestamp 
+ * (in seconds granularity), return true if the message should be printed in the given timestamp, 
+ * otherwise returns false. It is possible that several messages arrive roughly at the same time.
+ */
+class Logger {
+public:
+    Logger() {}
+    
+    bool shouldPrintMessage(int timestamp, string message) {
+        auto miter = m.find(message);
+        if (miter == m.end() || (timestamp - miter->second) >= TTL) {
+            m[message] = timestamp;
+            return true;
+        } 
+        return false;
+    }
+
+private:
+    const int TTL = 10; // 10s
+    unordered_map<string, int> m;
+};
+
+/**
  * Q-981: Time based KV store
  * Design a time-based key-value data structure that can store multiple values for the same 
  * key at different time stamps and retrieve the key's value at a certain timestamp. Implement 
@@ -266,3 +397,8 @@ public:
 private:
     unordered_map<string, std::map<int, string>> _kvstore;
 };
+
+int main(int argc, char **argv)
+{
+    return 0;
+}
