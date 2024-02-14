@@ -12,7 +12,7 @@ using std::string;
 using std::vector;
 
 /**
- * In-memory Postgress table
+ * Time-fly KV
  */
 
 // key + version_ts, where key is fixed-sized
@@ -28,11 +28,11 @@ const string TombstoneMark = "DEADMARKER";
  * The in-memory table uses a red-black tree for ordering row versions of
  * the same key.
  */
-class InMemDB {
+class TimeflyKV {
     typedef map<PKey, RowVal> MemTable;
 
 public:
-    InMemDB() {}
+    TimeflyKV() {}
 
     bool set(string key, string value, int64_t timestamp) {
         PKey pkey = makeKey(key, timestamp);
@@ -113,7 +113,7 @@ private:
 void unittest() 
 {
     std::cout << "unittest" << "\n";
-    InMemDB db;
+    TimeflyKV db;
 
     db.set("AAAAA", "val1", 1100);
     db.set("AAAAA", "val2", 1105);
