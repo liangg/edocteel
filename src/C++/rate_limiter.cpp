@@ -93,7 +93,7 @@ public:
   }
 
 private:
-  int fillTokens_;
+  int fillTokens_; // number of tokens per time unit
   int timeUnitMs_; // time unit in seconds
 
   // {userId, {tokens, last_checked_ts}}
@@ -119,7 +119,7 @@ public:
         return true;
       }
 
-      auto& window = userSlidingWindows_[userId];
+      auto& window = iter->second;
       // remove expired request timestamps from the window
       while (!window.empty() && (timestampMs - window.front()) > windowDurationMs_) {
         window.pop();
@@ -135,7 +135,7 @@ public:
     }
 
 private:
-  int windowReqs_; // request
+  int windowReqs_; // request rate limit
   int windowDurationMs_;
 
   // {user_id, sliding_window_queue}

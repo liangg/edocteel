@@ -36,9 +36,12 @@ public:
 
     bool set(string key, string value, int64_t timestamp) {
         PKey pkey = makeKey(key, timestamp);
+        // overwrite or return error
         auto iter = _memtable.find(pkey);
-        if (iter != _memtable.end()) 
+        if (iter != _memtable.end()) {
+            std::cout << "Key already exists: " << key << "+" << timestamp;
             return false;
+        }
         _memtable[pkey] = value;
         return true;
     }

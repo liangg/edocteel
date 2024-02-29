@@ -1,7 +1,9 @@
 #include "stdio.h"
 #include <list> // bidirectional list
 #include <map>
+#include <queue>
 #include <set>
+#include <stack>
 #include <string>
 #include <vector>
 #include <unordered_set>
@@ -9,6 +11,9 @@
 
 using std::list;
 using std::vector;
+using std::queue;
+using std::set;
+using std::stack;
 using std::string;
 using std::unordered_map;
 using std::unordered_set;
@@ -283,6 +288,16 @@ public:
 };
 
 /**
+ * Q-269 Alien dictionary
+ */
+class AlienDictionary {
+public:
+    string alienOrder(vector<string>& words) {
+
+    }
+};
+
+/**
  * Q-284 Peeking iterator
  *
  * Design an iterator that supports the peek operation on an existing iterator in addition 
@@ -339,6 +354,51 @@ private:
     int _saved;
 };
 
+class NestedInteger {
+public:
+    // Return true if this NestedInteger holds a single integer, rather than a nested list.
+    bool isInteger() const;
+ 
+    // Return the single integer that this NestedInteger holds, if it holds a single integer
+    // The result is undefined if this NestedInteger holds a nested list
+    int getInteger() const;
+ 
+    // Return the nested list that this NestedInteger holds, if it holds a nested list
+    // The result is undefined if this NestedInteger holds a single integer
+    const vector<NestedInteger> &getList() const;
+ };
+
+class NestedIterator {
+public:
+    NestedIterator(vector<NestedInteger> &nestedList) {
+        for (int i = nestedList.size()-1; i >= 0; --i) {
+            stk_.push(nestedList[i]);
+        }
+    }
+    
+    int next() {
+        NestedInteger result = stk_.top();
+        stk_.pop();
+        return result.getInteger();
+    }
+    
+    bool hasNext() {
+        while (!stk_.empty()) {
+            NestedInteger item = stk_.top();
+            if (item.isInteger()) return true;
+            stk_.pop();
+            const vector<NestedInteger> &nestedList = item.getList();
+            for (int i = nestedList.size()-1; i >= 0; --i) {
+                stk_.push(nestedList[i]);
+            }
+        }
+        return false;
+    }
+
+private:
+    stack<NestedInteger> stk_;
+};
+
 /**
  * Q-359 Logger rate limiter
  * 
@@ -363,6 +423,39 @@ public:
 private:
     const int TTL = 10; // 10s
     unordered_map<string, int> m;
+};
+
+/**
+ * Q-362 Design Hit Counter 
+ * Design a hit counter which counts the number of hits received in the past 5 minutes. Each function accepts 
+ * a timestamp parameter (in seconds granularity) and you may assume that calls are being made to the system 
+ * in chronological order (ie, the timestamp is monotonically increasing). You may assume that the earliest 
+ * timestamp starts at 1. It is possible that several hits arrive roughly at the same time.
+ */
+class HitCounter {
+public:
+    HitCounter() {}
+    
+    /** Record a hit.
+     * @param timestamp - The current timestamp (in seconds granularity). 
+     */
+    void hit(int timestamp) {
+        window_.push(timestamp);
+    }
+    
+    /** Return the number of hits in the past 5 minutes.
+     * @param timestamp - The current timestamp (in seconds granularity). 
+     */
+    int getHits(int timestamp) {
+        // remove timestamps that has expired the 5-min window
+        while (!window_.empty() && (timestamp - window_.front()) >= 300) {
+            window_.pop();
+        }
+        return window_.size();
+    }
+
+private:
+    std::queue<int> window_; // 5-min window
 };
 
 /**
@@ -396,6 +489,36 @@ public:
 };
 
 /**
+ * Q-588 In-memory file system
+ * 
+ * Design an in-memory file system to simulate the following functions:
+ */
+class InMemFileSystem {
+public:
+    InMemFileSystem() {
+        dirs_["/"] = {};
+    }
+    
+    vector<string> ls(string path) {
+    }
+
+    // path starts with '/'
+    void mkdir(string path) {
+
+    }
+
+    void addContentToFile(string filePath, string content) {}
+
+    string readContentFromFile(string filePath) {}
+
+private:
+    // directory -> ordered set of sub-directories and files
+    unordered_map<string, set<string>> dirs_;
+    // file path -> file
+    unordered_map<string, string> files_;
+};
+
+/**
  * Q-981: Time based KV store
  * Design a time-based key-value data structure that can store multiple values for the same 
  * key at different time stamps and retrieve the key's value at a certain timestamp. Implement 
@@ -423,7 +546,7 @@ public:
         auto iter = data.upper_bound(timestamp); // first greater than timestamp
         return iter == data.begin() ? "" : std::prev(iter)->second;
     }
-    
+
 private:
     unordered_map<string, std::map<int, string>> _kvstore;
 };
