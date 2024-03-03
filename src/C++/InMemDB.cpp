@@ -1,7 +1,8 @@
 
 #include <cassert>
-#include <algorithm>
+#include <algorithm> // for_each
 #include <map>
+#include <memory> // shared_ptr
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -81,8 +82,6 @@ private:
 
 
 class InMemDB {
-    //typedef unordered_map<string /*table name*/, unordered_map<string, vector<int>>> DB_TABLES;
-
 public:
     InMemDB() {}
 
@@ -95,16 +94,15 @@ public:
             std::cout << "Error: table already exists " << tableName << "\n";
             return false;
         }
-        InMemTable table(pkey, columns); // initialize table
-        // tables_.insert({tableName, table});
+        // do not use tables_.emplace(tableName, table) or tables_.insert({tableName, table})
         auto tablePtr = std::make_shared<InMemTable>(pkey, columns);
-        allTables_.insert({tableName, tablePtr});
+        tables_.insert({tableName, tablePtr});
         return true;
     }
 
     std::shared_ptr<InMemTable> findTable(string tableName) {
-        auto iter = allTables_.find(tableName);
-        if (iter == allTables_.end()) {
+        auto iter = tables_.find(tableName);
+        if (iter == tables_.end()) {
             std::cout << "Error: table not exists " << tableName << "\n";
             return nullptr;
         }
@@ -112,8 +110,8 @@ public:
     }
 
 private:
-    unordered_map<string /*table name*/, std::shared_ptr<InMemTable>> allTables_;
-    unordered_map<string /*table name*/, InMemTable> tables_;
+    // table_name -> InMemTable instance
+    unordered_map<string /*table name*/, std::shared_ptr<InMemTable>> tables_;
 };
 
 void check(std::shared_ptr<InMemTable> table, string key) {
