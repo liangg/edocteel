@@ -1,9 +1,11 @@
 
 #include <cassert>
+#include <algorithm>
 #include <map>
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <mutex> // mutex, unique_lock, scoped_lock, lock_guard
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -25,6 +27,12 @@ std::ostream& operator<< (std::ostream& out, const vector<int>& colVec) {
     return out;
 }
 
+/**
+ * In-memory database table
+ * 
+ * 1, Table schmea is maintained in unordered_map<string, int>, column name to vector index
+ * 2, Table PK should be unique
+ */
 class InMemTable {
     typedef unordered_map<string, vector<int>> MEM_TABLE;
 
@@ -53,8 +61,8 @@ public:
 
     bool del(string pkey) { return false; }
 
-    vector<int> select(string pkey) {
-        MEM_TABLE::iterator iter = table_.find(pkey);
+    vector<int> select(string pkey) const {
+        auto iter = table_.find(pkey);
         if (iter == table_.end()) {
             std::cout << "ERROR: pkey not found " << pkey << std::endl;
             return {};
@@ -67,11 +75,13 @@ private:
     MEM_TABLE table_;
     // Table schema: column name -> column's vector index
     unordered_map<string, int> schema_;
+    // Table level lock
+    std::mutex tableLock_;
 };
 
 
 class InMemDB {
-    typedef unordered_map<string /*table name*/, InMemTable> DB_TABLES;
+    //typedef unordered_map<string /*table name*/, unordered_map<string, vector<int>>> DB_TABLES;
 
 public:
     InMemDB() {}
@@ -80,38 +90,49 @@ public:
      * A table has a PKey (string) and a few columns of type int.
      */
     bool createTable(string tableName, string pkey, const vector<string>& columns) {        
-        DB_TABLES::iterator iter = tables_.find(tableName);
+        auto iter = tables_.find(tableName);
         if (iter != tables_.end()) {
             std::cout << "Error: table already exists " << tableName << "\n";
             return false;
         }
         InMemTable table(pkey, columns); // initialize table
-        tables_.insert({tableName, std::move(table)});
+        // tables_.insert({tableName, table});
+        auto tablePtr = std::make_shared<InMemTable>(pkey, columns);
+        allTables_.insert({tableName, tablePtr});
         return true;
     }
 
-    InMemTable* findTable(string tableName) {
-        DB_TABLES::iterator iter = tables_.find(tableName);
-        if (iter == tables_.end()) {
+    std::shared_ptr<InMemTable> findTable(string tableName) {
+        auto iter = allTables_.find(tableName);
+        if (iter == allTables_.end()) {
             std::cout << "Error: table not exists " << tableName << "\n";
             return nullptr;
         }
-        return &iter->second;
+        return iter->second;
     }
 
 private:
-    DB_TABLES tables_;
+    unordered_map<string /*table name*/, std::shared_ptr<InMemTable>> allTables_;
+    unordered_map<string /*table name*/, InMemTable> tables_;
 };
+
+void check(std::shared_ptr<InMemTable> table, string key) {
+    auto res = table->select(key);
+    auto printCols = [](int col) { std::cout << col << ","; };
+    std::cout << "(";
+    std::for_each(res.begin(), res.end(), printCols);
+    std::cout << ")" << std::endl;
+}
 
 void test1(InMemDB& imdb) {
     imdb.createTable("table1", "pkey", {"col1", "col2"});
-    InMemTable* table1 = imdb.findTable("table1");
+    std::shared_ptr<InMemTable> table1 = imdb.findTable("table1");
     assertm(table1 != nullptr, "table1 not found");
     table1->insert("AA", {1,2});
     table1->insert("AB", {3,4});
-    std::cout << table1->select("AA");
-    std::cout << table1->select("AB");
-    std::cout << table1->select("AC");
+    check(table1, "AA");
+    check(table1, "AB");
+    check(table1, "AC"); // not found
 }
 
 int main(int argc, char  **argv) {
