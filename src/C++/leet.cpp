@@ -298,6 +298,65 @@ public:
 };
 
 /**
+ * Q-251 Flatten 2D vectors
+ * 
+ * Implement an iterator to flatten a 2d vector. Given 2D vector [[1,2], [3], [4,5,6]], 
+ * The iterator returns [1,2,3,4,5,6]. Use an iterator to implement this.
+ */
+class TwoDVectorIterator {
+public:
+    TwoDVectorIterator(vector<vector<int>>& vec2d) 
+        : iter(vec2d.begin()), end(vec2d.end()) {}
+
+    int next() {
+        hasNext(); // make sure iter & innerIdx
+        return (*iter)[innerIdx++];
+    }
+
+    bool hasNext() {
+        while (iter != end && (*iter).size() == innerIdx) {
+            iter++;
+            innerIdx = 0;
+        }
+        return iter != end;
+    }
+
+private:
+    vector<vector<int>>::iterator iter, end;
+    int innerIdx = 0;
+};
+
+/**
+ * Q-281 Zigzag iterator
+ * 
+ * Given 2 or K 1-d vectors, implement an iterator to return their elements alternately.
+ */
+class ZigzagIterator {
+public:
+    ZigzagIterator(vector<int>& v1, vector<int>& v2) {
+        if (!v1.empty()) que_.push(make_pair(v1.begin(), v1.end()));
+        if (!v2.empty()) que_.push(make_pair(v2.begin(), v2.end()));
+    }
+
+    int next() {
+        auto iter = que_.front().first;
+        auto end = que_.front().second;
+        que_.pop();
+        if (iter + 1 != end) que_.push(std::make_pair(iter + 1, end));
+        return *iter;
+    }
+
+    bool hasNext() {
+        return !que_.empty();
+    }
+
+private:
+    // {moving_iterator, vector end_iter}
+    queue<std::pair<vector<int>::iterator, vector<int>::iterator>> que_;
+};
+
+
+/**
  * Q-284 Peeking iterator
  *
  * Design an iterator that supports the peek operation on an existing iterator in addition 
